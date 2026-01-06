@@ -1,0 +1,15 @@
+# Requirements for portable distribution builds
+# Uses minimum version constraints to allow pip to find Python 3.14 compatible wheels
+certifi>=2024.8.30
+charset-normalizer>=3.4.0
+colorama>=0.4.6
+idna>=3.10
+numpy>=2.2.0
+pillow>=11.3.0
+psutil>=6.1.0
+py7zr>=1.0.0
+pyside6>=6.9.2
+requests>=2.32.3
+tqdm>=4.67.1
+urllib3>=2.2.3
+Wand>=0.6.13
