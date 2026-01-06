@@ -11,7 +11,7 @@ import re
 APP_NAME = "TextureAtlas Toolbox"
 APP_VERSION = "2.0.0"
 REPO_OWNER = "MeguminBOT"
-REPO_NAME = "TextureAtlas-to-GIF-and-Frames"
+REPO_NAME = "TextureAtlas-Toolbox"
 
 _API_ROOT = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}"
 GITHUB_TAGS_URL = f"{_API_ROOT}/tags"
