@@ -3,9 +3,16 @@
 
 This module provides both a standalone entry point (``python update_installer.py``)
 and library utilities for performing in-app or external update workflows.
-Supports source-mode updates (zip download) and executable-mode updates
-(7z archive with pre-built binaries).
+
+Supports three update modes:
+    - **Source mode**: Updates source files via GitHub zipball (for dev/source installs)
+    - **Executable mode**: Updates compiled .exe via 7z archive (Nuitka builds)
+    - **Embedded mode**: Updates embedded Python distribution via 7z archive
 """
+
+from __future__ import annotations
+
+from enum import Enum, auto
 
 import os
 import sys
@@ -33,6 +40,21 @@ from utils.version import (  # noqa: E402
     GITHUB_LATEST_RELEASE_URL,
     GITHUB_RELEASE_BY_TAG_URL,
 )
+
+
+class UpdateMode(Enum):
+    """Enums for update installation modes.
+
+    Attributes:
+        SOURCE: Update from GitHub zipball (source/development installs).
+        EXECUTABLE: Update compiled Nuitka .exe builds from 7z archive.
+        EMBEDDED: Update embedded Python distributions from 7z archive.
+    """
+
+    SOURCE = auto()
+    EXECUTABLE = auto()
+    EMBEDDED = auto()
+
 
 try:
     import py7zr
@@ -336,6 +358,83 @@ class UpdateUtilities:
             return False
 
     @staticmethod
+    def is_embedded_python() -> bool:
+        """Return True if running inside an embedded Python distribution.
+
+        Detects embedded Python by checking for the characteristic ._pth file
+        and pythonw.exe in the same directory as the Python executable.
+        """
+        python_dir = Path(sys.executable).parent
+        # Embedded Python has a ._pth file like python314._pth
+        pth_files = list(python_dir.glob("python*._pth"))
+        pythonw_exists = (python_dir / "pythonw.exe").exists()
+        return bool(pth_files) and pythonw_exists
+
+    @staticmethod
+    def detect_update_mode() -> UpdateMode:
+        """Automatically detect the appropriate update mode for this installation.
+
+        Returns:
+            UpdateMode.EXECUTABLE for Nuitka-compiled builds.
+            UpdateMode.EMBEDDED for embedded Python distributions.
+            UpdateMode.SOURCE for source/development installations.
+        """
+        if UpdateUtilities.is_compiled():
+            return UpdateMode.EXECUTABLE
+        if UpdateUtilities.is_embedded_python():
+            return UpdateMode.EMBEDDED
+        return UpdateMode.SOURCE
+
+    @staticmethod
+    def find_embedded_python_dir(search_dir: str) -> str | None:
+        """Locate the embedded Python directory within a distribution.
+
+        Args:
+            search_dir: Root directory to search (e.g., app root).
+
+        Returns:
+            Path to the ``python`` directory, or None if not found.
+        """
+        python_dir = os.path.join(search_dir, "python")
+        if os.path.isdir(python_dir):
+            # Verify it's actually an embedded Python
+            python_exe = os.path.join(python_dir, "python.exe")
+            pth_files = list(Path(python_dir).glob("python*._pth"))
+            if os.path.isfile(python_exe) and pth_files:
+                return python_dir
+        return None
+
+    @staticmethod
+    def find_locked_python_files(python_dir: str) -> list[str]:
+        """Find Python runtime files that are currently locked.
+
+        Checks for locked DLLs, .pyd files, and executables that would
+        prevent a successful update.
+
+        Args:
+            python_dir: Path to the embedded Python directory.
+
+        Returns:
+            List of locked file paths.
+        """
+        locked_files = []
+        lockable_patterns = ("*.dll", "*.pyd", "*.exe")
+
+        for pattern in lockable_patterns:
+            for filepath in Path(python_dir).glob(pattern):
+                if UpdateUtilities.is_file_locked(str(filepath)):
+                    locked_files.append(str(filepath))
+
+        # Also check Lib/site-packages for locked .pyd files
+        site_packages = Path(python_dir) / "Lib" / "site-packages"
+        if site_packages.exists():
+            for pyd_file in site_packages.rglob("*.pyd"):
+                if UpdateUtilities.is_file_locked(str(pyd_file)):
+                    locked_files.append(str(pyd_file))
+
+        return locked_files
+
+    @staticmethod
     def find_exe_files(directory):
         """List ``.exe`` filenames located directly under ``directory``."""
 
@@ -413,10 +512,94 @@ def _write_metadata_file(metadata):
     return metadata_path
 
 
+def _create_temp_python_environment(
+    source_python_dir: Path, app_src_path: Path = None
+) -> Path | None:
+    """Copy the embedded Python directory to a temporary location.
+
+    This allows the updater to run from an isolated Python copy while
+    updating the original embedded Python installation. The original
+    Python files would otherwise be locked by the running process.
+
+    Args:
+        source_python_dir: Path to the original embedded Python directory.
+        app_src_path: Path to the app's src directory (added to ._pth file).
+
+    Returns:
+        Path to the temporary Python directory, or None on failure.
+    """
+    try:
+        temp_dir = Path(tempfile.mkdtemp(prefix="tatgf_updater_python_"))
+        temp_python = temp_dir / "python"
+
+        print(f"Creating temporary Python environment at: {temp_python}")
+
+        # Copy the entire embedded Python directory
+        shutil.copytree(source_python_dir, temp_python)
+
+        # Verify the copy has the required files
+        python_exe = temp_python / "python.exe"
+        if not python_exe.exists():
+            print(f"Failed to copy Python: python.exe not found in {temp_python}")
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            return None
+
+        # Modify the ._pth file to enable imports from the app's src directory
+        # Embedded Python uses ._pth to restrict import paths and disable site
+        # We need to add the app's src path and enable 'import site' for PYTHONPATH
+        pth_files = list(temp_python.glob("python*._pth"))
+        for pth_file in pth_files:
+            try:
+                content = pth_file.read_text(encoding="utf-8")
+                lines = content.splitlines()
+                new_lines = []
+                site_enabled = False
+
+                for line in lines:
+                    # Uncomment 'import site' if commented
+                    if line.strip() == "#import site":
+                        new_lines.append("import site")
+                        site_enabled = True
+                    elif line.strip() == "import site":
+                        new_lines.append(line)
+                        site_enabled = True
+                    else:
+                        new_lines.append(line)
+
+                # Add the app's src path if provided
+                if app_src_path:
+                    src_path_str = str(app_src_path.resolve())
+                    if src_path_str not in new_lines:
+                        new_lines.append(src_path_str)
+                        print(f"Added app src path to ._pth: {src_path_str}")
+
+                # Ensure import site is enabled (required for PYTHONPATH to work)
+                if not site_enabled:
+                    new_lines.append("import site")
+
+                pth_file.write_text("\n".join(new_lines), encoding="utf-8")
+                print(f"Modified {pth_file.name} for updater compatibility")
+
+            except Exception as e:
+                print(f"Warning: Could not modify {pth_file.name}: {e}")
+
+        print(f"Temporary Python environment created successfully")
+        return temp_python
+
+    except Exception as e:
+        print(f"Failed to create temporary Python environment: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return None
+
+
 def launch_external_updater(
     release_metadata=None,
     latest_version=None,
     exe_mode=False,
+    embedded_mode=False,
+    update_mode: UpdateMode | None = None,
     wait_seconds=3,
 ):
     """Spawn a detached Python process to run the updater via ``Main.py --update``.
@@ -424,29 +607,68 @@ def launch_external_updater(
     The new process can overwrite files (including Main.py itself) because the
     original application will have exited.
 
+    For EMBEDDED mode, creates a temporary copy of the Python environment so
+    the updater can run independently while updating the original installation.
+
     Args:
         release_metadata: Dict with tag_name, zipball_url, etc.
         latest_version: Target version string.
-        exe_mode: True to update executable builds rather than source.
+        exe_mode: Deprecated. Use update_mode=UpdateMode.EXECUTABLE instead.
+        embedded_mode: Deprecated. Use update_mode=UpdateMode.EMBEDDED instead.
+        update_mode: The UpdateMode enum specifying update type.
         wait_seconds: Seconds to delay before the updater begins work.
 
     Returns:
         True if the process started successfully.
     """
+    # Resolve update mode from arguments (prefer explicit UpdateMode)
+    if update_mode is None:
+        if exe_mode:
+            update_mode = UpdateMode.EXECUTABLE
+        elif embedded_mode:
+            update_mode = UpdateMode.EMBEDDED
+        else:
+            update_mode = UpdateMode.SOURCE
 
     script_path = Path(__file__).resolve()
     project_root = script_path.parents[2]
 
+    # Determine which Python executable to use
+    python_executable = sys.executable
+    temp_python_dir = None
+
+    # For EMBEDDED mode, create a temporary Python environment
+    # This allows the updater to run independently while updating the original
+    if update_mode == UpdateMode.EMBEDDED and UpdateUtilities.is_embedded_python():
+        source_python_dir = Path(sys.executable).parent
+        app_src_path = project_root / "src"
+        temp_python_dir = _create_temp_python_environment(
+            source_python_dir, app_src_path
+        )
+
+        if temp_python_dir:
+            python_executable = str(temp_python_dir / "python.exe")
+            print(f"Using temporary Python for update: {python_executable}")
+        else:
+            print(
+                "Warning: Could not create temp Python, using original (may cause lock issues)"
+            )
+
     # Run Main.py with --update flag instead of update_installer.py directly
     # This allows Main.py to update itself since the old process will be gone
     main_py = project_root / "src" / "Main.py"
-    args = [sys.executable, str(main_py), "--update"]
+    args = [python_executable, str(main_py), "--update"]
 
     if wait_seconds is not None:
         args.extend(["--wait", str(wait_seconds)])
 
-    if exe_mode:
+    # Pass the update mode to the spawned process
+    if update_mode == UpdateMode.EXECUTABLE:
         args.append("--exe-mode")
+    elif update_mode == UpdateMode.EMBEDDED:
+        args.append("--embedded-mode")
+        # Pass the original app root so the updater knows where to apply updates
+        args.extend(["--app-root", str(project_root)])
 
     if latest_version:
         args.extend(["--target-tag", latest_version])
@@ -457,11 +679,28 @@ def launch_external_updater(
         # Store path in environment for the updater to find
         os.environ["UPDATER_METADATA_FILE"] = str(metadata_path)
 
+    # Also store temp python dir path for cleanup after update
+    if temp_python_dir:
+        os.environ["UPDATER_TEMP_PYTHON_DIR"] = str(temp_python_dir.parent)
+
     print(f"Launching external updater: {' '.join(args)}")
     print(f"Working directory: {project_root}")
 
+    # Build environment for the subprocess
+    env = os.environ.copy()
+
+    # For temp Python, ensure it can find the app's source modules
+    if temp_python_dir:
+        src_path = str(project_root / "src")
+        existing_pythonpath = env.get("PYTHONPATH", "")
+        if existing_pythonpath:
+            env["PYTHONPATH"] = f"{src_path}{os.pathsep}{existing_pythonpath}"
+        else:
+            env["PYTHONPATH"] = src_path
+        print(f"Set PYTHONPATH for temp Python: {env['PYTHONPATH']}")
+
     # Use CREATE_NEW_PROCESS_GROUP on Windows for proper detachment
-    kwargs = {"cwd": str(project_root)}
+    kwargs = {"cwd": str(project_root), "env": env}
     if os.name == "nt":
         # CREATE_NEW_PROCESS_GROUP = 0x00000200
         # DETACHED_PROCESS = 0x00000008
@@ -484,31 +723,68 @@ def launch_external_updater(
 class Updater:
     """Download and apply updates, reporting progress through an optional Qt UI.
 
-    Supports both source-mode (zipball) and executable-mode (7z) updates.
+    Supports source-mode (zipball), executable-mode (7z), and embedded Python (7z) updates.
     """
 
-    def __init__(self, ui=None, exe_mode=False, target_tag=None, release_metadata=None):
+    def __init__(
+        self,
+        ui=None,
+        exe_mode: bool = False,
+        embedded_mode: bool = False,
+        update_mode: UpdateMode | None = None,
+        target_tag: str | None = None,
+        release_metadata: dict | None = None,
+        app_root: str | None = None,
+    ):
         """Create an Updater with optional Qt UI and target release info.
 
         Args:
             ui: QtUpdateDialog or similar object with log/set_progress methods.
-            exe_mode: True when updating a compiled executable distribution.
+            exe_mode: Deprecated. Use update_mode=UpdateMode.EXECUTABLE.
+            embedded_mode: Deprecated. Use update_mode=UpdateMode.EMBEDDED.
+            update_mode: Explicit UpdateMode enum value.
             target_tag: Specific tag to update to, or None for latest.
             release_metadata: Pre-fetched release info dict.
+            app_root: Override for app root directory (used when running from temp Python).
         """
         self.ui = ui
-        self.exe_mode = exe_mode
         self.log_file = None
         self.target_tag = target_tag
         self.release_metadata = release_metadata or {}
+        self.app_root_override = app_root  # Used when running from temp Python env
+
+        # Resolve update mode from arguments (prefer explicit UpdateMode)
+        if update_mode is not None:
+            self.update_mode = update_mode
+        elif exe_mode:
+            self.update_mode = UpdateMode.EXECUTABLE
+        elif embedded_mode:
+            self.update_mode = UpdateMode.EMBEDDED
+        else:
+            self.update_mode = UpdateMode.SOURCE
+
+        # Legacy compatibility properties
+        self.exe_mode = self.update_mode == UpdateMode.EXECUTABLE
+        self.embedded_mode = self.update_mode == UpdateMode.EMBEDDED
+
         self._setup_log_file()
 
     def _setup_log_file(self):
         """Create the ``logs`` directory and open a timestamped log file."""
 
         try:
-            if self.exe_mode and UpdateUtilities.is_compiled():
+            # Use app_root_override if running from temp Python
+            if self.app_root_override:
+                app_dir = self.app_root_override
+            elif (
+                self.update_mode == UpdateMode.EXECUTABLE
+                and UpdateUtilities.is_compiled()
+            ):
                 app_dir = os.path.dirname(sys.executable)
+            elif self.update_mode == UpdateMode.EMBEDDED:
+                # For embedded mode, logs go in the app root (parent of python/)
+                python_dir = os.path.dirname(sys.executable)
+                app_dir = os.path.dirname(python_dir)
             else:
                 app_dir = self.find_project_root() or os.getcwd()
             logs_dir = os.path.join(app_dir, "logs")
@@ -555,32 +831,36 @@ class Updater:
             print("Update complete! Please restart the application manually.")
 
     @staticmethod
-    def get_latest_release_info(tag_name=None, fallback_metadata=None):
+    def get_latest_release_info(
+        tag_name=None, fallback_metadata=None, require_assets=False
+    ):
         """Fetch release metadata from GitHub or use provided fallback.
 
-        When ``fallback_metadata`` already contains a zipball_url, no network
-        request is made.
+        When ``fallback_metadata`` already contains a zipball_url AND assets
+        are not required, no network request is made.
 
         Args:
             tag_name: Specific tag to query, or None for latest release.
             fallback_metadata: Pre-fetched metadata dict.
+            require_assets: If True, always fetch fresh data to ensure assets array.
 
         Returns:
-            Dict with tag_name, zipball_url, and other release fields.
+            Dict with tag_name, zipball_url, assets, and other release fields.
         """
         # If we already have complete metadata with download URL, use it directly
+        # BUT if we need assets and they're not present, fetch fresh data
         if fallback_metadata and fallback_metadata.get("zipball_url"):
-            data = {
-                "tag_name": tag_name or fallback_metadata.get("tag_name", "unknown")
-            }
-            data.update(fallback_metadata)
-            return data
+            if not require_assets or fallback_metadata.get("assets"):
+                data = {
+                    "tag_name": tag_name or fallback_metadata.get("tag_name", "unknown")
+                }
+                data.update(fallback_metadata)
+                return data
 
         # Otherwise, try to fetch from GitHub
         if tag_name:
-            response = requests.get(
-                GITHUB_RELEASE_BY_TAG_URL.format(tag=tag_name), timeout=30
-            )
+            url = GITHUB_RELEASE_BY_TAG_URL.format(tag=tag_name)
+            response = requests.get(url, timeout=30)
             if response.status_code == 404 and fallback_metadata:
                 data = {"tag_name": tag_name}
                 data.update(fallback_metadata)
@@ -593,15 +873,23 @@ class Updater:
         return response.json()
 
     @staticmethod
-    def _detect_project_root(directory, exe_mode=False):
+    def _detect_project_root(
+        directory: str,
+        exe_mode: bool = False,
+        update_mode: UpdateMode | None = None,
+    ) -> bool:
         """Return True if ``directory`` matches the expected project layout.
 
         For executable mode, checks for assets, ImageMagick, and at least one
-        .exe file. For source mode, also requires src, LICENSE, README.md, etc.
+        .exe file. For embedded mode, checks for python/, src/, assets/.
+        For source mode, also requires src, LICENSE, README.md, etc.
         """
-        if exe_mode:
+        # Resolve update_mode from legacy exe_mode if not provided
+        if update_mode is None:
+            update_mode = UpdateMode.EXECUTABLE if exe_mode else UpdateMode.SOURCE
+
+        if update_mode == UpdateMode.EXECUTABLE:
             required_folders = ["assets", "ImageMagick"]
-            required_files = []
 
             for folder in required_folders:
                 if not os.path.isdir(os.path.join(directory, folder)):
@@ -613,6 +901,23 @@ class Updater:
                 return False
 
             return True
+
+        elif update_mode == UpdateMode.EMBEDDED:
+            # Embedded Python distribution has python/ folder with the runtime
+            required_folders = ["assets", "ImageMagick", "src", "python"]
+
+            for folder in required_folders:
+                if not os.path.isdir(os.path.join(directory, folder)):
+                    return False
+
+            # Verify the python folder has an embedded Python
+            python_dir = os.path.join(directory, "python")
+            python_exe = os.path.join(python_dir, "python.exe")
+            if not os.path.isfile(python_exe):
+                return False
+
+            return True
+
         else:
             # For source mode, look for full project structure
             required_folders = ["assets", "ImageMagick", "src"]
@@ -660,8 +965,8 @@ class Updater:
     def wait_for_main_app_closure(self, max_wait_seconds=30):
         """Block until key application files are unlocked.
 
-        In executable mode, the wait time is extended to allow DLLs to be
-        released.
+        In executable and embedded mode, the wait time is extended to allow
+        DLLs and Python runtime files to be released.
 
         Args:
             max_wait_seconds: Timeout before giving up.
@@ -672,11 +977,16 @@ class Updater:
         self.log("Waiting for main application to close...")
         self.set_progress(5, "Waiting for application closure...")
 
-        # For executable mode, wait longer since DLLs might need more time to be released
-        if self.exe_mode:
+        # For executable/embedded mode, wait longer for DLLs/Python runtime release
+        if self.update_mode in (UpdateMode.EXECUTABLE, UpdateMode.EMBEDDED):
             max_wait_seconds = 60
+            mode_name = (
+                "Executable"
+                if self.update_mode == UpdateMode.EXECUTABLE
+                else "Embedded Python"
+            )
             self.log(
-                "Executable mode detected, extending wait time for DLL release...",
+                f"{mode_name} mode detected, extending wait time for file release...",
                 "info",
             )
 
@@ -684,7 +994,10 @@ class Updater:
         while time.time() - start_time < max_wait_seconds:
             locked_files = []
 
-            if self.exe_mode and UpdateUtilities.is_compiled():
+            if (
+                self.update_mode == UpdateMode.EXECUTABLE
+                and UpdateUtilities.is_compiled()
+            ):
                 current_exe = sys.executable
                 if UpdateUtilities.is_file_locked(current_exe):
                     locked_files.append(current_exe)
@@ -698,6 +1011,26 @@ class Updater:
                             dll_path = os.path.join(imagemagick_dir, dll_file)
                             if UpdateUtilities.is_file_locked(dll_path):
                                 locked_files.append(dll_path)
+
+            elif self.update_mode == UpdateMode.EMBEDDED:
+                # Check for locked Python runtime files
+                app_root = self.find_project_root()
+                if app_root:
+                    python_dir = os.path.join(app_root, "python")
+                    if os.path.exists(python_dir):
+                        locked_python_files = UpdateUtilities.find_locked_python_files(
+                            python_dir
+                        )
+                        locked_files.extend(locked_python_files)
+
+                    # Also check ImageMagick DLLs
+                    imagemagick_dir = os.path.join(app_root, "ImageMagick")
+                    if os.path.exists(imagemagick_dir):
+                        for dll_file in os.listdir(imagemagick_dir):
+                            if dll_file.lower().endswith(".dll"):
+                                dll_path = os.path.join(imagemagick_dir, dll_file)
+                                if UpdateUtilities.is_file_locked(dll_path):
+                                    locked_files.append(dll_path)
 
             else:
                 project_root = self.find_project_root()
@@ -728,15 +1061,31 @@ class Updater:
         self.log("Timeout waiting for application closure", "warning")
         return False
 
-    def find_project_root(self):
-        """Determine the project root for source or executable mode."""
+    def find_project_root(self) -> str | None:
+        """Determine the project root for the current update mode.
 
-        if self.exe_mode:
+        Returns:
+            Path to the project/app root directory, or None if not found.
+        """
+        # Use override if provided (when running from temp Python environment)
+        if self.app_root_override:
+            return self.app_root_override
+
+        if self.update_mode == UpdateMode.EXECUTABLE:
             if UpdateUtilities.is_compiled():
                 return os.path.dirname(sys.executable)
             else:
                 # Extra fallback just in case.
                 return os.getcwd()
+
+        elif self.update_mode == UpdateMode.EMBEDDED:
+            # For embedded mode, app root is parent of python/ directory
+            if UpdateUtilities.is_embedded_python():
+                python_dir = os.path.dirname(sys.executable)
+                return os.path.dirname(python_dir)
+            # Fallback: look for README.md like source mode
+            return UpdateUtilities.find_root("README.md")
+
         else:
             return UpdateUtilities.find_root("README.md")
 
@@ -1060,7 +1409,10 @@ class Updater:
 
             self.set_progress(15, "Fetching release information...")
 
-            info = self.get_latest_release_info(self.target_tag, self.release_metadata)
+            # Executable updates need the assets array to find the .7z package
+            info = self.get_latest_release_info(
+                self.target_tag, self.release_metadata, require_assets=True
+            )
             self.log(f"Found latest release: {info.get('tag_name', 'unknown')}", "info")
 
             assets = info.get("assets", [])
@@ -1283,6 +1635,253 @@ class Updater:
             self.set_progress(0, "Update failed!")
             if self.ui:
                 self.ui.log(f"Executable update failed: {str(e)}", "error")
+
+    def update_embedded(self):
+        """Download and install the latest embedded Python distribution package."""
+        try:
+            self.log("Starting embedded Python distribution update...", "info")
+
+            if platform.system() != "Windows":
+                raise Exception(
+                    f"Embedded Python updates are only supported on Windows. "
+                    f"Current platform: {platform.system()}."
+                )
+
+            self.set_progress(10, "Finding application directory...")
+
+            app_root = self.find_project_root()
+            if not app_root:
+                raise Exception("Could not determine application directory")
+
+            python_dir = os.path.join(app_root, "python")
+            if not os.path.exists(python_dir):
+                raise Exception(
+                    f"Embedded Python directory not found at: {python_dir}\n"
+                    "This doesn't appear to be an embedded Python distribution."
+                )
+
+            self.log(f"Application directory: {app_root}", "info")
+            self.log(f"Python directory: {python_dir}", "info")
+
+            # Check for locked Python files before proceeding
+            locked_files = UpdateUtilities.find_locked_python_files(python_dir)
+            if locked_files:
+                self.log(
+                    f"Found {len(locked_files)} locked Python runtime files",
+                    "warning",
+                )
+                if not self.wait_for_main_app_closure():
+                    self.log(
+                        "WARNING: Some Python runtime files are still locked. "
+                        "Update may fail or require deferred file replacement.",
+                        "warning",
+                    )
+            else:
+                self.log("No locked Python files detected", "success")
+
+            self._ensure_write_permissions(app_root)
+
+            self.set_progress(15, "Fetching release information...")
+
+            # Embedded updates need the assets array to find the .7z package
+            info = self.get_latest_release_info(
+                self.target_tag, self.release_metadata, require_assets=True
+            )
+            self.log(f"Found latest release: {info.get('tag_name', 'unknown')}", "info")
+
+            # Look for embedded Python 7z asset
+            assets = info.get("assets", [])
+            embedded_asset = None
+
+            # Pattern: TextureAtlasToolbox-*-embedded-python-*.7z
+            for asset in assets:
+                name_lower = asset["name"].lower()
+                if "embedded-python" in name_lower and name_lower.endswith(".7z"):
+                    embedded_asset = asset
+                    break
+
+            if not embedded_asset:
+                raise Exception(
+                    "No embedded Python release package (.7z with 'embedded-python') "
+                    "found in latest release. Available assets: "
+                    + ", ".join(a["name"] for a in assets)
+                )
+
+            download_url = embedded_asset["browser_download_url"]
+            file_size = embedded_asset.get("size", 0)
+
+            self.log(f"Downloading: {embedded_asset['name']}", "info")
+            self.log(f"Size: {file_size / 1024 / 1024:.2f} MB", "info")
+
+            self.set_progress(20, "Downloading embedded Python archive...")
+
+            response = requests.get(download_url, stream=True)
+            response.raise_for_status()
+
+            with tempfile.NamedTemporaryFile(suffix=".7z", delete=False) as tmp_file:
+                tmp_path = tmp_file.name
+                downloaded = 0
+
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        tmp_file.write(chunk)
+                        downloaded += len(chunk)
+                        if file_size:
+                            progress = 20 + (downloaded * 40 // file_size)
+                            self.set_progress(
+                                progress,
+                                f"Downloaded {downloaded / 1024 / 1024:.1f} MB",
+                            )
+
+            self._verify_download_size(
+                tmp_path, file_size, downloaded, "embedded archive"
+            )
+
+            self.log(f"Download complete: {tmp_path}", "success")
+            self.set_progress(60, "Extracting archive...")
+
+            extract_dir = tempfile.mkdtemp()
+            self.log(f"Extracting to: {extract_dir}", "info")
+
+            if not UpdateUtilities.extract_7z(tmp_path, extract_dir):
+                raise Exception(
+                    "Failed to extract 7z archive. Make sure py7zr is installed "
+                    "or 7z command is available."
+                )
+
+            self.set_progress(70, "Detecting release structure...")
+
+            # Find the release root (may be nested in a folder)
+            extracted_contents = os.listdir(extract_dir)
+            self.log(f"Extracted contents: {', '.join(extracted_contents)}", "info")
+
+            release_root = extract_dir
+            if len(extracted_contents) == 1 and os.path.isdir(
+                os.path.join(extract_dir, extracted_contents[0])
+            ):
+                potential_root = os.path.join(extract_dir, extracted_contents[0])
+                # Check if this looks like an embedded Python distribution
+                if os.path.isdir(os.path.join(potential_root, "python")):
+                    release_root = potential_root
+
+            release_contents = os.listdir(release_root)
+            self.log(f"Release contents: {', '.join(release_contents)}", "info")
+
+            # Verify the release has the expected structure
+            if not os.path.isdir(os.path.join(release_root, "python")):
+                raise Exception(
+                    "Release package does not contain 'python' directory. "
+                    "This doesn't appear to be a valid embedded Python distribution."
+                )
+
+            self.set_progress(80, "Installing update...")
+
+            # Items to update (order matters - python last due to potential locks)
+            items_to_copy = [
+                "assets",
+                "ImageMagick",
+                "src",
+                "docs",
+                "LICENSE",
+                "README.md",
+                "latestVersion.txt",
+            ]
+
+            # Add launcher scripts if they exist
+            for item in release_contents:
+                if item.endswith(".bat"):
+                    items_to_copy.append(item)
+
+            # Copy python directory last (most likely to have locked files)
+            items_to_copy.append("python")
+
+            for item in items_to_copy:
+                src_path = os.path.join(release_root, item)
+                dst_path = os.path.join(app_root, item)
+
+                if os.path.exists(src_path):
+                    self.log(f"Installing {item}...", "info")
+                    try:
+                        if os.path.isdir(src_path):
+                            if os.path.exists(dst_path):
+                                self._merge_directory(src_path, dst_path)
+                            else:
+                                shutil.copytree(src_path, dst_path)
+                        else:
+                            self._copy_file_with_retry(src_path, dst_path)
+                        self.log(f"Successfully installed {item}", "success")
+                    except Exception as e:
+                        self.log(f"Failed to install {item}: {str(e)}", "error")
+                        # Only fail hard on critical items
+                        if item in ("src", "python"):
+                            raise e
+                else:
+                    if item not in ("docs", "latestVersion.txt"):  # Optional items
+                        self.log(f"Warning: {item} not found in release", "warning")
+
+            # Cleanup
+            os.remove(tmp_path)
+            shutil.rmtree(extract_dir, ignore_errors=True)
+            self.log("Cleanup completed", "info")
+
+            self.set_progress(100, "Update complete!")
+            self.log("Embedded Python update completed successfully!", "success")
+            self.log(
+                "Please restart the application to use the updated version.", "info"
+            )
+
+            def restart_app():
+                if self.ui:
+                    self.ui.close()
+
+                # Use the launcher batch file if available
+                launcher_bat = os.path.join(app_root, "TextureAtlas Toolbox.bat")
+                python_exe = os.path.join(app_root, "python", "pythonw.exe")
+                main_py = os.path.join(app_root, "src", "Main.py")
+
+                try:
+                    self.log("Attempting to restart application...", "info")
+
+                    if os.path.exists(launcher_bat):
+                        self.log(f"Using launcher: {launcher_bat}", "info")
+                        subprocess.Popen(
+                            ["cmd", "/c", launcher_bat],
+                            cwd=app_root,
+                            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                        )
+                    elif os.path.exists(python_exe) and os.path.exists(main_py):
+                        self.log(f"Using Python: {python_exe}", "info")
+                        subprocess.Popen(
+                            [python_exe, main_py],
+                            cwd=app_root,
+                            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                        )
+                    else:
+                        self.log(
+                            "Could not find launcher. Please start manually.",
+                            "warning",
+                        )
+                        self.log(f"App root: {app_root}", "info")
+
+                    self.log("Application restart initiated", "success")
+                    time.sleep(2)
+
+                except Exception as e:
+                    self.log(f"Failed to restart application: {e}", "error")
+                    self.log(
+                        "Please manually start the application using the launcher script.",
+                        "warning",
+                    )
+
+                sys.exit(0)
+
+            self.enable_restart(restart_app)
+
+        except Exception as e:
+            self.log(f"Embedded Python update failed: {str(e)}", "error")
+            self.set_progress(0, "Update failed!")
+            if self.ui:
+                self.ui.log(f"Embedded update failed: {str(e)}", "error")
 
     def _merge_directory(self, src_dir, dst_dir):
         """Recursively copy files from ``src_dir`` to ``dst_dir``.
@@ -1523,14 +2122,16 @@ class Updater:
         if UpdateUtilities.has_write_access(target_dir) or UpdateUtilities.is_admin():
             return
 
-        compiled_mode = self.exe_mode and UpdateUtilities.is_compiled()
+        needs_elevation = (
+            self.update_mode == UpdateMode.EXECUTABLE and UpdateUtilities.is_compiled()
+        ) or self.update_mode == UpdateMode.EMBEDDED
 
         self.log(
             f"Administrator privileges are required to modify files under {target_dir}.",
             "warning",
         )
 
-        if compiled_mode:
+        if needs_elevation:
             command = self._build_elevation_command()
             if UpdateUtilities.run_elevated(command):
                 self.log(
@@ -1555,8 +2156,10 @@ class Updater:
 
         cmd.append("--wait=0")
 
-        if self.exe_mode and "--exe-mode" not in cmd:
+        if self.update_mode == UpdateMode.EXECUTABLE:
             cmd.append("--exe-mode")
+        elif self.update_mode == UpdateMode.EMBEDDED:
+            cmd.append("--embedded-mode")
 
         if "--no-gui" not in cmd:
             cmd.append("--no-gui")
@@ -1576,26 +2179,55 @@ class UpdateInstaller:
 
     def download_and_install(
         self,
-        release_metadata=None,
-        latest_version=None,
+        release_metadata: dict | None = None,
+        latest_version: str | None = None,
         parent_window=None,
-        exe_mode=None,
+        exe_mode: bool | None = None,
+        embedded_mode: bool | None = None,
+        update_mode: UpdateMode | None = None,
+        app_root: str | None = None,
     ):
-        """Launch the updater dialog and run the appropriate update flow."""
+        """Launch the updater dialog and run the appropriate update flow.
 
+        Args:
+            release_metadata: Pre-fetched release info dict.
+            latest_version: Target version string for display.
+            parent_window: Parent Qt widget for the dialog.
+            exe_mode: Deprecated. Use update_mode=UpdateMode.EXECUTABLE.
+            embedded_mode: Deprecated. Use update_mode=UpdateMode.EMBEDDED.
+            update_mode: Explicit UpdateMode enum value. Auto-detected if None.
+            app_root: Override for app root directory (used when running from temp Python).
+        """
         dialog_parent = parent_window or self.parent
         QApplication.instance() or QApplication(sys.argv)
         dialog = QtUpdateDialog(dialog_parent)
-        exe_mode = UpdateUtilities.is_compiled() if exe_mode is None else exe_mode
+
+        # Resolve update mode
+        if update_mode is None:
+            if exe_mode is True:
+                update_mode = UpdateMode.EXECUTABLE
+            elif embedded_mode is True:
+                update_mode = UpdateMode.EMBEDDED
+            else:
+                # Auto-detect based on current environment
+                update_mode = UpdateUtilities.detect_update_mode()
+
         metadata = release_metadata or {}
         updater = Updater(
             ui=dialog,
-            exe_mode=exe_mode,
+            update_mode=update_mode,
             target_tag=metadata.get("tag_name"),
             release_metadata=metadata,
+            app_root=app_root,
         )
 
-        mode_label = "executable" if exe_mode else "source"
+        mode_labels = {
+            UpdateMode.SOURCE: "source",
+            UpdateMode.EXECUTABLE: "executable",
+            UpdateMode.EMBEDDED: "embedded Python",
+        }
+        mode_label = mode_labels.get(update_mode, "unknown")
+
         dialog.log(f"Starting {mode_label} update...", "info")
         dialog.log(f"Currently running version {APP_VERSION}", "info")
         if latest_version:
@@ -1613,8 +2245,10 @@ class UpdateInstaller:
         def _run_update():
             try:
                 print(f"[Worker Thread] Starting {mode_label} update...")
-                if exe_mode:
+                if update_mode == UpdateMode.EXECUTABLE:
                     updater.update_exe()
+                elif update_mode == UpdateMode.EMBEDDED:
+                    updater.update_embedded()
                 else:
                     updater.update_source()
                 print("[Worker Thread] Update completed successfully")
@@ -1643,7 +2277,17 @@ def main():
         "--no-gui", action="store_true", help="Run in console mode without GUI"
     )
     parser.add_argument(
-        "--exe-mode", action="store_true", help="Run in executable update mode"
+        "--exe-mode", action="store_true", help="Run in compiled executable update mode"
+    )
+    parser.add_argument(
+        "--embedded-mode",
+        action="store_true",
+        help="Run in embedded Python distribution update mode",
+    )
+    parser.add_argument(
+        "--auto-detect",
+        action="store_true",
+        help="Automatically detect update mode from environment",
     )
     parser.add_argument(
         "--wait", type=int, default=3, help="Seconds to wait before starting update"
@@ -1652,6 +2296,12 @@ def main():
         "--metadata-file", help="Path to release metadata JSON", default=None
     )
     parser.add_argument("--latest-version", help="Target version label", default=None)
+    parser.add_argument("--target-tag", help="Target release tag", default=None)
+    parser.add_argument(
+        "--app-root",
+        help="Override app root directory (used when running from temp Python)",
+        default=None,
+    )
 
     args = parser.parse_args()
 
@@ -1670,25 +2320,61 @@ def main():
             except OSError:
                 pass
 
+    # Resolve update mode from CLI args
+    if args.exe_mode:
+        update_mode = UpdateMode.EXECUTABLE
+    elif args.embedded_mode:
+        update_mode = UpdateMode.EMBEDDED
+    elif args.auto_detect:
+        update_mode = UpdateUtilities.detect_update_mode()
+        print(f"Auto-detected update mode: {update_mode.name}")
+    else:
+        update_mode = UpdateMode.SOURCE
+
+    target_tag = args.target_tag or (release_metadata or {}).get("tag_name")
+
     if not args.no_gui and QT_AVAILABLE:
         installer = UpdateInstaller()
         installer.download_and_install(
             release_metadata=release_metadata,
             latest_version=args.latest_version,
-            exe_mode=args.exe_mode,
+            update_mode=update_mode,
+            app_root=args.app_root,
         )
+        _cleanup_temp_python_environment()
         return
 
     updater = Updater(
         ui=None,
-        exe_mode=args.exe_mode,
-        target_tag=(release_metadata or {}).get("tag_name"),
+        update_mode=update_mode,
+        target_tag=target_tag,
         release_metadata=release_metadata,
+        app_root=args.app_root,
     )
-    if args.exe_mode:
+
+    if update_mode == UpdateMode.EXECUTABLE:
         updater.update_exe()
+    elif update_mode == UpdateMode.EMBEDDED:
+        updater.update_embedded()
     else:
         updater.update_source()
+
+    # Clean up temp Python directory if we were running from one
+    _cleanup_temp_python_environment()
+
+
+def _cleanup_temp_python_environment():
+    """Clean up temporary Python environment after update completes."""
+    temp_python_dir = os.environ.get("UPDATER_TEMP_PYTHON_DIR")
+    if temp_python_dir and os.path.exists(temp_python_dir):
+        print(f"Cleaning up temporary Python environment: {temp_python_dir}")
+        try:
+            # Small delay to ensure all file handles are released
+            time.sleep(1)
+            shutil.rmtree(temp_python_dir, ignore_errors=True)
+            print("Temporary Python environment cleaned up")
+        except Exception as e:
+            print(f"Warning: Could not clean up temp Python: {e}")
 
 
 if __name__ == "__main__":

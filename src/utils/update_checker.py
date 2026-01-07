@@ -77,6 +77,7 @@ class UpdateCheckWorker(QThread):
                 "tag_name": tag_name,
                 "zipball_url": (release_data or selected_tag).get("zipball_url"),
                 "tarball_url": (release_data or selected_tag).get("tarball_url"),
+                "assets": (release_data or {}).get("assets", []),
                 "changelog": changelog,
             }
 
@@ -279,6 +280,7 @@ class UpdateChecker:
                 "tag_name": tag_name,
                 "zipball_url": (release_data or selected_tag).get("zipball_url"),
                 "tarball_url": (release_data or selected_tag).get("tarball_url"),
+                "assets": (release_data or {}).get("assets", []),
             }
 
             if not metadata["zipball_url"]:
@@ -419,13 +421,14 @@ class UpdateChecker:
         try:
             from utils.update_installer import UpdateUtilities, launch_external_updater
 
-            exe_mode = UpdateUtilities.is_compiled()
-            print(f"Launching external updater (exe_mode={exe_mode})...")
+            # Auto-detect the appropriate update mode
+            update_mode = UpdateUtilities.detect_update_mode()
+            print(f"Launching external updater (update_mode={update_mode.name})...")
 
             success = launch_external_updater(
                 release_metadata=update_payload,
                 latest_version=latest_version,
-                exe_mode=exe_mode,
+                update_mode=update_mode,
                 wait_seconds=3,
             )
 

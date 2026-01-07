@@ -1180,12 +1180,18 @@ def main():
     sys.exit(app.exec())
 
 
-def run_updater(exe_mode: bool, wait_seconds: int = 3, target_tag: str = None):
+def run_updater(
+    exe_mode: bool = False,
+    embedded_mode: bool = False,
+    wait_seconds: int = 3,
+    target_tag: str = None,
+    app_root: str = None,
+):
     """Run the updater in a separate process context with Qt GUI."""
     import time
     import json
     import threading
-    from utils.update_installer import Updater
+    from utils.update_installer import Updater, UpdateMode, UpdateUtilities
 
     # Import QtUpdateDialog - it's available since Qt is required for Main.py
     try:
@@ -1198,6 +1204,23 @@ def run_updater(exe_mode: bool, wait_seconds: int = 3, target_tag: str = None):
     if wait_seconds > 0:
         print(f"Waiting {wait_seconds} seconds for main app to close...")
         time.sleep(wait_seconds)
+
+    # Resolve update mode
+    if exe_mode:
+        update_mode = UpdateMode.EXECUTABLE
+    elif embedded_mode:
+        update_mode = UpdateMode.EMBEDDED
+    else:
+        # Auto-detect based on environment
+        update_mode = UpdateUtilities.detect_update_mode()
+
+    mode_labels = {
+        UpdateMode.SOURCE: "source",
+        UpdateMode.EXECUTABLE: "executable",
+        UpdateMode.EMBEDDED: "embedded Python",
+    }
+    mode_label = mode_labels.get(update_mode, "unknown")
+    print(f"Update mode: {mode_label}")
 
     # Check for metadata file passed via environment
     release_metadata = {}
@@ -1223,12 +1246,12 @@ def run_updater(exe_mode: bool, wait_seconds: int = 3, target_tag: str = None):
     # Create updater with the dialog as UI
     updater = Updater(
         ui=dialog,
-        exe_mode=exe_mode,
+        update_mode=update_mode,
         target_tag=target_tag or release_metadata.get("tag_name"),
         release_metadata=release_metadata,
+        app_root=app_root,
     )
 
-    mode_label = "executable" if exe_mode else "source"
     dialog.log(f"Starting {mode_label} update...", "info")
     dialog.log(f"Currently running version {APP_VERSION}", "info")
     if target_tag:
@@ -1237,8 +1260,10 @@ def run_updater(exe_mode: bool, wait_seconds: int = 3, target_tag: str = None):
     def _run_update():
         try:
             print(f"[Worker Thread] Starting {mode_label} update...")
-            if exe_mode:
+            if update_mode == UpdateMode.EXECUTABLE:
                 updater.update_exe()
+            elif update_mode == UpdateMode.EMBEDDED:
+                updater.update_embedded()
             else:
                 updater.update_source()
             print("[Worker Thread] Update completed successfully")
@@ -1263,13 +1288,17 @@ def run_updater(exe_mode: bool, wait_seconds: int = 3, target_tag: str = None):
 
 if __name__ == "__main__":
     import argparse
-    from utils.update_installer import UpdateUtilities
 
     try:
         parser = argparse.ArgumentParser(description="TextureAtlas Toolbox")
         parser.add_argument("--update", action="store_true", help="Run in update mode")
         parser.add_argument(
             "--exe-mode", action="store_true", help="Force executable update mode"
+        )
+        parser.add_argument(
+            "--embedded-mode",
+            action="store_true",
+            help="Force embedded Python update mode",
         )
         parser.add_argument(
             "--target-tag",
@@ -1280,13 +1309,23 @@ if __name__ == "__main__":
         parser.add_argument(
             "--wait", type=int, default=3, help="Seconds to wait before starting update"
         )
+        parser.add_argument(
+            "--app-root",
+            type=str,
+            default=None,
+            help="Override app root directory (used when running from temp Python)",
+        )
         args = parser.parse_args()
 
         if args.update:
             # Update mode: run the updater instead of the main app
-            exe_mode = args.exe_mode or UpdateUtilities.is_compiled()
+            # Priority: explicit flags > auto-detection
             run_updater(
-                exe_mode=exe_mode, wait_seconds=args.wait, target_tag=args.target_tag
+                exe_mode=args.exe_mode,
+                embedded_mode=args.embedded_mode,
+                wait_seconds=args.wait,
+                target_tag=args.target_tag,
+                app_root=args.app_root,
             )
         else:
             # Normal mode: run the main application

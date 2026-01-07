@@ -472,14 +472,19 @@ pause
         try:
             # Use 7z to create archive with maximum compression
             # -t7z: 7z archive type
+            # -m0=LZMA2: Use LZMA2 compression (compatible with py7zr)
+            # -mf=off: Disable BCJ/BCJ2 filters (BCJ2 is NOT supported by py7zr)
             # -mx=9: maximum compression
             # -mfb=273: maximum fast bytes for LZMA2
             # -ms=on: solid archive
+            # Note: We explicitly disable filters for py7zr compatibility
             result = subprocess.run(
                 [
                     sevenz_cmd,
                     "a",           # add to archive
                     "-t7z",        # 7z format
+                    "-m0=LZMA2",   # LZMA2 compression (py7zr compatible)
+                    "-mf=off",     # Disable BCJ/BCJ2 filters (py7zr doesn't support BCJ2)
                     "-mx=9",       # maximum compression
                     "-mfb=273",    # fast bytes
                     "-ms=on",      # solid archive
