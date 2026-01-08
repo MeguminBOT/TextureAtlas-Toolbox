@@ -150,8 +150,10 @@ class DependenciesChecker:
             )
 
         os.environ["PATH"] = dll_path + os.pathsep + os.environ.get("PATH", "")
-        os.environ["MAGICK_HOME"] = dll_path
-        os.environ["MAGICK_CODER_MODULE_PATH"] = dll_path
+
+        coders_path = os.path.join(dll_path, "modules", "coders")
+        if os.path.isdir(coders_path):
+            os.environ["MAGICK_CODER_MODULE_PATH"] = coders_path
 
         print(f"Using bundled ImageMagick from: {dll_path}")
 
