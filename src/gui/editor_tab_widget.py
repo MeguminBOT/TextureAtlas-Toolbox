@@ -2126,10 +2126,11 @@ class EditorTabWidget(BaseTabWidget):
             )
             return
         if self._is_composite_animation(animation):
-            reference_frame = self._current_reference_frame(animation)
-            self._apply_composite_translation(
-                animation, offset_x, offset_y, reference_frame
-            )
+            translate_x, translate_y = self._get_composite_translation(animation)
+            frame = animation.frames[self._current_frame_index]
+            frame.offset_x = offset_x - translate_x
+            frame.offset_y = offset_y - translate_y
+            self._refresh_ghost_if_frame_changed(self._current_frame_index)
             return
         frame = animation.frames[self._current_frame_index]
         frame.offset_x = offset_x
@@ -2158,10 +2159,11 @@ class EditorTabWidget(BaseTabWidget):
             )
             return
         if self._is_composite_animation(animation):
-            reference_frame = self._current_reference_frame(animation)
-            self._apply_composite_translation(
-                animation, offset_x, offset_y, reference_frame
-            )
+            translate_x, translate_y = self._get_composite_translation(animation)
+            frame = animation.frames[self._current_frame_index]
+            frame.offset_x = offset_x - translate_x
+            frame.offset_y = offset_y - translate_y
+            self._refresh_ghost_if_frame_changed(self._current_frame_index)
             return
         frame = animation.frames[self._current_frame_index]
         frame.offset_x = offset_x
