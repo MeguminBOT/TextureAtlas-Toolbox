@@ -1,7 +1,9 @@
 # Release Notes
+Version history and changelog for TextureAtlas Toolbox (formerly TextureAtlas to GIF and Frames).
 
-## 🗂️ Table of Contents (Major Versions)
+## Table of Contents (Major Versions)
 
+- [Version 2.0.x](#version-20x)
 - [Version 1.9.x](#version-19x)
 - [Version 1.8.x](#version-18x)
 - [Version 1.7.x](#version-17x)
@@ -12,25 +14,116 @@
 - [Version 1.2.x](#version-12x)
 - [Version 1.1.x](#version-11x)
 - [Version 1.0.x](#version-10x)
-- [Planned Features (2.0.0)](#future-development)
 
 ---
 
-Version history and changelog for TextureAtlas to GIF and Frames.
+## Current Version
 
-
-## 📋 Current Version
-
-### Version 1.9.5 (Current)
-Release date: **Not released yet**
+### Version 2.0.1 (Current)
+Release date: **January 10, 2026**
 
 ---
 
-## 📚 Version History
+## Version History
+
+### Version 2.0.x
+
+_
+
+#### Version 2.0.1
+Release date: **January 10, 2026**
+##### Bugfixes
+- Bugfix: **Frame offset drift**: Prevent offset creep when editing composite animations in the editor tab
+- Bugfix: **ImageMagick for embedded builds**: Resolved path issues when running from embedded python releases
+- Bugfix: **Update System:** Fixed detection of the available assets from the repository
+
+_
+
+#### Version 2.0.0 
+Release date: **January 06, 2026**
+
+*This is the biggest update yet.*
+
+
+##### Highlights
+- **Rebranded to TextureAtlas Toolbox**: The project has been renamed from "TextureAtlas to GIF and
+  Frames" to better reflect its expanded capabilities beyond just extraction.
+
+- **Complete UI rewrite in Qt (PySide6)**: The entire interface has been remade
+  for improved responsiveness, accessibility, and cross-platform consistency.
+
+
+- **New "Embedded Python" release variant**: 
+
+  A new portable release option that bundles
+  a complete and isolated Python environment.
+
+  This is now the recommended way to run the application, as
+  standalone `.exe` builds almost always trigger false positives in the most common antivirus softwares. This release type works as if it were an executable release by using `.bat` or `.sh` scripts to launch.
+
+##### New Features
+- Feature: **Automatic Dark/Light mode detection** 
+
+- Feature: **Extended format support**: *Now supports 15+ TextureAtlas/Spritesheet formats and more image formats*
+
+- Feature: **Generator Tab**: 
+*Create texture atlases/spritesheets from individual frames—not just extract them.*
+
+- Feature: **Editor Tab**: *Adjust per-frame offsets or combine frames from multiple animations into a single animation output.*
+
+- Feature: **Multi-language support**: *Most languages are currently machine translated until community translations get added.*
+
+- Feature: **Per-frame delay editing**: *Set custom durations for individual frames in animations through the Animation Preview window.*
+
+- Feature: **Multiple duration input formats**: *Specify frame timing as fps, milliseconds (ms), centiseconds (cs), deciseconds (ds), or format-native units*
+
+- Feature: **First-startup dialog**: *Asks user wheter they want to update notifications and language settings*
+
+- Feature: **Resampling options**: *Support common resampling options for image scaling*
+
+##### Enhancements
+- Enhancement: **Significantly improved processing time**. Optimized the Extractor logic.
+
+- Enhancement: **Frame duration precision**: Refactored calculations to hopefully prevent floating-point errors
+
+##### Internal / Developer
+- Added both quick and extensive tests which can be found in the `tests/` directory
+
+- Setup scripts updated to install Python 3.14.0
+
+- Rewritten most of the documentation instead of having fully AI generated documentation.
+
+##### Translation Editor Tool (`tools/translator-app/`)
+A new GUI application to help contributors translate TextureAtlas Toolbox into other languages without
+needing developer tools like Qt Linguist.
+
+- **Visual translation editor**: Edit `.ts` translation files with a clean, user-friendly interface
+
+- **Smart string grouping**: Related strings are organized together for context
+
+- **Placeholder syntax highlighting**: Visual feedback for `{variable}` placeholders
+
+- **Real-time validation**: Warns about missing or malformed placeholders before saving
+
+- **Machine translation support**: Optional DeepL, Google Translate, and LibreTranslate API integration
+
+- **Customizable keyboard shortcuts**: Configure hotkeys to match your workflow
+
+- **Theme support**: Light/dark themes.
+
+- **Keyword filtering**: Quickly find specific translation strings
+
+- **Obsolete string detection**: Identifies unused translations for cleanup
+
+I may have missed some bugfixes/enhancements or features, but if I have, then this doc will be updated soon.
+
+---
 
 ### Version 1.9.x
 
 #### Version 1.9.5
+Release date: **June 2025**
+
 - Bugfix: **Start process button can no longer be pressed if there's an extraction already started**
 - Bugfix: **CPU Thread amount is now properly using the value from AppConfig**
 - Enhancement: **Debug console can now be shown for .exe releases if started through Command Prompt / PowerShell**
@@ -57,7 +150,7 @@ Release date: **Not released yet**
     - *Toggle Automatically install new updates*
     - *Automatic config file migration between versions*
 - Tweak: **Updated in-app help menu**
-    - *Added missing option descriptions and the new ones**
+    - *Added missing option descriptions and the new ones*
     - *FNF Settings advice updated*
 - Misc: **Contributors Menu**
 - Misc: **New app icon by [Julnz](https://www.julnz.com/)**
@@ -211,78 +304,15 @@ v1.4.0: 52.55 seconds
 
 ---
 
-## 🔮 Planned Features
+## Known Issues
+- **Memory issues**: Adobe Spritemaps require a lot of processing time to be extracted, some spritemaps may take up to several minutes before it actually starts generating any output. This process takes more time depending on your RAM and CPU.
 
-### Future Development
-*Note: The following features are planned for future versions but are not currently implemented*
-
-#### Version 2.0.0 (Future Major Release)
-- **Command-line interface**: Full CLI for automation and scripting
-- **Plugin system**: Third-party extension support
-- **Additional input formats**: More texture atlas formats beyond PNG/XML/TXT
-- **Enhanced memory management**: Dynamic memory limit controls
-- **Performance improvements**: GPU acceleration and advanced optimization
-
-#### Near-term Improvements
-- **Drag & drop support**: Easier file loading through drag and drop
-- **Undo/redo system**: Reversible operations for settings changes
-- **Preset management**: Save and load configuration presets
-- **Advanced filtering**: Search and filter animations
-- **Extended image format support**: Support for additional input image formats
+- **Incorrect output on Adobe Spritemaps**: In some cases depending on how the spritemap was made in Adobe Flash/Animate, output may either miss something or straight up have incorrect alignment, please report a new issue [here](https://github.com/MeguminBOT/TextureAtlas-Toolbox/issues) and attach your extracted output and the affected spritemap file(s) so it can be investigated. 
 
 ---
 
-## 🐛 Known Issues
-
-### Current Limitations
-- **Large file handling**: Very large atlases (>4GB) may cause memory issues on systems with limited RAM
-- **Complex XML variants**: Some non-standard XML formats may not be fully supported
-- **Platform differences**: Minor UI differences between operating systems
-- **Preview performance**: Large animations may preview slowly on older hardware
-- **Memory limit controls**: Memory limit settings in preferences are not yet active (UI placeholder for future implementation)
-
-### Workarounds
-- **Memory issues**: Process animations individually for very large atlases
-- **XML compatibility**: Convert to standard Starling/Sparrow format if needed
-- **Performance**: Use lower scale settings for previews, full scale for final export
-- **Complex animations**: Break down large animation sets into smaller batches
-
----
-
-## 🔄 Update Process
-
-### Automatic Updates
-1. **Update checker**: Runs automatically on application startup
-2. **Notification**: Dialog appears when new version is available
-3. **Download**: Click "Yes" to open GitHub releases page
-4. **Manual installation**: Download and extract new version
-
-### Manual Updates
-1. **Download**: Get latest release from GitHub
-2. **Backup settings**: Keep your `app_config.cfg` file
-3. **Replace files**: Extract new version over old installation
-4. **Verify**: Run application to confirm successful update
-
-### Settings Migration
-- **Preserved**: User settings and configurations
-- **Reset if needed**: Delete `app_config.cfg` to reset to defaults
-- **Compatibility**: Settings format maintained across versions
-
----
-
-## 🤝 Contributing
-
-### How to Contribute
-- **Bug reports**: Submit issues on GitHub with detailed information
-- **Feature requests**: Suggest improvements through GitHub issues
-- **Code contributions**: Fork, develop, and submit pull requests
-- **Documentation**: Help improve guides and documentation
-
-### Development Setup
-See [Developer Documentation](developer-docs.md) for detailed setup instructions.
-
----
-*For installation instructions, see the [Installation Guide](installation-guide.md). For usage help, check the [User Manual](user-manual.md).*
+Check out the "[Documentation Hub](docs/README.md)" for more information related to installing, usage, contributing and licenses etc.
 
 
-*Last updated: June 23, 2025 - Version 1.9.5 - Visit the [📚 Documentation →](docs/README.md) for more details*
+
+Last updated: January 10, 2026 — TextureAtlas Toolbox v2.0.1
