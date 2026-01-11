@@ -32,6 +32,10 @@ _
 
 #### Version 2.0.1
 Release date: **January 10, 2026**
+
+##### Features
+- Feature: **Allow forcing dark or light mode**
+
 ##### Bugfixes
 - Bugfix: **Frame offset drift**: Prevent offset creep when editing composite animations in the editor tab
 - Bugfix: **ImageMagick for embedded builds**: Resolved path issues when running from embedded python releases

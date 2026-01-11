@@ -125,7 +125,7 @@ class TextureAtlasExtractorApp(QMainWindow):
         self.fnf_char_json_directory = ""
         self.replace_rules = []
         self.linkSourceCode = (
-            "https://github.com/MeguminBOT/TextureAtlas-to-GIF-and-Frames"
+            "https://github.com/MeguminBOT/TextureAtlas-Toolbox"
         )
 
         # Initialize UI
