@@ -1158,6 +1158,22 @@ class TextureAtlasExtractorApp(QMainWindow):
         self.ui.tools_tab.setCurrentWidget(self.editor_tab_widget)
 
 
+def apply_color_scheme(app: QApplication, scheme: str) -> None:
+    """Apply the specified color scheme to the application.
+
+    Args:
+        app: The QApplication instance.
+        scheme: One of 'auto', 'light', or 'dark'.
+    """
+    style_hints = app.styleHints()
+    if scheme == "light":
+        style_hints.setColorScheme(Qt.ColorScheme.Light)
+    elif scheme == "dark":
+        style_hints.setColorScheme(Qt.ColorScheme.Dark)
+    else:
+        style_hints.setColorScheme(Qt.ColorScheme.Unknown)
+
+
 def main():
     """Main entry point for the application."""
     # Enable high DPI support
@@ -1171,6 +1187,11 @@ def main():
     app.setApplicationName("TextureAtlas Toolbox")
     app.setApplicationVersion(APP_VERSION)
     app.setOrganizationName("AutisticLulu")
+
+    # Apply color scheme from config before creating the main window
+    config = AppConfig()
+    color_scheme = config.get_color_scheme()
+    apply_color_scheme(app, color_scheme)
 
     # Create and show the main window
     window = TextureAtlasExtractorApp()

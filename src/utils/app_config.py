@@ -94,6 +94,7 @@ class AppConfig:
             "use_native_file_dialog": False,
             "merge_duplicate_frames": True,
             "duration_input_type": "fps",
+            "color_scheme": "auto",
         },
     }
 
@@ -149,6 +150,7 @@ class AppConfig:
         "filter_single_frame_spritemaps": bool,
         "use_native_file_dialog": bool,
         "origin_mode": str,
+        "color_scheme": str,
     }
 
     def __init__(self, config_path=None):
@@ -498,3 +500,22 @@ class AppConfig:
             manager = get_translation_manager()
             return manager.get_system_locale()
         return language
+
+    def get_color_scheme(self):
+        """Return the stored color scheme preference.
+
+        Returns:
+            One of 'auto', 'light', or 'dark'.
+        """
+        return self.settings.get("interface", {}).get("color_scheme", "auto")
+
+    def set_color_scheme(self, scheme):
+        """Set the application color scheme and persist to disk.
+
+        Args:
+            scheme: One of 'auto', 'light', or 'dark'.
+        """
+        if "interface" not in self.settings:
+            self.settings["interface"] = {}
+        self.settings["interface"]["color_scheme"] = scheme
+        self.save()

@@ -11,6 +11,7 @@ import multiprocessing
 import subprocess
 import psutil
 from PySide6.QtWidgets import (
+    QApplication,
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
@@ -149,6 +150,7 @@ class AppConfigWindow(QDialog):
         self.use_native_file_dialog_cb = None
         self.merge_duplicates_cb = None
         self.duration_input_type_combo = None
+        self.color_scheme_combo = None
         self.duration_label = None
         self.duration_spinbox = None
         self._duration_display_type = None
@@ -219,6 +221,23 @@ class AppConfigWindow(QDialog):
         scroll_area.setFrameShape(QFrame.Shape.NoFrame)
         scroll_area.setWidget(content_widget)
         return scroll_area
+
+    def _apply_color_scheme(self, scheme: str) -> None:
+        """Apply the specified color scheme to the application immediately.
+
+        Args:
+            scheme: One of 'auto', 'light', or 'dark'.
+        """
+        app = QApplication.instance()
+        if app is None:
+            return
+        style_hints = app.styleHints()
+        if scheme == "light":
+            style_hints.setColorScheme(Qt.ColorScheme.Light)
+        elif scheme == "dark":
+            style_hints.setColorScheme(Qt.ColorScheme.Dark)
+        else:
+            style_hints.setColorScheme(Qt.ColorScheme.Unknown)
 
     def create_system_tab(self):
         """Build the system resources tab with CPU and memory controls.
@@ -1217,6 +1236,11 @@ class AppConfigWindow(QDialog):
             index = self.duration_input_type_combo.findData(duration_type)
             if index >= 0:
                 self.duration_input_type_combo.setCurrentIndex(index)
+        if self.color_scheme_combo:
+            color_scheme = interface.get("color_scheme", "auto")
+            index = self.color_scheme_combo.findData(color_scheme)
+            if index >= 0:
+                self.color_scheme_combo.setCurrentIndex(index)
 
         # Load generator defaults
         generator_defaults = self.app_config.get("generator_defaults", {})
@@ -1300,6 +1324,13 @@ class AppConfigWindow(QDialog):
                 index = self.duration_input_type_combo.findData(default_type)
                 if index >= 0:
                     self.duration_input_type_combo.setCurrentIndex(index)
+            if self.color_scheme_combo:
+                default_scheme = self.app_config.DEFAULTS.get("interface", {}).get(
+                    "color_scheme", "auto"
+                )
+                index = self.color_scheme_combo.findData(default_scheme)
+                if index >= 0:
+                    self.color_scheme_combo.setCurrentIndex(index)
 
             gen_defaults = self.app_config.DEFAULTS["generator_defaults"]
             self._load_generator_settings(gen_defaults)
@@ -1409,6 +1440,8 @@ class AppConfigWindow(QDialog):
                 interface["duration_input_type"] = (
                     self.duration_input_type_combo.currentData()
                 )
+            if self.color_scheme_combo:
+                interface["color_scheme"] = self.color_scheme_combo.currentData()
 
             # Save generator defaults
             generator_defaults = self._collect_generator_settings()
@@ -1421,6 +1454,9 @@ class AppConfigWindow(QDialog):
             self.app_config.settings["interface"] = interface
 
             self.app_config.save()
+
+            if self.color_scheme_combo:
+                self._apply_color_scheme(interface.get("color_scheme", "auto"))
 
             QMessageBox.information(
                 self,
@@ -1476,6 +1512,30 @@ class AppConfigWindow(QDialog):
         """
         widget = QWidget()
         layout = QVBoxLayout(widget)
+
+        # Appearance group
+        appearance_group = QGroupBox(self.tr("Appearance"))
+        appearance_layout = QHBoxLayout(appearance_group)
+
+        color_scheme_label = QLabel(self.tr("Color scheme:"))
+        color_scheme_tooltip = self.tr(
+            "Override the operating system's dark/light mode:\n\n"
+            "• Auto: Follow system theme\n"
+            "• Light: Always use light theme\n"
+            "• Dark: Always use dark theme"
+        )
+        color_scheme_label.setToolTip(color_scheme_tooltip)
+        appearance_layout.addWidget(color_scheme_label)
+
+        self.color_scheme_combo = QComboBox()
+        self.color_scheme_combo.addItem(self.tr("Auto (System)"), "auto")
+        self.color_scheme_combo.addItem(self.tr("Light"), "light")
+        self.color_scheme_combo.addItem(self.tr("Dark"), "dark")
+        self.color_scheme_combo.setToolTip(color_scheme_tooltip)
+        appearance_layout.addWidget(self.color_scheme_combo)
+        appearance_layout.addStretch()
+
+        layout.addWidget(appearance_group)
 
         dir_group = QGroupBox(self.tr("Directory Memory"))
         dir_layout = QVBoxLayout(dir_group)
