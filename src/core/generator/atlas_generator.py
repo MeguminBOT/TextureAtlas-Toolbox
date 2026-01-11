@@ -783,12 +783,17 @@ class AtlasGenerator:
             if img is None:
                 continue
 
+            # Ensure RGBA mode for proper alpha handling
+            if img.mode != "RGBA":
+                img = img.convert("RGBA")
+
             # Handle rotation if needed
             if packed.rotated:
                 img = img.transpose(Image.Transpose.ROTATE_270)
 
-            # Paste onto atlas
-            atlas.paste(img, (packed.x, packed.y), img)
+            # Use alpha_composite for proper alpha blending of semi-transparent pixels
+            # This avoids the double-alpha issue that paste(img, pos, img) can cause
+            atlas.alpha_composite(img, (packed.x, packed.y))
 
         return atlas
 

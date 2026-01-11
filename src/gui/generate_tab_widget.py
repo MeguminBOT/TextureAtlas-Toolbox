@@ -92,21 +92,22 @@ class GeneratorWorker(QThread):
             options = GeneratorOptions(
                 algorithm=self.atlas_settings.get("preferred_algorithm", "maxrects"),
                 heuristic=self.atlas_settings.get("heuristic_hint"),
-                max_width=self.atlas_settings.get("max_size", 8192),
-                max_height=self.atlas_settings.get("max_size", 8192),
+                max_width=self.atlas_settings.get("max_size", 4096),
+                max_height=self.atlas_settings.get("max_size", 4096),
                 padding=self.atlas_settings.get("padding", 2),
                 power_of_two=self.atlas_settings.get("power_of_2", False),
                 allow_rotation=self.atlas_settings.get("allow_rotation", False),
                 allow_flip=self.atlas_settings.get("allow_vertical_flip", False),
                 trim_sprites=self.atlas_settings.get("trim_sprites", False),
+                image_format=self.atlas_settings.get("image_format", "PNG").lower(),
                 export_format=self.output_format,
                 compression_settings=self.atlas_settings.get("compression_settings"),
             )
 
             # Handle manual sizing
             if self.atlas_settings.get("atlas_size_method") == "manual":
-                options.max_width = self.atlas_settings.get("forced_width", 8192)
-                options.max_height = self.atlas_settings.get("forced_height", 8192)
+                options.max_width = self.atlas_settings.get("forced_width", 4096)
+                options.max_height = self.atlas_settings.get("forced_height", 4096)
 
             # Create generator and set progress callback
             generator = AtlasGenerator()
@@ -196,11 +197,13 @@ class GenerateTabWidget(BaseTabWidget):
         # Combined image formats - used for both input and output
         self.IMAGE_FORMATS = {
             ".png": "PNG",
+            ".avif": "AVIF",
             ".bmp": "BMP",
             ".dds": "DDS",
             ".jpeg": "JPEG",
             ".jpg": "JPEG",
             ".tga": "TGA",
+            ".tif": "TIFF",
             ".tiff": "TIFF",
             ".webp": "WebP",
         }
@@ -624,8 +627,12 @@ class GenerateTabWidget(BaseTabWidget):
                             )
 
                             # Handle rotation if needed
+                            # Use ROTATE_90 (90° counter-clockwise) to reverse
+                            # the standard TexturePacker ROTATE_270 (90° clockwise)
                             if rotated:
-                                sprite_region = sprite_region.rotate(-90, expand=True)
+                                sprite_region = sprite_region.transpose(
+                                    Image.Transpose.ROTATE_90
+                                )
 
                             # Rebuild logical canvas when offsets are present
                             frame_x = int(sprite_data.get("frameX", 0))
@@ -643,11 +650,19 @@ class GenerateTabWidget(BaseTabWidget):
                                 or frame_w != sprite_region.width
                                 or frame_h != sprite_region.height
                             ):
-                                canvas = Image.new(
-                                    "RGBA", (frame_w, frame_h), (0, 0, 0, 0)
-                                )
+                                # Calculate destination position
                                 dest_x = max(0, -frame_x)
                                 dest_y = max(0, -frame_y)
+
+                                # Calculate required canvas size to fit sprite
+                                # Some atlases have malformed metadata where
+                                # sprite + offset exceeds frame dimensions
+                                required_w = max(frame_w, dest_x + sprite_region.width)
+                                required_h = max(frame_h, dest_y + sprite_region.height)
+
+                                canvas = Image.new(
+                                    "RGBA", (required_w, required_h), (0, 0, 0, 0)
+                                )
                                 canvas.paste(sprite_region, (dest_x, dest_y))
                                 sprite_region = canvas
 
@@ -974,8 +989,14 @@ class GenerateTabWidget(BaseTabWidget):
             return "maxrects"
         if "guillotine" in text:
             return "guillotine"
-        else:
-            pass
+        if "shelf" in text:
+            return "shelf"
+        if "skyline" in text:
+            return "skyline"
+        if "simple" in text:
+            return "simple"
+        # Default fallback to auto (best fit)
+        return "auto"
 
     def on_algorithm_changed(self, _text):
         """Handle packer algorithm selection change."""
@@ -1299,8 +1320,12 @@ class GenerateTabWidget(BaseTabWidget):
             else False
         )
 
+        # Get image format from combo box
+        image_format = self.image_format_combo.currentText().upper()
+
         if method == "Automatic":
             atlas_settings = {
+                "max_size": 4096,
                 "padding": self.padding_spin.value(),
                 "power_of_2": self.power_of_2_check.isChecked(),
                 "allow_rotation": allow_rotation,
@@ -1309,6 +1334,7 @@ class GenerateTabWidget(BaseTabWidget):
                 "atlas_size_method": "automatic",
                 "preferred_algorithm": algorithm_hint,
                 "heuristic_hint": heuristic_hint,
+                "image_format": image_format,
             }
         elif method == "MinMax":
             atlas_settings = {
@@ -1322,6 +1348,7 @@ class GenerateTabWidget(BaseTabWidget):
                 "atlas_size_method": "minmax",
                 "preferred_algorithm": algorithm_hint,
                 "heuristic_hint": heuristic_hint,
+                "image_format": image_format,
             }
         elif method == "Manual":
             atlas_settings = {
@@ -1341,10 +1368,12 @@ class GenerateTabWidget(BaseTabWidget):
                 "forced_height": self.atlas_size_spinbox_2.value(),
                 "preferred_algorithm": algorithm_hint,
                 "heuristic_hint": heuristic_hint,
+                "image_format": image_format,
             }
         else:
             # Fallback to automatic
             atlas_settings = {
+                "max_size": 4096,
                 "padding": self.padding_spin.value(),
                 "power_of_2": self.power_of_2_check.isChecked(),
                 "allow_rotation": allow_rotation,
@@ -1353,6 +1382,7 @@ class GenerateTabWidget(BaseTabWidget):
                 "atlas_size_method": "automatic",
                 "preferred_algorithm": algorithm_hint,
                 "heuristic_hint": heuristic_hint,
+                "image_format": image_format,
             }
 
         # Add compression settings to atlas_settings
