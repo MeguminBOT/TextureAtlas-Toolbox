@@ -229,7 +229,7 @@ def update_combobox_texts(
     options: Tuple[ComboOption, ...],
     tr_func: Optional[Callable[[str], str]] = None,
 ) -> None:
-    """Update existing combobox items with translated text.
+    """Update existing combobox items with translated text and item data.
 
     Preserves selection by index. Use this when retranslating the UI
     without rebuilding the combobox.
@@ -244,6 +244,7 @@ def update_combobox_texts(
         if i < combobox.count():
             display = tr_func(opt.display_key) if tr_func else opt.display_key
             combobox.setItemText(i, display)
+            combobox.setItemData(i, opt.internal)
     if current_index >= 0:
         combobox.setCurrentIndex(current_index)
 

@@ -124,9 +124,7 @@ class TextureAtlasExtractorApp(QMainWindow):
         self.fnf_character_data = CharacterData()
         self.fnf_char_json_directory = ""
         self.replace_rules = []
-        self.linkSourceCode = (
-            "https://github.com/MeguminBOT/TextureAtlas-Toolbox"
-        )
+        self.linkSourceCode = "https://github.com/MeguminBOT/TextureAtlas-Toolbox"
 
         # Initialize UI
         self.ui = Ui_TextureAtlasToolboxApp()
