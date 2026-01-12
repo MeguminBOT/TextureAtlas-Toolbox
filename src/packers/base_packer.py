@@ -1,26 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Base class for all texture atlas packing algorithms.
+"""Base class for texture atlas packing algorithms.
 
-Provides the abstract interface that all packers must implement, plus
-shared utilities for frame preprocessing, atlas sizing, and result building.
+Provides the abstract interface that packers must implement, plus shared
+utilities for frame preprocessing, atlas sizing, and result building.
 
-The packer system provides a clean separation of concerns:
-    - Packers: Layout algorithms that assign positions to frames.
-    - Exporters: Convert packed layouts to atlas images and metadata.
-
-Usage:
-    from packers.base_packer import BasePacker
-    from packers.packer_types import FrameInput, PackerOptions
-
-    class MyPacker(BasePacker):
-        ALGORITHM_NAME = "my-packer"
-        DISPLAY_NAME = "My Custom Packer"
-
-        def _pack_internal(self, frames, options):
-            # Implement packing logic
-            ...
+Subclasses implement `_pack_internal` with their layout algorithm; the
+base class handles validation, sorting, sizing strategies, and result
+construction.
 """
 
 from __future__ import annotations
@@ -41,37 +29,28 @@ from packers.packer_types import (
 
 
 class BasePacker(ABC):
-    """Abstract base class for texture atlas packing algorithms.
+    """Abstract base for texture atlas packing algorithms.
 
-    Subclasses must implement:
-        - _pack_internal(): Core packing algorithm logic.
-        - ALGORITHM_NAME: Unique identifier for the algorithm.
-        - DISPLAY_NAME: Human-readable name for UI display.
-
-    The base class provides:
-        - pack(): Main entry point with preprocessing and postprocessing.
-        - Frame sorting utilities.
-        - Atlas sizing and expansion logic.
-        - Result building and efficiency calculation.
+    Subclasses must define `ALGORITHM_NAME`, `DISPLAY_NAME`, and implement
+    `_pack_internal`. The base class handles validation, sorting, atlas
+    sizing, expansion, and result building.
 
     Attributes:
         options: Packer configuration options.
     """
 
-    # Subclasses must define these
     ALGORITHM_NAME: str = ""
     DISPLAY_NAME: str = ""
-
-    # Optional: List of supported heuristics for this algorithm
-    SUPPORTED_HEURISTICS: List[Tuple[str, str]] = []  # [(key, display_name), ...]
+    SUPPORTED_HEURISTICS: List[Tuple[str, str]] = []
 
     def __init__(self, options: Optional[PackerOptions] = None) -> None:
-        """Initialize the packer with optional configuration.
+        """Initialize the packer with configuration options.
 
         Args:
-            options: Packer options controlling sizing and layout.
-                     Uses defaults if not provided.
+            options: Packer options controlling sizing and layout behavior.
+                     Defaults to PackerOptions() if not provided.
         """
+
         self.options = options or PackerOptions()
         self._current_heuristic: Optional[str] = None
 
@@ -84,38 +63,34 @@ class BasePacker(ABC):
     ) -> List[PackedFrame]:
         """Core packing algorithm implementation.
 
-        Subclasses implement their specific packing logic here.
-        The frames are already preprocessed (sorted, validated).
+        Subclasses implement their layout logic here. Frames are already
+        sorted and validated.
 
         Args:
-            frames: List of frames to pack (already sorted/validated).
-            width: Available atlas width.
-            height: Available atlas height.
+            frames: Preprocessed frames to pack.
+            width: Available atlas width in pixels.
+            height: Available atlas height in pixels.
 
         Returns:
-            List of PackedFrame with assigned positions.
-            Returns empty list if frames cannot fit.
+            Packed frames with positions, or empty list if they cannot fit.
         """
         pass
 
     def pack(self, frames: List[FrameInput]) -> PackerResult:
         """Pack frames into an atlas layout.
 
-        This is the main entry point for packing. Handles:
-        - Input validation
-        - Frame preprocessing (sorting, cloning)
-        - Atlas sizing and expansion
-        - Result building with efficiency metrics
+        Main entry point. Validates input, preprocesses frames, selects
+        sizing strategy (POT-aware or aspect-ratio optimization), and
+        builds the result with efficiency metrics.
 
         Args:
-            frames: List of frames to pack.
+            frames: Frames to pack.
 
         Returns:
-            PackerResult with packed frames, dimensions, and diagnostics.
+            Result containing packed frames, dimensions, and diagnostics.
         """
         result = PackerResult(algorithm_name=self.ALGORITHM_NAME)
 
-        # Validate inputs
         if not frames:
             result.add_error(
                 PackerErrorCode.NO_FRAMES_PROVIDED,
@@ -124,22 +99,61 @@ class BasePacker(ABC):
             return result
 
         try:
-            # Validate options
             self.options.validate()
-
-            # Clone frames to avoid modifying originals
             work_frames = [f.clone() for f in frames]
-
-            # Validate frame sizes
             self._validate_frames(work_frames)
-
-            # Sort frames for better packing
             work_frames = self._sort_frames(work_frames)
 
-            # Determine initial atlas size
+            padding = self.options.padding
+            border = self.options.border_padding
+            max_frame_w = max(f.width for f in work_frames) + padding + 2 * border
+            max_frame_h = max(f.height for f in work_frames) + padding + 2 * border
+            total_frame_area = sum(
+                (f.width + padding) * (f.height + padding) for f in work_frames
+            )
+
+            if self.options.power_of_two:
+                candidates = self._generate_pot_candidates(
+                    max_frame_w, max_frame_h, total_frame_area
+                )
+
+                if candidates:
+                    packed, final_width, final_height = self._pack_with_pot_sizes(
+                        work_frames, candidates
+                    )
+
+                    if packed:
+                        if self.options.force_square:
+                            final_width = final_height = max(final_width, final_height)
+
+                        result.success = True
+                        result.packed_frames = packed
+                        result.atlas_width = final_width
+                        result.atlas_height = final_height
+                        result.heuristic_name = self._current_heuristic
+                        result.calculate_efficiency()
+                        return result
+
+            best_result = self._pack_with_best_aspect_ratio(
+                work_frames, total_frame_area, max_frame_w, max_frame_h
+            )
+
+            if best_result:
+                packed, final_width, final_height = best_result
+
+                if self.options.force_square:
+                    final_width = final_height = max(final_width, final_height)
+
+                result.success = True
+                result.packed_frames = packed
+                result.atlas_width = final_width
+                result.atlas_height = final_height
+                result.heuristic_name = self._current_heuristic
+                result.calculate_efficiency()
+                return result
+
             init_width, init_height = self._calculate_initial_size(work_frames)
 
-            # Try packing with expansion
             packed, final_width, final_height = self._pack_with_expansion(
                 work_frames, init_width, init_height
             )
@@ -152,16 +166,13 @@ class BasePacker(ABC):
                 )
                 return result
 
-            # Apply power-of-two constraint if requested
             if self.options.power_of_two:
                 final_width = self._next_power_of_two(final_width)
                 final_height = self._next_power_of_two(final_height)
 
-            # Apply square constraint if requested
             if self.options.force_square:
                 final_width = final_height = max(final_width, final_height)
 
-            # Build result
             result.success = True
             result.packed_frames = packed
             result.atlas_width = final_width
@@ -181,32 +192,30 @@ class BasePacker(ABC):
         return result
 
     def set_heuristic(self, heuristic_key: str) -> bool:
-        """Set the heuristic to use for packing.
+        """Set the heuristic for packing.
 
         Args:
-            heuristic_key: Key identifying the heuristic.
+            heuristic_key: Key identifying the heuristic to use.
 
         Returns:
-            True if heuristic was set successfully, False if not supported.
+            True if set successfully, False if the key is not supported.
         """
         valid_keys = [h[0] for h in self.SUPPORTED_HEURISTICS]
         if heuristic_key in valid_keys:
             self._current_heuristic = heuristic_key
             return True
         elif not self.SUPPORTED_HEURISTICS:
-            # Algorithm doesn't use heuristics
             return True
         return False
 
-    # =========================================================================
-    # Frame Preprocessing
-    # =========================================================================
-
     def _validate_frames(self, frames: List[FrameInput]) -> None:
-        """Validate frame dimensions against max size.
+        """Validate that all frames fit within maximum dimensions.
+
+        Args:
+            frames: Frames to validate.
 
         Raises:
-            FrameTooLargeError: If any frame exceeds maximum dimensions.
+            FrameTooLargeError: If any frame exceeds the configured maximum.
         """
         padding = self.options.padding
         border = self.options.border_padding
@@ -217,7 +226,6 @@ class BasePacker(ABC):
             effective_w = frame.width + padding
             effective_h = frame.height + padding
 
-            # With rotation, check if it fits either way
             if self.options.allow_rotation:
                 fits_normal = effective_w <= max_w and effective_h <= max_h
                 fits_rotated = effective_h <= max_w and effective_w <= max_h
@@ -244,13 +252,12 @@ class BasePacker(ABC):
             frames: Frames to sort.
 
         Returns:
-            Sorted copy of frames list.
+            Sorted list of frames based on configured sort strategy.
         """
+
         if self.options.sort_by_area:
-            # Sort by area descending
             return sorted(frames, key=lambda f: f.width * f.height, reverse=True)
         elif self.options.sort_by_max_side:
-            # Sort by max(width, height) descending, then by min side
             return sorted(
                 frames,
                 key=lambda f: (max(f.width, f.height), min(f.width, f.height)),
@@ -258,38 +265,124 @@ class BasePacker(ABC):
             )
         return frames
 
-    # =========================================================================
-    # Atlas Sizing
-    # =========================================================================
-
     def _calculate_initial_size(self, frames: List[FrameInput]) -> Tuple[int, int]:
-        """Calculate initial atlas size based on frame dimensions.
-
-        Uses a square-ish estimate based on total area, constrained
-        by the maximum dimensions.
+        """Calculate minimum atlas size that can fit the largest frame.
 
         Args:
-            frames: Frames to pack.
+            frames: Frames to measure.
 
         Returns:
-            (width, height) tuple for initial atlas size.
+            Tuple of (width, height) for the minimum initial atlas size.
         """
         padding = self.options.padding
         border = self.options.border_padding
-
-        # Find largest frame dimensions (include padding between sprites)
         max_frame_w = max(f.width for f in frames) + padding
         max_frame_h = max(f.height for f in frames) + padding
-
-        # Smallest workspace that can physically fit every frame (include borders)
         min_width = max_frame_w + 2 * border
         min_height = max_frame_h + 2 * border
+        return (
+            min(min_width, self.options.max_width),
+            min(min_height, self.options.max_height),
+        )
 
-        # Clamp to allowed maxima; validation already guarantees they fit
-        width = min(min_width, self.options.max_width)
-        height = min(min_height, self.options.max_height)
+    def _pack_with_best_aspect_ratio(
+        self,
+        frames: List[FrameInput],
+        total_frame_area: int,
+        min_width: int,
+        min_height: int,
+    ) -> Optional[Tuple[List[PackedFrame], int, int]]:
+        """Try multiple aspect ratios and return the result with best efficiency.
 
-        return width, height
+        Generates candidate canvas sizes at various aspect ratios, packs into
+        each, and selects the layout with highest efficiency. Tries progressively
+        looser efficiency estimates (95% -> 90% -> 85%) to find the tightest fit.
+
+        Args:
+            frames: Frames to pack.
+            total_frame_area: Sum of frame bounding box areas including padding.
+            min_width: Minimum width for the largest frame plus borders.
+            min_height: Minimum height for the largest frame plus borders.
+
+        Returns:
+            Tuple of (packed_frames, width, height), or None if all failed.
+        """
+        import math
+
+        max_w = self.options.max_width
+        max_h = self.options.max_height
+        border = self.options.border_padding
+
+        aspect_ratios = [
+            (1, 1),
+            (4, 3),
+            (3, 4),
+            (3, 2),
+            (2, 3),
+            (16, 9),
+            (9, 16),
+            (2, 1),
+            (1, 2),
+        ]
+
+        efficiency_targets = [1.0, 0.95, 0.90, 0.85, 0.80]
+
+        for target_efficiency in efficiency_targets:
+            estimated_area = int(total_frame_area / target_efficiency)
+            candidates: List[Tuple[int, int]] = []
+
+            for w_ratio, h_ratio in aspect_ratios:
+                ratio = w_ratio / h_ratio
+                width = int(math.sqrt(estimated_area * ratio))
+                height = (
+                    int(estimated_area / width)
+                    if width > 0
+                    else int(math.sqrt(estimated_area))
+                )
+
+                width = max(width, min_width)
+                height = max(height, min_height)
+
+                if width <= max_w and height <= max_h:
+                    candidates.append((width, height))
+
+            seen = set()
+            unique_candidates = []
+            for c in candidates:
+                if c not in seen:
+                    seen.add(c)
+                    unique_candidates.append(c)
+
+            best_packed: Optional[List[PackedFrame]] = None
+            best_width = 0
+            best_height = 0
+            best_efficiency = 0.0
+
+            for canvas_w, canvas_h in unique_candidates:
+                packed = self._pack_internal(frames, canvas_w, canvas_h)
+
+                if len(packed) == len(frames):
+                    if packed:
+                        tight_w = max(p.x + p.width for p in packed) + border
+                        tight_h = max(p.y + p.height for p in packed) + border
+                    else:
+                        tight_w, tight_h = 0, 0
+
+                    atlas_area = tight_w * tight_h
+                    efficiency = (
+                        total_frame_area / atlas_area if atlas_area > 0 else 0.0
+                    )
+
+                    if efficiency > best_efficiency:
+                        best_efficiency = efficiency
+                        best_packed = packed
+                        best_width = tight_w
+                        best_height = tight_h
+
+            if best_packed:
+                return best_packed, best_width, best_height
+
+        return None
 
     def _pack_with_expansion(
         self,
@@ -297,50 +390,38 @@ class BasePacker(ABC):
         init_width: int,
         init_height: int,
     ) -> Tuple[List[PackedFrame], int, int]:
-        """Attempt packing with automatic atlas expansion.
+        """Pack with automatic atlas expansion until frames fit or max is reached.
 
         Args:
             frames: Frames to pack.
-            init_width: Initial atlas width.
-            init_height: Initial atlas height.
+            init_width: Starting atlas width.
+            init_height: Starting atlas height.
 
         Returns:
-            (packed_frames, final_width, final_height) or ([], 0, 0) if failed.
+            Tuple of (packed_frames, width, height), or ([], 0, 0) on failure.
         """
         width, height = init_width, init_height
         max_w, max_h = self.options.max_width, self.options.max_height
         strategy = self.options.expand_strategy
 
-        padding = self.options.padding
-
         while width <= max_w and height <= max_h:
             packed = self._pack_internal(frames, width, height)
 
             if len(packed) == len(frames):
-                # Success - calculate tight bounds around packed frames.
-                # PackedFrame dimensions exclude padding; padding is only used as
-                # inter-sprite spacing, so we do not add an extra outer margin.
                 if packed:
                     final_w = max(p.x + p.width for p in packed)
                     final_h = max(p.y + p.height for p in packed)
                 else:
-                    final_w = 0
-                    final_h = 0
+                    final_w, final_h = 0, 0
 
-                # Apply optional border padding on the far edge only; positions already
-                # include the leading border offset when used by packers.
                 final_w += self.options.border_padding
                 final_h += self.options.border_padding
-
                 return packed, final_w, final_h
 
             if strategy == ExpandStrategy.DISABLED:
                 break
 
-            # Expand atlas
             new_width, new_height = self._expand_atlas(width, height, strategy)
-
-            # If no expansion occurred (at max size), break to avoid infinite loop
             if new_width == width and new_height == height:
                 break
 
@@ -354,15 +435,15 @@ class BasePacker(ABC):
         height: int,
         strategy: ExpandStrategy,
     ) -> Tuple[int, int]:
-        """Expand atlas dimensions according to strategy.
+        """Expand atlas dimensions according to the given strategy.
 
         Args:
-            width: Current width.
-            height: Current height.
-            strategy: Expansion strategy.
+            width: Current atlas width.
+            height: Current atlas height.
+            strategy: Expansion strategy determining which dimension grows.
 
         Returns:
-            (new_width, new_height) tuple.
+            New (width, height) tuple after expansion.
         """
         max_w, max_h = self.options.max_width, self.options.max_height
 
@@ -397,22 +478,17 @@ class BasePacker(ABC):
         elif strategy == ExpandStrategy.BOTH:
             return min(width * 2, max_w), min(height * 2, max_h)
 
-        # DISABLED - shouldn't reach here
         return width, height
-
-    # =========================================================================
-    # Utilities
-    # =========================================================================
 
     @staticmethod
     def _next_power_of_two(value: int) -> int:
-        """Round up to the next power of two.
+        """Return the smallest power of two greater than or equal to value.
 
         Args:
-            value: Input value.
+            value: Input value to round up.
 
         Returns:
-            Smallest power of two >= value.
+            Smallest power of two >= value, or 1 if value <= 0.
         """
         if value <= 0:
             return 1
@@ -421,13 +497,77 @@ class BasePacker(ABC):
             power *= 2
         return power
 
-    @classmethod
-    def get_supported_heuristics(cls) -> List[Tuple[str, str]]:
-        """Get list of heuristics supported by this algorithm.
+    def _generate_pot_candidates(
+        self,
+        min_width: int,
+        min_height: int,
+        total_area: int,
+    ) -> List[Tuple[int, int]]:
+        """Generate power-of-two size candidates sorted by area ascending.
+
+        Args:
+            min_width: Minimum width for the largest frame.
+            min_height: Minimum height for the largest frame.
+            total_area: Total area of all frames for lower-bound filtering.
 
         Returns:
-            List of (key, display_name) tuples.
+            List of (width, height) POT pairs, smallest area first.
         """
+        max_w = self.options.max_width
+        max_h = self.options.max_height
+        min_pot_w = self._next_power_of_two(min_width)
+        min_pot_h = self._next_power_of_two(min_height)
+        max_pot_w = self._next_power_of_two(max_w) // 2
+        max_pot_h = self._next_power_of_two(max_h) // 2
+        if max_pot_w < min_pot_w:
+            max_pot_w = min_pot_w
+        if max_pot_h < min_pot_h:
+            max_pot_h = min_pot_h
+
+        candidates = []
+        w = min_pot_w
+        while w <= max_w:
+            h = min_pot_h
+            while h <= max_h:
+                if w * h >= total_area * 0.8:
+                    candidates.append((w, h))
+                h *= 2
+            w *= 2
+
+        candidates.sort(key=lambda x: x[0] * x[1])
+
+        return candidates
+
+    def _pack_with_pot_sizes(
+        self,
+        frames: List[FrameInput],
+        candidates: List[Tuple[int, int]],
+    ) -> Tuple[List[PackedFrame], int, int]:
+        """Try packing into POT candidate sizes, smallest first.
+
+        Args:
+            frames: Frames to pack.
+            candidates: List of (width, height) POT sizes to try.
+
+        Returns:
+            Tuple of (packed_frames, width, height), or ([], 0, 0) on failure.
+        """
+        for width, height in candidates:
+            packed = self._pack_internal(frames, width, height)
+
+            if len(packed) == len(frames):
+                return packed, width, height
+
+        return [], 0, 0
+
+    @classmethod
+    def get_supported_heuristics(cls) -> List[Tuple[str, str]]:
+        """Return a copy of the supported heuristics list.
+
+        Returns:
+            List of (key, display_name) tuples for each supported heuristic.
+        """
+
         return cls.SUPPORTED_HEURISTICS.copy()
 
     @classmethod
@@ -435,19 +575,20 @@ class BasePacker(ABC):
         """Check if this packer handles the given algorithm name.
 
         Args:
-            algorithm_name: Algorithm name to check.
+            algorithm_name: Algorithm name to check (case-insensitive).
 
         Returns:
             True if this packer handles the algorithm.
         """
+
         return algorithm_name.lower() == cls.ALGORITHM_NAME.lower()
 
 
 class SimplePacker(BasePacker):
-    """Simple row-based packer for basic use cases.
+    """Row-based packer that places frames left-to-right, top-to-bottom.
 
-    Places frames left-to-right, top-to-bottom in rows.
-    Fast but not space-efficient. Useful for ordered layouts.
+    Fast but not space-efficient. Useful for ordered layouts where
+    predictable frame positioning matters more than minimal atlas size.
     """
 
     ALGORITHM_NAME = "simple"
@@ -459,7 +600,6 @@ class SimplePacker(BasePacker):
         width: int,
         height: int,
     ) -> List[PackedFrame]:
-        """Pack frames in simple rows."""
         packed: List[PackedFrame] = []
         padding = self.options.padding
         border = self.options.border_padding
@@ -474,19 +614,14 @@ class SimplePacker(BasePacker):
             frame_w = frame.width + padding
             frame_h = frame.height + padding
 
-            # Check if frame fits in current row
             if x + frame_w > border + available_width:
-                # Move to next row
                 x = border
                 y += row_height
                 row_height = 0
 
-            # Check if frame fits vertically
             if y + frame_h > border + available_height:
-                # Cannot fit
                 return packed
 
-            # Place frame
             packed.append(PackedFrame(frame=frame, x=x, y=y))
 
             x += frame_w

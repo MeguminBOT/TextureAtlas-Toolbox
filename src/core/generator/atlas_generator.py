@@ -3,21 +3,8 @@
 
 """Atlas generator that combines packing and exporting.
 
-This module provides the main generation pipeline:
-    1. Load input images
-    2. Pack them using the selected algorithm
-    3. Composite the atlas image
-    4. Export metadata in the selected format
-
-Usage:
-    from core.generator.atlas_generator import AtlasGenerator, GeneratorOptions
-
-    generator = AtlasGenerator()
-    result = generator.generate(
-        frames={"anim1": ["frame1.png", "frame2.png"]},
-        output_path="/path/to/atlas",
-        options=GeneratorOptions(algorithm="maxrects"),
-    )
+Provides the main generation pipeline: load images, pack them using
+the selected algorithm, composite the atlas image, and export metadata.
 """
 
 from __future__ import annotations
@@ -149,10 +136,7 @@ class GeneratorResult:
 
 
 class AtlasGenerator:
-    """Main atlas generation pipeline.
-
-    Orchestrates loading images, packing, compositing, and exporting.
-    """
+    """Main atlas generation pipeline."""
 
     def __init__(self) -> None:
         self._progress_callback: Optional[Callable[[int, int, str], None]] = None
@@ -167,6 +151,7 @@ class AtlasGenerator:
 
     def _emit_progress(self, current: int, total: int, message: str) -> None:
         """Emit progress update if callback is set."""
+
         if self._progress_callback:
             self._progress_callback(current, total, message)
 
@@ -304,7 +289,6 @@ class AtlasGenerator:
         result = GeneratorResult()
 
         try:
-            # Step 1: Load all images and detect duplicates
             self._emit_progress(0, 4, "Loading images...")
             load_result = self._load_images_with_dedup(
                 animation_groups,
@@ -320,7 +304,6 @@ class AtlasGenerator:
                 result.errors.append("No valid images found to pack")
                 return result
 
-            # Report duplicate detection stats
             duplicate_count = len(all_frame_data) - len(unique_frames)
             if duplicate_count > 0:
                 result.warnings.append(
@@ -328,7 +311,6 @@ class AtlasGenerator:
                     f"packing {len(unique_frames)} unique frames"
                 )
 
-            # Step 2: Pack only unique frames
             self._emit_progress(1, 4, f"Packing with {options.algorithm}...")
             pack_result = self._pack_frames(unique_frames, options)
 
@@ -337,7 +319,6 @@ class AtlasGenerator:
                     result.errors.append(err.message)
                 return result
 
-            # Step 3: Composite atlas image (only unique frames)
             self._emit_progress(2, 4, "Compositing atlas...")
             atlas_image = self._composite_atlas(
                 pack_result.packed_frames,
@@ -347,8 +328,6 @@ class AtlasGenerator:
                 options.padding,
             )
 
-            # Step 4: Save atlas and metadata
-            # Expand packed_frames to include duplicates pointing to same position
             expanded_packed_frames = self._expand_packed_frames_with_duplicates(
                 pack_result.packed_frames,
                 duplicate_map,
@@ -364,7 +343,6 @@ class AtlasGenerator:
                 expanded_packed_frames,
             )
 
-            # Build result
             result.success = True
             result.atlas_path = atlas_path
             result.metadata_path = metadata_path
@@ -386,36 +364,20 @@ class AtlasGenerator:
         trim_sprites: bool = False,
         allow_flip: bool = False,
     ) -> Dict[str, Any]:
-        """Load images from animation groups with duplicate detection.
-
-        Detects images that are 100% identical and deduplicates them so
-        only unique images are packed. Duplicates are mapped to their
-        canonical (first-seen) version.
-
-        When allow_flip is True, also detects images that are flipped
-        versions (horizontal, vertical, or both) of existing images.
-        These are deduplicated with flip metadata stored for export.
+        """Load images with duplicate and flip-variant detection.
 
         Args:
             animation_groups: Dict mapping animation names to frame path lists.
             trim_sprites: If True, trim transparent edges from sprites.
-            allow_flip: If True, detect and deduplicate flipped variants.
+            allow_flip: If True, detect flipped variants as duplicates.
 
         Returns:
-            Dict with:
-                - unique_frames: List[FrameInput] for unique images only
-                - images: Dict[str, Image] mapping unique IDs to images
-                - duplicate_map: Dict mapping duplicate IDs to
-                  (canonical_id, flip_x, flip_y) tuples
-                - all_frame_data: List[FrameInput] for all frames (for metadata)
+            Dict with keys: unique_frames, images, duplicate_map, all_frame_data.
         """
         all_frame_data: List[FrameInput] = []
         unique_frames: List[FrameInput] = []
         images: Dict[str, Image.Image] = {}
-
-        # hash -> first frame ID that had this hash (the canonical version)
         hash_to_canonical: Dict[str, str] = {}
-        # duplicate frame ID -> canonical frame ID
         duplicate_map: Dict[str, str] = {}
 
         for anim_name, frame_paths in animation_groups.items():
@@ -437,7 +399,6 @@ class AtlasGenerator:
                             original_height,
                         ) = self._trim_image(img)
 
-                    # Generate unique ID for this frame
                     frame_id = f"{anim_name}_{idx:04d}"
                     path_obj = Path(path)
 
@@ -516,19 +477,15 @@ class AtlasGenerator:
         duplicate_map: Dict[str, Tuple[str, bool, bool]],
         all_frame_data: List[FrameInput],
     ) -> List[PackedFrame]:
-        """Expand packed frames list to include duplicates.
-
-        Creates PackedFrame entries for duplicate frames that point to
-        the same atlas position as their canonical version.
+        """Expand packed frames to include duplicate entries.
 
         Args:
             packed_frames: Packed frames for unique images only.
-            duplicate_map: Maps duplicate frame IDs to
-                (canonical_id, flip_x, flip_y) tuples.
+            duplicate_map: Maps duplicate IDs to (canonical_id, flip_x, flip_y).
             all_frame_data: All frame inputs including duplicates.
 
         Returns:
-            List of PackedFrame for all frames (unique + duplicates).
+            PackedFrame list for all frames, with duplicates sharing positions.
         """
         if not duplicate_map:
             return packed_frames
@@ -542,7 +499,6 @@ class AtlasGenerator:
                 canonical_id, flip_x, flip_y = duplicate_map[frame.id]
                 canonical_packed = packed_lookup.get(canonical_id)
                 if canonical_packed:
-                    # Combine flip states: XOR canonical flip with detected flip
                     final_flip_x = flip_x ^ canonical_packed.flipped_x
                     final_flip_y = flip_y ^ canonical_packed.flipped_y
                     duplicate_packed = PackedFrame(
@@ -565,10 +521,13 @@ class AtlasGenerator:
         self,
         animation_groups: Dict[str, List[str]],
     ) -> Tuple[List[FrameInput], Dict[str, Image.Image]]:
-        """Load images from animation groups.
+        """Load images from animation groups without deduplication.
+
+        Args:
+            animation_groups: Dict mapping animation names to frame path lists.
 
         Returns:
-            Tuple of (list of FrameInput, dict of id->Image).
+            Tuple of (frame inputs, dict mapping frame IDs to images).
         """
         frame_data: List[FrameInput] = []
         images: Dict[str, Image.Image] = {}
@@ -580,7 +539,6 @@ class AtlasGenerator:
                     if img.mode != "RGBA":
                         img = img.convert("RGBA")
 
-                    # Generate unique ID for this frame
                     frame_id = f"{anim_name}_{idx:04d}"
                     path_obj = Path(path)
 
@@ -610,30 +568,128 @@ class AtlasGenerator:
     ) -> PackerResult:
         """Pack frames using the selected algorithm.
 
-        If algorithm is "auto", tries all available algorithms with their
-        best heuristics and returns the result with the best packing efficiency.
+        Handles "auto" algorithm/heuristic selection and automatic retry
+        with larger dimensions on size-constraint failures.
 
-        If heuristic is "auto" or None, tries all available heuristics
-        and returns the result with the best packing efficiency.
+        Args:
+            frames: Frames to pack.
+            options: Generator options.
+
+        Returns:
+            PackerResult with packed frames and dimensions.
         """
-        packer_options = options.to_packer_options()
+        ABSOLUTE_MAX = 16384
+        current_max_width = options.max_width
+        current_max_height = options.max_height
 
-        algorithm = options.algorithm
+        while current_max_width <= ABSOLUTE_MAX and current_max_height <= ABSOLUTE_MAX:
+            packer_options = options.to_packer_options()
+            packer_options.max_width = current_max_width
+            packer_options.max_height = current_max_height
+            algorithm = options.algorithm
 
-        # True auto mode: try all algorithms and pick the best
-        if algorithm == "auto":
-            return self._pack_with_best_algorithm(
-                frames, packer_options, options.heuristic
+            if algorithm == "auto":
+                result = self._pack_with_best_algorithm(
+                    frames, packer_options, options.heuristic
+                )
+            elif options.heuristic == "auto" or options.heuristic is None:
+                result = self._pack_with_best_heuristic(
+                    frames, algorithm, packer_options
+                )
+            else:
+                packer = get_packer(algorithm, packer_options)
+                packer.set_heuristic(options.heuristic)
+                result = packer.pack(frames)
+
+            if result.success:
+                return result
+
+            size_error = any(
+                e.code.name in ("CANNOT_FIT_ALL", "FRAME_TOO_LARGE")
+                for e in result.errors
             )
 
-        # Check if we should auto-select the best heuristic
-        if options.heuristic == "auto" or options.heuristic is None:
-            return self._pack_with_best_heuristic(frames, algorithm, packer_options)
+            if not size_error:
+                return result
 
-        # Use specified heuristic
-        packer = get_packer(algorithm, packer_options)
-        packer.set_heuristic(options.heuristic)
-        return packer.pack(frames)
+            if current_max_width >= ABSOLUTE_MAX and current_max_height >= ABSOLUTE_MAX:
+                return result
+
+            old_width, old_height = current_max_width, current_max_height
+            current_max_width = min(current_max_width + 1024, ABSOLUTE_MAX)
+            current_max_height = min(current_max_height + 1024, ABSOLUTE_MAX)
+
+            if current_max_width == old_width and current_max_height == old_height:
+                return result
+
+            self._emit_progress(
+                1,
+                4,
+                f"Retrying with larger atlas ({current_max_width}x{current_max_height})...",
+            )
+
+        return result
+
+    def _calculate_packing_score(
+        self, result: PackerResult, options: PackerOptions
+    ) -> float:
+        """Calculate a score for comparing packing results (lower is better).
+
+        Primary metric is atlas area. When power_of_two is enabled, applies
+        bonuses for exact POT dimensions and penalties for near-POT sizes.
+
+        Args:
+            result: The packing result to score.
+            options: Packer options.
+
+        Returns:
+            Float score where lower is better.
+        """
+        width = result.atlas_width
+        height = result.atlas_height
+        area = width * height
+
+        score = float(area)
+
+        if options.power_of_two:
+
+            def is_power_of_two(n: int) -> bool:
+                return n > 0 and (n & (n - 1)) == 0
+
+            def next_power_of_two(n: int) -> int:
+                if n <= 0:
+                    return 1
+                p = 1
+                while p < n:
+                    p <<= 1
+                return p
+
+            def prev_power_of_two(n: int) -> int:
+                if n <= 0:
+                    return 1
+                p = 1
+                while p * 2 <= n:
+                    p <<= 1
+                return p
+
+            pot_bonus = 0.0
+            if is_power_of_two(width):
+                pot_bonus += 0.02 * area
+            if is_power_of_two(height):
+                pot_bonus += 0.02 * area
+            score -= pot_bonus
+
+            for dim in (width, height):
+                if not is_power_of_two(dim):
+                    next_pot = next_power_of_two(dim)
+                    prev_pot = prev_power_of_two(dim)
+                    if next_pot > prev_pot:
+                        overshoot = (dim - prev_pot) / (next_pot - prev_pot)
+                        if overshoot < 0.1:
+                            near_pot_penalty = (0.1 - overshoot) * area * 0.05
+                            score += near_pot_penalty
+
+        return score
 
     def _pack_with_best_algorithm(
         self,
@@ -641,42 +697,31 @@ class AtlasGenerator:
         options: PackerOptions,
         heuristic_hint: Optional[str] = None,
     ) -> PackerResult:
-        """Try all algorithms and return the best result.
-
-        For each algorithm, if heuristic_hint is "auto" or None, tries all
-        heuristics. Otherwise uses the specified heuristic if supported.
-
-        "Best" is determined by:
-        1. Successful packing (all frames fit)
-        2. Smallest atlas area
-        3. Highest packing efficiency
+        """Try all algorithms and return the result with best score.
 
         Args:
             frames: Frames to pack.
             options: Packer options.
-            heuristic_hint: Optional heuristic to prefer, or "auto"/None for best.
+            heuristic_hint: Heuristic to use, or "auto"/None to try all.
 
         Returns:
-            The PackerResult with the best efficiency across all algorithms.
+            PackerResult with the best (smallest) score.
         """
         algorithms = list_algorithms()
 
         best_result: Optional[PackerResult] = None
-        best_score: float = float("inf")  # Lower is better (area)
-
+        best_score: float = float("inf")
         auto_heuristic = heuristic_hint == "auto" or heuristic_hint is None
 
         for algo_info in algorithms:
             algo_name = algo_info.get("name", "")
             if not algo_name or algo_name == "auto":
-                continue  # Skip meta-algorithm placeholder
+                continue
 
             try:
                 if auto_heuristic:
-                    # Try all heuristics for this algorithm
                     result = self._pack_with_best_heuristic(frames, algo_name, options)
                 else:
-                    # Use specified heuristic
                     packer = get_packer(algo_name, options)
                     packer.set_heuristic(heuristic_hint)
                     result = packer.pack(frames)
@@ -684,10 +729,8 @@ class AtlasGenerator:
                 if not result.success:
                     continue
 
-                # Score by area (smaller is better), tie-break by efficiency
-                score = result.atlas_width * result.atlas_height
-                # Subtract efficiency to prefer higher efficiency at same area
-                score -= result.efficiency * 0.01
+                # Use comprehensive scoring
+                score = self._calculate_packing_score(result, options)
 
                 if best_result is None or score < best_score:
                     best_result = result
@@ -698,7 +741,6 @@ class AtlasGenerator:
                 continue
 
         if best_result is None:
-            # All algorithms failed, fall back to maxrects default
             packer = get_packer("maxrects", options)
             return packer.pack(frames)
 
@@ -712,34 +754,27 @@ class AtlasGenerator:
     ) -> PackerResult:
         """Try all heuristics for an algorithm and return the best result.
 
-        "Best" is determined by:
-        1. Successful packing (all frames fit)
-        2. Smallest atlas area
-        3. Highest packing efficiency
-
         Args:
             frames: Frames to pack.
             algorithm: Algorithm name.
             options: Packer options.
 
         Returns:
-            The PackerResult with the best efficiency.
+            PackerResult with the best (smallest) score.
         """
         from packers import get_heuristics_for_algorithm
 
         heuristics = get_heuristics_for_algorithm(algorithm)
 
         if not heuristics:
-            # No heuristics available (e.g., SimplePacker), just pack directly
             packer = get_packer(algorithm, options)
             return packer.pack(frames)
 
         best_result: Optional[PackerResult] = None
-        best_score: float = float("inf")  # Lower is better (area)
+        best_score: float = float("inf")
 
         for heuristic_key, _ in heuristics:
             try:
-                # Create fresh packer for each attempt
                 packer = get_packer(algorithm, options)
                 packer.set_heuristic(heuristic_key)
                 result = packer.pack(frames)
@@ -747,10 +782,7 @@ class AtlasGenerator:
                 if not result.success:
                     continue
 
-                # Score by area (smaller is better), tie-break by efficiency
-                score = result.atlas_width * result.atlas_height
-                # Subtract efficiency to prefer higher efficiency at same area
-                score -= result.efficiency * 0.01
+                score = self._calculate_packing_score(result, options)
 
                 if best_result is None or score < best_score:
                     best_result = result
@@ -761,7 +793,6 @@ class AtlasGenerator:
                 continue
 
         if best_result is None:
-            # All heuristics failed, try with default
             packer = get_packer(algorithm, options)
             return packer.pack(frames)
 
@@ -775,7 +806,18 @@ class AtlasGenerator:
         height: int,
         padding: int,
     ) -> Image.Image:
-        """Composite packed frames onto atlas image."""
+        """Composite packed frames onto a transparent atlas image.
+
+        Args:
+            packed_frames: Frames with assigned positions.
+            images: Dict mapping frame IDs to images.
+            width: Atlas width.
+            height: Atlas height.
+            padding: Padding between sprites (unused, positions already include it).
+
+        Returns:
+            Composited RGBA atlas image.
+        """
         atlas = Image.new("RGBA", (width, height), (0, 0, 0, 0))
 
         for packed in packed_frames:
@@ -783,31 +825,24 @@ class AtlasGenerator:
             if img is None:
                 continue
 
-            # Ensure RGBA mode for proper alpha handling
             if img.mode != "RGBA":
                 img = img.convert("RGBA")
 
-            # Handle rotation if needed
             if packed.rotated:
                 img = img.transpose(Image.Transpose.ROTATE_270)
 
-            # Use alpha_composite for proper alpha blending of semi-transparent pixels
-            # This avoids the double-alpha issue that paste(img, pos, img) can cause
             atlas.alpha_composite(img, (packed.x, packed.y))
 
         return atlas
 
     def _build_save_kwargs(self, options: GeneratorOptions) -> Dict[str, Any]:
-        """Build PIL save kwargs from compression settings.
-
-        Uses compression_settings from options if provided, otherwise
-        falls back to sensible defaults for each format.
+        """Build PIL save kwargs from format and compression settings.
 
         Args:
-            options: Generator options containing format and compression settings.
+            options: Generator options with format and compression settings.
 
         Returns:
-            Dict of kwargs to pass to PIL's Image.save().
+            Dict of kwargs for PIL's Image.save().
         """
         fmt = options.image_format.lower()
         user_settings = options.compression_settings or {}
@@ -880,25 +915,15 @@ class AtlasGenerator:
         output_base = Path(output_path)
         output_base.parent.mkdir(parents=True, exist_ok=True)
 
-        # Save atlas image
         image_ext = f".{options.image_format.lower()}"
         atlas_path = output_base.with_suffix(image_ext)
-
-        # Build save kwargs from compression settings or use defaults
         save_kwargs = self._build_save_kwargs(options)
-
         atlas_image.save(str(atlas_path), **save_kwargs)
 
-        # Generate metadata using expanded frames if provided
         frames_for_metadata = expanded_packed_frames or pack_result.packed_frames
 
-        # Create generator metadata for watermarking
-        # Use pack_result values which contain actual algorithm/heuristic used
-        # (important when "auto" was selected - these show what was actually chosen)
         algorithm_name = pack_result.algorithm_name or options.algorithm or "Unknown"
         heuristic_name = pack_result.heuristic_name or options.heuristic or "Unknown"
-
-        # Format names nicely (e.g., "best_short_side_fit" -> "Best Short Side Fit")
         algorithm_name = algorithm_name.replace("_", " ").title()
         heuristic_name = heuristic_name.replace("_", " ").title()
 
@@ -906,7 +931,7 @@ class AtlasGenerator:
             app_version=APP_VERSION,
             packer=algorithm_name,
             heuristic=heuristic_name,
-            efficiency=pack_result.efficiency * 100,  # Convert to percentage
+            efficiency=pack_result.efficiency * 100,
         )
 
         metadata_path = self._save_metadata(
@@ -936,26 +961,22 @@ class AtlasGenerator:
         """Generate and save metadata file.
 
         Args:
-            packed_frames: List of packed frames (including duplicates).
+            packed_frames: All packed frames including duplicates.
             atlas_width: Width of the atlas image.
             atlas_height: Height of the atlas image.
             output_base: Base path for output files.
             image_name: Name of the atlas image file.
             export_format: Format key for the exporter.
-            generator_metadata: Optional metadata for watermarking comments.
-            include_flip_attributes: If True, include flipX/flipY in output
-                (only supported by some formats like starling-xml).
+            generator_metadata: Optional metadata for watermarking.
+            include_flip_attributes: If True, include flipX/flipY in output.
 
         Returns:
-            Path to the metadata file.
+            Path to the saved metadata file, or empty string on failure.
         """
-        # Determine a consistent logical canvas per animation so playback stays aligned
-        # When sprites are trimmed, use original (pre-trim) dimensions for canvas sizing
         animation_max_sizes: Dict[str, Tuple[int, int]] = {}
         for packed in packed_frames:
             user_data = packed.frame.user_data or {}
             animation_name = user_data.get("animation") or ""
-            # Use original dimensions if available (trimmed sprites have these)
             original_w = user_data.get("original_width", packed.source_width)
             original_h = user_data.get("original_height", packed.source_height)
             max_w, max_h = animation_max_sizes.get(animation_name, (0, 0))
@@ -964,41 +985,27 @@ class AtlasGenerator:
                 max(max_h, original_h),
             )
 
-        # Convert PackedFrame to the format expected by exporters
         sprites_data = []
         for packed in packed_frames:
             user_data = packed.frame.user_data or {}
             animation_name = user_data.get("animation") or ""
-
-            # Get original and trimmed dimensions
             original_w = user_data.get("original_width", packed.source_width)
             original_h = user_data.get("original_height", packed.source_height)
             trim_offset_x = user_data.get("trim_offset_x", 0)
             trim_offset_y = user_data.get("trim_offset_y", 0)
             was_trimmed = user_data.get("trimmed", False)
-
-            # Current sprite dimensions (trimmed if applicable)
             sprite_width = packed.source_width
             sprite_height = packed.source_height
-
-            # Get animation canvas size
             max_w, max_h = animation_max_sizes.get(
                 animation_name, (original_w, original_h)
             )
 
-            # Calculate frame offsets
-            # frameX/frameY indicate the position within the original canvas
-            # They're stored as negative values (TexturePacker convention)
             if was_trimmed:
-                # When trimmed, frameX/Y = negative of trim offset
-                # This tells the engine where the trimmed content sits in the original
                 frame_x = -trim_offset_x
                 frame_y = -trim_offset_y
-                # frameWidth/Height = original dimensions
                 frame_w = original_w
                 frame_h = original_h
             else:
-                # Not trimmed - center smaller frames within animation's canvas
                 frame_x = -((max_w - sprite_width) // 2)
                 frame_y = -((max_h - sprite_height) // 2)
                 frame_w = max_w
@@ -1024,9 +1031,7 @@ class AtlasGenerator:
             }
             sprites_data.append(sprite)
 
-        # Get exporter and generate metadata
         try:
-            # Initialize the registry if needed
             ExporterRegistry.initialize()
 
             exporter_cls = ExporterRegistry.get_exporter(export_format)
@@ -1049,8 +1054,6 @@ class AtlasGenerator:
             metadata_ext = exporter.FILE_EXTENSION
             metadata_path = output_base.with_suffix(metadata_ext)
 
-            # Build metadata content
-            # Convert to PackedSprite format expected by exporters
             from exporters.exporter_types import PackedSprite
 
             packed_sprites = []
@@ -1071,7 +1074,6 @@ class AtlasGenerator:
                 generator_metadata,
             )
 
-            # Save metadata
             if isinstance(metadata, bytes):
                 with open(metadata_path, "wb") as f:
                     f.write(metadata)
