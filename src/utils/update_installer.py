@@ -962,33 +962,25 @@ class Updater:
 
         return None
 
-    def wait_for_main_app_closure(self, max_wait_seconds=30):
+    def wait_for_main_app_closure(self, max_wait_seconds=5, attempt=1):
         """Block until key application files are unlocked.
 
-        In executable and embedded mode, the wait time is extended to allow
-        DLLs and Python runtime files to be released.
+        Retries up to 6 times with a total maximum wait of 30 seconds.
+        After all attempts fail, offers to restart with admin privileges.
 
         Args:
-            max_wait_seconds: Timeout before giving up.
+            max_wait_seconds: Timeout per attempt (default 5s × 6 = 30s total).
+            attempt: Current retry attempt number.
 
         Returns:
             True if files became accessible, False on timeout.
         """
-        self.log("Waiting for main application to close...")
-        self.set_progress(5, "Waiting for application closure...")
+        max_attempts = 6
 
-        # For executable/embedded mode, wait longer for DLLs/Python runtime release
-        if self.update_mode in (UpdateMode.EXECUTABLE, UpdateMode.EMBEDDED):
-            max_wait_seconds = 60
-            mode_name = (
-                "Executable"
-                if self.update_mode == UpdateMode.EXECUTABLE
-                else "Embedded Python"
-            )
-            self.log(
-                f"{mode_name} mode detected, extending wait time for file release...",
-                "info",
-            )
+        self.log(
+            f"Waiting for main application to close (attempt {attempt}/{max_attempts})..."
+        )
+        self.set_progress(5, "Waiting for application closure...")
 
         start_time = time.time()
         while time.time() - start_time < max_wait_seconds:
@@ -1045,7 +1037,7 @@ class Updater:
                 self.log("Application appears to be closed", "success")
                 return True
             else:
-                if len(locked_files) <= 3:  # Only log a few files to avoid spam
+                if len(locked_files) <= 3:
                     self.log(
                         f"Still waiting for {len(locked_files)} files to be released: {', '.join([os.path.basename(f) for f in locked_files[:3]])}",
                         "info",
@@ -1056,9 +1048,39 @@ class Updater:
                         "info",
                     )
 
-            time.sleep(3)
+            time.sleep(1)
 
-        self.log("Timeout waiting for application closure", "warning")
+        self.log(
+            f"Timeout waiting for application closure (attempt {attempt})", "warning"
+        )
+
+        # Retry logic: after max_attempts, offer admin elevation
+        if attempt < max_attempts:
+            self.log(f"Retrying... ({attempt + 1}/{max_attempts})", "info")
+            return self.wait_for_main_app_closure(max_wait_seconds, attempt + 1)
+
+        # All attempts exhausted - try admin elevation on Windows
+        if os.name == "nt" and not UpdateUtilities.is_admin():
+            self.log(
+                "Files remain locked after multiple attempts. "
+                "Attempting to restart with administrator privileges...",
+                "warning",
+            )
+            command = self._build_elevation_command()
+            if UpdateUtilities.run_elevated(command):
+                self.log(
+                    "Elevation request sent. Closing current updater instance...",
+                    "info",
+                )
+                if self.ui:
+                    self.ui.allow_close()
+                sys.exit(0)
+            else:
+                self.log(
+                    "Failed to elevate privileges. Some files may still be locked.",
+                    "error",
+                )
+
         return False
 
     def find_project_root(self) -> str | None:

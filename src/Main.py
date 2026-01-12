@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import gc
 import sys
 import os
 import shutil
@@ -115,6 +116,7 @@ class TextureAtlasExtractorApp(QMainWindow):
             None  # For storing temp directory used in manual file selection
         )
         self.data_dict = {}
+        self._update_pending = False
 
         # Initialize translation manager and load language
         self.translation_manager = get_translation_manager()
@@ -648,6 +650,7 @@ class TextureAtlasExtractorApp(QMainWindow):
 
     def _prepare_for_update_shutdown(self, target_version):
         """Notify the user and close the application so the external updater can run."""
+        self._update_pending = True
         version_label = target_version or self.tr("latest")
         QMessageBox.information(
             self,
@@ -660,27 +663,75 @@ class TextureAtlasExtractorApp(QMainWindow):
 
         QTimer.singleShot(0, self._shutdown_for_update)
 
+    def _cleanup_for_update(self):
+        """Release resources before update to prevent file locking.
+
+        This is especially important for embedded Python builds where
+        DLLs and .pyd files must be unlocked for the updater to replace them.
+        """
+        print("Releasing resources for update...")
+
+        # Clean up temp directories
+        try:
+            if hasattr(self, "temp_dir") and self.temp_dir:
+                shutil.rmtree(self.temp_dir, ignore_errors=True)
+            if (
+                hasattr(self, "manual_selection_temp_dir")
+                and self.manual_selection_temp_dir
+            ):
+                shutil.rmtree(self.manual_selection_temp_dir, ignore_errors=True)
+        except Exception as e:
+            print(f"Warning: Could not clean temp dirs: {e}")
+
+        # Save settings
+        try:
+            if hasattr(self, "app_config"):
+                self.app_config.save_settings()
+        except Exception as e:
+            print(f"Warning: Could not save settings: {e}")
+
+        # Clear references to help garbage collection
+        try:
+            if hasattr(self, "extractor"):
+                self.extractor = None
+            if hasattr(self, "data_dict"):
+                self.data_dict.clear()
+            if hasattr(self, "fnf_character_data"):
+                self.fnf_character_data = None
+        except Exception as e:
+            print(f"Warning: Could not clear references: {e}")
+
+        # Force garbage collection to release file handles
+        gc.collect()
+
+        print("Resource cleanup complete.")
+
     def _shutdown_for_update(self):
         """Forcefully close the application to allow the updater to run."""
         import time
 
         print("Shutting down for update...")
 
-        # Give a brief moment for the message box to close
-        time.sleep(0.5)
+        # Clean up resources first
+        self._cleanup_for_update()
+
+        # Brief pause to let the message box close
+        time.sleep(0.3)
 
         app = QApplication.instance()
         if app:
             app.setQuitOnLastWindowClosed(True)
 
-        # Close this window
+        # Close this window (triggers closeEvent)
         self.close()
 
-        # Quit the application
+        # Process pending events
         if app:
+            app.processEvents()
             app.quit()
 
-        # Force exit after a brief delay
+        # Final cleanup and exit
+        gc.collect()
         time.sleep(0.5)
         print("Force exiting application...")
         os._exit(0)
@@ -906,16 +957,20 @@ class TextureAtlasExtractorApp(QMainWindow):
 
     def closeEvent(self, event):
         """Handles the window close event."""
+        # Skip cleanup if already done for update
+        if getattr(self, "_update_pending", False):
+            event.accept()
+            return
+
         # Clean up temporary files
         try:
             shutil.rmtree(self.temp_dir, ignore_errors=True)
-            # Clean up manual selection temp directory
             if self.manual_selection_temp_dir:
                 shutil.rmtree(self.manual_selection_temp_dir, ignore_errors=True)
         except Exception:
             pass
 
-        # Save settings if needed
+        # Save settings
         try:
             self.app_config.save_settings()
         except Exception:

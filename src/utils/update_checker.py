@@ -419,17 +419,23 @@ class UpdateChecker:
         then signals the main app should quit so the updater can replace files.
         """
         try:
-            from utils.update_installer import UpdateUtilities, launch_external_updater
+            from utils.update_installer import (
+                UpdateMode,
+                UpdateUtilities,
+                launch_external_updater,
+            )
 
-            # Auto-detect the appropriate update mode
             update_mode = UpdateUtilities.detect_update_mode()
             print(f"Launching external updater (update_mode={update_mode.name})...")
+
+            # Embedded mode needs more time for file handles to be released
+            wait_seconds = 5 if update_mode == UpdateMode.EMBEDDED else 3
 
             success = launch_external_updater(
                 release_metadata=update_payload,
                 latest_version=latest_version,
                 update_mode=update_mode,
-                wait_seconds=3,
+                wait_seconds=wait_seconds,
             )
 
             if success:
