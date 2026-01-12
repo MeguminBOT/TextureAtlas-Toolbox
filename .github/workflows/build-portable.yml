@@ -23,9 +23,15 @@ jobs:
       - name: Get app version
         id: version
         run: |
-          $version = python -c "import re; m = re.search(r'APP_VERSION\s*=\s*[\"'']([^\"'']+)[\"'']', open('src/utils/version.py').read()); print(m.group(1) if m else '0.0.0')"
-          echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
-        shell: pwsh
+          import re
+          from pathlib import Path
+          content = Path("src/utils/version.py").read_text()
+          match = re.search(r'APP_VERSION\s*=\s*["\x27]([^"\x27]+)["\x27]', content)
+          version = match.group(1) if match else "0.0.0"
+          print(f"APP_VERSION={version}")
+          with open("$env:GITHUB_OUTPUT", "a") as f:
+              f.write(f"APP_VERSION={version}\n")
+        shell: python
 
       - name: Build portable distribution
         run: python setup/build_portable.py
@@ -53,8 +59,15 @@ jobs:
       - name: Get app version
         id: version
         run: |
-          VERSION=$(python -c "import re; m = re.search(r'APP_VERSION\s*=\s*[\"'\''']([^\"'\'']+)[\"'\''']', open('src/utils/version.py').read()); print(m.group(1) if m else '0.0.0')")
-          echo "APP_VERSION=$VERSION" >> $GITHUB_OUTPUT
+          import os, re
+          from pathlib import Path
+          content = Path("src/utils/version.py").read_text()
+          match = re.search(r'APP_VERSION\s*=\s*["\x27]([^"\x27]+)["\x27]', content)
+          version = match.group(1) if match else "0.0.0"
+          print(f"APP_VERSION={version}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"APP_VERSION={version}\n")
+        shell: python
 
       - name: Install system dependencies
         run: |
@@ -88,8 +101,15 @@ jobs:
       - name: Get app version
         id: version
         run: |
-          VERSION=$(python -c "import re; m = re.search(r'APP_VERSION\s*=\s*[\"'\''']([^\"'\'']+)[\"'\''']', open('src/utils/version.py').read()); print(m.group(1) if m else '0.0.0')")
-          echo "APP_VERSION=$VERSION" >> $GITHUB_OUTPUT
+          import os, re
+          from pathlib import Path
+          content = Path("src/utils/version.py").read_text()
+          match = re.search(r'APP_VERSION\s*=\s*["\x27]([^"\x27]+)["\x27]', content)
+          version = match.group(1) if match else "0.0.0"
+          print(f"APP_VERSION={version}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"APP_VERSION={version}\n")
+        shell: python
 
       - name: Build portable distribution
         run: python setup/build_portable.py
