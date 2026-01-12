@@ -403,6 +403,74 @@ pause
         debug_bat_path.write_text(debug_bat_content, encoding="utf-8")
         self.log(f"Created: {debug_bat_path.name}")
 
+        # Admin launcher - uses pythonw.exe with UAC elevation
+        admin_bat_content = r'''@echo off
+cd /d "%~dp0"
+
+:: TextureAtlas Toolbox Admin Launcher
+:: This script launches the application with administrator privileges.
+:: Useful for updating the application when installed in protected directories.
+
+:: Check if bundled Python exists
+if not exist "python\pythonw.exe" (
+    echo ERROR: Bundled Python not found!
+    echo Please make sure you extracted all files correctly.
+    pause
+    exit /b 1
+)
+
+:: Request UAC elevation and launch
+powershell -Command "Start-Process -FilePath 'python\pythonw.exe' -ArgumentList 'src\Main.py' -Verb RunAs -WorkingDirectory '%~dp0'"
+'''
+        admin_bat_path = dist_path / "TextureAtlas Toolbox (Admin).bat"
+        admin_bat_path.write_text(admin_bat_content, encoding="utf-8")
+        self.log(f"Created: {admin_bat_path.name}")
+
+        # Debug admin launcher - uses python.exe with console and UAC elevation
+        debug_admin_bat_content = r'''@echo off
+chcp 65001 >nul 2>&1
+cd /d "%~dp0"
+
+:: TextureAtlas Toolbox Debug Admin Launcher
+:: This launcher runs with administrator privileges and keeps the console open.
+:: Use this for troubleshooting permission-related issues.
+
+title TextureAtlas Toolbox (Debug Mode - Admin)
+
+:: Check if already running as admin
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Requesting administrator privileges...
+    powershell -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
+    exit /b
+)
+
+echo ============================================================
+echo  TextureAtlas Toolbox - Debug Mode (Administrator)
+echo ============================================================
+echo.
+echo Running with administrator privileges.
+echo Python executable: python\python.exe
+echo.
+
+"python\python.exe" --version
+echo.
+
+echo Starting application...
+echo.
+
+"python\python.exe" "src\Main.py" %*
+
+echo.
+echo ============================================================
+echo  Application has exited.
+echo ============================================================
+pause
+'''
+        debug_admin_bat_path = dist_path / "TextureAtlas Toolbox Debug (Admin).bat"
+        debug_admin_bat_path.write_text(debug_admin_bat_content, encoding="utf-8")
+        self.log(f"Created: {debug_admin_bat_path.name}")
+
     def _create_archive(self, dist_path: Path) -> tuple[Path, Path | None]:
         """Create ZIP and 7z archives of the distribution.
         
@@ -541,17 +609,22 @@ pause
         self.log_step(5, total_steps, "Creating Python setup script")
         self._create_unix_setup_script(dist_path)
 
-        # Step 6: Create archive
-        self.log_step(6, total_steps, "Creating distribution archive")
-        archive_path = self._create_tar_archive(dist_path)
+        # Step 6: Create archives (zip, 7z, and tar.gz for Unix)
+        self.log_step(6, total_steps, "Creating distribution archives")
+        zip_path, sevenz_path = self._create_archive(dist_path)
+        tar_path = self._create_tar_archive(dist_path)
 
         self.log(f"\n{'='*60}")
         self.log("BUILD COMPLETE!")
         self.log(f"Distribution folder: {dist_path}")
-        self.log(f"Distribution archive: {archive_path}")
+        self.log(f"Distribution archives:")
+        self.log(f"  - {zip_path}")
+        if sevenz_path:
+            self.log(f"  - {sevenz_path}")
+        self.log(f"  - {tar_path}")
         self.log(f"{'='*60}\n")
 
-        return archive_path
+        return zip_path
 
     def _create_venv(self, venv_path: Path) -> None:
         """Create a virtual environment."""
@@ -624,6 +697,144 @@ exec "$(dirname "$0")/TextureAtlas Toolbox.sh" "$@"
         start_sh_path.write_text(start_sh_content, encoding="utf-8")
         start_sh_path.chmod(0o755)
         self.log(f"Created: {start_sh_path.name}")
+
+        # Debug launcher script
+        debug_sh_content = '''#!/bin/bash
+
+# TextureAtlas Toolbox Debug Launcher
+# This script runs with console output visible for troubleshooting.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "============================================================"
+echo " TextureAtlas Toolbox - Debug Mode"
+echo "============================================================"
+echo
+
+# Check for bundled Python venv
+if [ -f "python/bin/python" ]; then
+    PYTHON_EXE="python/bin/python"
+elif [ -f "python/bin/python3" ]; then
+    PYTHON_EXE="python/bin/python3"
+else
+    echo "ERROR: Bundled Python not found!"
+    echo "Please run setup.sh first to configure Python."
+    exit 1
+fi
+
+echo "Python executable: $PYTHON_EXE"
+"$PYTHON_EXE" --version
+echo
+
+# Set PYTHONPATH so Python can find modules in src/
+export PYTHONPATH="$SCRIPT_DIR/src"
+
+echo "Starting application..."
+echo
+"$PYTHON_EXE" "src/Main.py" "$@"
+EXIT_CODE=$?
+
+echo
+echo "============================================================"
+echo " Application has exited with code: $EXIT_CODE"
+echo "============================================================"
+read -p "Press Enter to close..."
+'''
+        debug_sh_path = dist_path / "TextureAtlas Toolbox Debug.sh"
+        debug_sh_path.write_text(debug_sh_content, encoding="utf-8")
+        debug_sh_path.chmod(0o755)
+        self.log(f"Created: {debug_sh_path.name}")
+
+        # Admin launcher script - uses sudo for elevation
+        admin_sh_content = '''#!/bin/bash
+
+# TextureAtlas Toolbox Admin Launcher
+# This script launches the application with root privileges.
+# Useful for updating the application when installed in protected directories.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Check for bundled Python venv
+if [ -f "python/bin/python" ]; then
+    PYTHON_EXE="python/bin/python"
+elif [ -f "python/bin/python3" ]; then
+    PYTHON_EXE="python/bin/python3"
+else
+    echo "ERROR: Bundled Python not found!"
+    echo "Please run setup.sh first to configure Python."
+    exit 1
+fi
+
+# Set PYTHONPATH so Python can find modules in src/
+export PYTHONPATH="$SCRIPT_DIR/src"
+
+echo "Requesting administrator privileges..."
+exec sudo "$PYTHON_EXE" "src/Main.py" "$@"
+'''
+        admin_sh_path = dist_path / "TextureAtlas Toolbox (Admin).sh"
+        admin_sh_path.write_text(admin_sh_content, encoding="utf-8")
+        admin_sh_path.chmod(0o755)
+        self.log(f"Created: {admin_sh_path.name}")
+
+        # Debug admin launcher script
+        debug_admin_sh_content = '''#!/bin/bash
+
+# TextureAtlas Toolbox Debug Admin Launcher
+# This launcher runs with root privileges and keeps the console open.
+# Use this for troubleshooting permission-related issues.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "============================================================"
+echo " TextureAtlas Toolbox - Debug Mode (Administrator)"
+echo "============================================================"
+echo
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Requesting administrator privileges..."
+    exec sudo "$0" "$@"
+fi
+
+echo "Running with administrator privileges."
+echo
+
+# Check for bundled Python venv
+if [ -f "python/bin/python" ]; then
+    PYTHON_EXE="python/bin/python"
+elif [ -f "python/bin/python3" ]; then
+    PYTHON_EXE="python/bin/python3"
+else
+    echo "ERROR: Bundled Python not found!"
+    echo "Please run setup.sh first to configure Python."
+    exit 1
+fi
+
+echo "Python executable: $PYTHON_EXE"
+"$PYTHON_EXE" --version
+echo
+
+# Set PYTHONPATH so Python can find modules in src/
+export PYTHONPATH="$SCRIPT_DIR/src"
+
+echo "Starting application..."
+echo
+"$PYTHON_EXE" "src/Main.py" "$@"
+EXIT_CODE=$?
+
+echo
+echo "============================================================"
+echo " Application has exited with code: $EXIT_CODE"
+echo "============================================================"
+read -p "Press Enter to close..."
+'''
+        debug_admin_sh_path = dist_path / "TextureAtlas Toolbox Debug (Admin).sh"
+        debug_admin_sh_path.write_text(debug_admin_sh_content, encoding="utf-8")
+        debug_admin_sh_path.chmod(0o755)
+        self.log(f"Created: {debug_admin_sh_path.name}")
 
     def _create_unix_setup_script(self, dist_path: Path) -> None:
         """Create a setup script for Unix that ensures Python dependencies."""
