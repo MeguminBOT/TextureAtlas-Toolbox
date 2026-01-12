@@ -161,14 +161,18 @@ class ShelfHeuristic(Enum):
     FIRST_FIT: Use first shelf where frame fits.
     BEST_WIDTH_FIT: Use shelf with least remaining width.
     BEST_HEIGHT_FIT: Use shelf matching frame height best.
+    BEST_AREA_FIT: Minimize wasted area (height_diff * remaining_width).
     WORST_WIDTH_FIT: Use shelf with most remaining width.
+    WORST_AREA_FIT: Maximize wasted area (load balancing).
     """
 
     NEXT_FIT = auto()
     FIRST_FIT = auto()
     BEST_WIDTH_FIT = auto()
     BEST_HEIGHT_FIT = auto()
+    BEST_AREA_FIT = auto()
     WORST_WIDTH_FIT = auto()
+    WORST_AREA_FIT = auto()
 
 
 class SkylineHeuristic(Enum):

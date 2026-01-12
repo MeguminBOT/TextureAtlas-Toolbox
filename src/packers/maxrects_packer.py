@@ -3,31 +3,10 @@
 
 """MaxRects bin packing algorithm with multiple placement heuristics.
 
-MaxRects is one of the most efficient 2D bin packing algorithms. It maintains
-a list of maximal free rectangles and uses various heuristics to choose
-optimal placements. When a frame is placed, overlapping free rectangles are
-split, and fully contained rectangles are pruned.
+Maintains maximal free rectangles and splits/prunes them as frames are placed.
 
-Supports multiple heuristics:
-    - BSSF (Best Short Side Fit): Minimize short side remainder - good balance
-    - BLSF (Best Long Side Fit): Minimize long side remainder
-    - BAF (Best Area Fit): Minimize total wasted area
-    - BL (Bottom-Left): Place as low and left as possible
-    - CP (Contact Point): Maximize contact with edges - reduces gaps
-
-Based on the MAXRECTS algorithm by Jukka Jylänki.
-Uses NumPy for efficient rectangle intersection tests.
-
-Usage:
-    from packers.maxrects_packer import MaxRectsPacker
-    from packers.packer_types import FrameInput, PackerOptions
-
-    packer = MaxRectsPacker()
-    packer.set_heuristic("bssf")  # Best Short Side Fit
-    result = packer.pack([
-        FrameInput("frame1", 100, 100),
-        FrameInput("frame2", 50, 75),
-    ])
+Based on Jukka Jylänki's paper "A Thousand Ways to Pack the Bin" and
+reference implementation: https://github.com/juj/RectangleBinPack
 """
 
 from __future__ import annotations
@@ -49,15 +28,15 @@ from packers.packer_types import (
 class MaxRectsPacker(BasePacker):
     """MaxRects bin packing implementation.
 
-    The algorithm maintains a list of maximal free rectangles. When a frame
-    is placed, any free rectangle that overlaps is split into up to 4 new
-    rectangles. Redundant rectangles (fully contained in others) are pruned.
+    Maintains a list of maximal free rectangles. When a frame is placed, any
+    overlapping free rectangle is split into up to four new rectangles, and
+    rectangles fully contained in others are pruned.
 
     Attributes:
-        options: Packer configuration options.
-        free_rects: List of free rectangles in the atlas.
-        used_rects: List of placed rectangles.
-        heuristic: Current placement heuristic.
+        options: Packer configuration inherited from BasePacker.
+        free_rects: Available free rectangles in the current bin.
+        used_rects: Rectangles already placed in the bin.
+        heuristic: Active placement heuristic (default BSSF).
     """
 
     ALGORITHM_NAME = "maxrects"
@@ -106,22 +85,45 @@ class MaxRectsPacker(BasePacker):
         width: int,
         height: int,
     ) -> List[PackedFrame]:
-        """Pack frames using the MaxRects algorithm."""
+        """Pack frames using the MaxRects algorithm.
+
+        Args:
+            frames: Frames to pack.
+            width: Atlas width in pixels.
+            height: Atlas height in pixels.
+
+        Returns:
+            Successfully placed frames with their positions.
+        """
         self._init_bin(width, height)
         packed: List[PackedFrame] = []
         padding = self.options.padding
 
-        for frame in frames:
-            frame_w = frame.width + padding
-            frame_h = frame.height + padding
+        remaining = [
+            (frame, frame.width + padding, frame.height + padding) for frame in frames
+        ]
 
-            result = self._find_best_position(frame_w, frame_h)
-            if result is None:
-                return packed  # Cannot fit this frame
+        while remaining:
+            best_score = (float("inf"), float("inf"))
+            best_frame_idx: Optional[int] = None
+            best_result: Optional[Tuple[int, int, int, int, bool]] = None
 
-            best_x, best_y, best_w, best_h, rotated = result
+            for i, (frame, frame_w, frame_h) in enumerate(remaining):
+                result = self._find_best_position(frame_w, frame_h)
+                if result is not None:
+                    _, _, placed_w, placed_h, _ = result
+                    score = self._score_frame_placement(result, frame_w, frame_h)
+                    if score < best_score:
+                        best_score = score
+                        best_frame_idx = i
+                        best_result = result
 
-            # Create packed frame
+            if best_frame_idx is None:
+                return packed
+
+            frame, frame_w, frame_h = remaining[best_frame_idx]
+            best_x, best_y, best_w, best_h, rotated = best_result
+
             packed_frame = PackedFrame(
                 frame=frame,
                 x=best_x,
@@ -130,14 +132,49 @@ class MaxRectsPacker(BasePacker):
             )
             packed.append(packed_frame)
 
-            # Update free rectangles
             placed_rect = Rect(best_x, best_y, best_w, best_h)
             self._place_rect(placed_rect)
 
+            remaining[best_frame_idx] = remaining[-1]
+            remaining.pop()
+
         return packed
 
+    def _score_frame_placement(
+        self,
+        result: Tuple[int, int, int, int, bool],
+        frame_w: int,
+        frame_h: int,
+    ) -> Tuple[float, float]:
+        """Score a frame placement for global best-fit selection.
+
+        Args:
+            result: Placement tuple (x, y, placed_w, placed_h, rotated).
+            frame_w: Original frame width including padding.
+            frame_h: Original frame height including padding.
+
+        Returns:
+            A (primary, secondary) score tuple; lower is better.
+        """
+        best_x, best_y, placed_w, placed_h, rotated = result
+
+        for rect in self.free_rects:
+            if rect.x == best_x and rect.y == best_y:
+                if placed_w <= rect.width and placed_h <= rect.height:
+                    return self._score_position(rect, placed_w, placed_h)
+
+        return (float("inf"), float("inf"))
+
     def _init_bin(self, width: int, height: int) -> None:
-        """Initialize the bin with the given dimensions."""
+        """Initialize the bin with the given dimensions.
+
+        Clears existing state and creates a single free rectangle spanning
+        the usable area (respecting border padding).
+
+        Args:
+            width: Total bin width in pixels.
+            height: Total bin height in pixels.
+        """
         self._bin_width = width
         self._bin_height = height
         self.free_rects = []
@@ -155,6 +192,8 @@ class MaxRectsPacker(BasePacker):
     ) -> Optional[Tuple[int, int, int, int, bool]]:
         """Find the best position for a rectangle of the given size.
 
+        Tries both orientations (if rotation allowed) and picks the best score.
+
         Args:
             width: Rectangle width (including padding).
             height: Rectangle height (including padding).
@@ -166,19 +205,15 @@ class MaxRectsPacker(BasePacker):
         best_result: Optional[Tuple[int, int, int, int, bool]] = None
 
         for rect in self.free_rects:
-            # Try without rotation
             if width <= rect.width and height <= rect.height:
                 score = self._score_position(rect, width, height)
                 if score < best_score:
                     best_score = score
                     best_result = (rect.x, rect.y, width, height, False)
 
-            # Try with rotation
             if self.options.allow_rotation:
                 if height <= rect.width and width <= rect.height:
                     score = self._score_position(rect, height, width)
-                    # Small penalty for rotation
-                    score = (score[0] + 0.1, score[1])
                     if score < best_score:
                         best_score = score
                         best_result = (rect.x, rect.y, height, width, True)
@@ -191,39 +226,40 @@ class MaxRectsPacker(BasePacker):
         width: int,
         height: int,
     ) -> Tuple[float, float]:
-        """Score a potential placement position (lower is better).
+        """Score a potential placement position using the active heuristic.
 
-        Returns a tuple for tie-breaking: (primary_score, secondary_score).
+        Args:
+            rect: Free rectangle being considered.
+            width: Width of the rectangle to place (including padding).
+            height: Height of the rectangle to place (including padding).
+
+        Returns:
+            A (primary, secondary) score tuple; lower values are better.
         """
         leftover_w = rect.width - width
         leftover_h = rect.height - height
 
         if self.heuristic == MaxRectsHeuristic.BSSF:
-            # Best Short Side Fit - minimize the shorter leftover side
             short_side = min(leftover_w, leftover_h)
             long_side = max(leftover_w, leftover_h)
             return (float(short_side), float(long_side))
 
         elif self.heuristic == MaxRectsHeuristic.BLSF:
-            # Best Long Side Fit - minimize the longer leftover side
             short_side = min(leftover_w, leftover_h)
             long_side = max(leftover_w, leftover_h)
             return (float(long_side), float(short_side))
 
         elif self.heuristic == MaxRectsHeuristic.BAF:
-            # Best Area Fit - minimize leftover area
-            leftover_area = leftover_w * rect.height + leftover_h * width
+            leftover_area = rect.width * rect.height - width * height
             short_side = min(leftover_w, leftover_h)
             return (float(leftover_area), float(short_side))
 
         elif self.heuristic == MaxRectsHeuristic.BL:
-            # Bottom-Left - prefer lower Y, then lower X
-            return (float(rect.y), float(rect.x))
+            top_side_y = rect.y + height
+            return (float(top_side_y), float(rect.x))
 
         elif self.heuristic == MaxRectsHeuristic.CP:
-            # Contact Point - maximize contact with edges
             contact = self._calculate_contact_score(rect.x, rect.y, width, height)
-            # Negate because lower scores are better
             return (-float(contact), float(rect.y))
 
         # Default to BSSF
@@ -238,38 +274,40 @@ class MaxRectsPacker(BasePacker):
         width: int,
         height: int,
     ) -> int:
-        """Calculate contact points for a rectangle placement.
+        """Calculate total edge contact for a rectangle placement.
 
-        Contact points are pixels where the rectangle touches:
-        - The bin boundaries
-        - Other already-placed rectangles
+        Contact is the sum of pixels where the rectangle touches bin
+        boundaries and already-placed rectangles.
+
+        Args:
+            x: Left edge of the placement.
+            y: Top edge of the placement.
+            width: Rectangle width.
+            height: Rectangle height.
+
+        Returns:
+            Total contact length in pixels (higher means tighter packing).
         """
         border = self.options.border_padding
         contact = 0
 
-        # Contact with bin edges
         if x == border:
-            contact += height  # Left edge
+            contact += height
         if y == border:
-            contact += width  # Top edge
+            contact += width
         if x + width == self._bin_width - border:
-            contact += height  # Right edge
+            contact += height
         if y + height == self._bin_height - border:
-            contact += width  # Bottom edge
+            contact += width
 
-        # Contact with placed rectangles
         for used in self.used_rects:
-            # Check horizontal adjacency
             if x == used.right or x + width == used.x:
-                # Calculate vertical overlap
                 y_start = max(y, used.y)
                 y_end = min(y + height, used.bottom)
                 if y_end > y_start:
                     contact += y_end - y_start
 
-            # Check vertical adjacency
             if y == used.bottom or y + height == used.y:
-                # Calculate horizontal overlap
                 x_start = max(x, used.x)
                 x_end = min(x + width, used.right)
                 if x_end > x_start:
@@ -278,10 +316,15 @@ class MaxRectsPacker(BasePacker):
         return contact
 
     def _place_rect(self, rect: Rect) -> None:
-        """Place a rectangle and update free rectangles."""
-        self.used_rects.append(rect)
+        """Place a rectangle and update the free rectangle list.
 
-        # Split all free rectangles that intersect with the placed rect
+        Splits any free rectangle that intersects with `rect` and prunes
+        rectangles that become fully contained in others.
+
+        Args:
+            rect: The rectangle being placed.
+        """
+        self.used_rects.append(rect)
         new_free: List[Rect] = []
 
         for free_rect in self.free_rects:
@@ -289,24 +332,27 @@ class MaxRectsPacker(BasePacker):
                 new_free.append(free_rect)
                 continue
 
-            # Split the free rectangle around the placed rectangle
             splits = self._split_rect(free_rect, rect)
             new_free.extend(splits)
 
         self.free_rects = new_free
-
-        # Prune rectangles that are fully contained in others
         self._prune_free_rects()
 
     def _split_rect(self, free_rect: Rect, placed: Rect) -> List[Rect]:
         """Split a free rectangle around a placed rectangle.
 
-        Creates up to 4 new rectangles from the portions of free_rect
-        that don't overlap with placed.
+        Creates up to four new rectangles from the portions of `free_rect`
+        that do not overlap with `placed`. Zero-area results are discarded.
+
+        Args:
+            free_rect: The free rectangle to split.
+            placed: The newly placed rectangle causing the split.
+
+        Returns:
+            Non-empty rectangles remaining after the split.
         """
         result: List[Rect] = []
 
-        # Left portion
         if placed.x > free_rect.x:
             result.append(
                 Rect(
@@ -317,7 +363,6 @@ class MaxRectsPacker(BasePacker):
                 )
             )
 
-        # Right portion
         if placed.right < free_rect.right:
             result.append(
                 Rect(
@@ -328,7 +373,6 @@ class MaxRectsPacker(BasePacker):
                 )
             )
 
-        # Top portion
         if placed.y > free_rect.y:
             result.append(
                 Rect(
@@ -339,7 +383,6 @@ class MaxRectsPacker(BasePacker):
                 )
             )
 
-        # Bottom portion
         if placed.bottom < free_rect.bottom:
             result.append(
                 Rect(
@@ -350,19 +393,17 @@ class MaxRectsPacker(BasePacker):
                 )
             )
 
-        # Filter out zero-area rectangles
         return [r for r in result if r.area > 0]
 
     def _prune_free_rects(self) -> None:
-        """Remove free rectangles that are fully contained in others.
+        """Remove free rectangles fully contained in others.
 
-        This is O(n²) but necessary for correctness. Uses NumPy for
-        vectorized containment checks when there are many rectangles.
+        Delegates to a simple O(n²) loop for small lists or a NumPy-based
+        batch check for lists exceeding 20 rectangles.
         """
         if len(self.free_rects) <= 1:
             return
 
-        # Use numpy for efficient batch containment checks
         n = len(self.free_rects)
         if n > 20:
             self._prune_free_rects_numpy()
@@ -370,7 +411,7 @@ class MaxRectsPacker(BasePacker):
             self._prune_free_rects_simple()
 
     def _prune_free_rects_simple(self) -> None:
-        """Simple O(n²) pruning for small lists."""
+        """Prune contained rectangles using a simple O(n²) loop."""
         i = 0
         while i < len(self.free_rects):
             j = i + 1
@@ -393,43 +434,37 @@ class MaxRectsPacker(BasePacker):
                 i += 1
 
     def _prune_free_rects_numpy(self) -> None:
-        """NumPy-accelerated pruning for larger lists."""
+        """Prune contained rectangles using NumPy vectorized checks."""
         n = len(self.free_rects)
         if n == 0:
             return
 
-        # Convert to numpy arrays
         rects = np.array(
             [(r.x, r.y, r.right, r.bottom) for r in self.free_rects],
             dtype=np.int32,
         )
-
-        # Keep track of which rectangles to remove
         remove = np.zeros(n, dtype=bool)
 
         for i in range(n):
             if remove[i]:
                 continue
 
-            # Check if any other rectangle contains this one
-            # A contains B if: A.x <= B.x and A.y <= B.y and
-            #                  A.right >= B.right and A.bottom >= B.bottom
             contains_i = (
                 (rects[:, 0] <= rects[i, 0])
                 & (rects[:, 1] <= rects[i, 1])
                 & (rects[:, 2] >= rects[i, 2])
                 & (rects[:, 3] >= rects[i, 3])
             )
-            contains_i[i] = False  # Don't compare with self
+            contains_i[i] = False
 
             if np.any(contains_i):
                 remove[i] = True
 
-        # Keep only non-removed rectangles
         self.free_rects = [self.free_rects[i] for i in range(n) if not remove[i]]
 
     def occupancy(self) -> float:
-        """Calculate the ratio of used area to total bin area."""
+        """Return the ratio of used area to total bin area."""
+
         used_area = sum(r.area for r in self.used_rects)
         total_area = self._bin_width * self._bin_height
         return used_area / total_area if total_area > 0 else 0.0

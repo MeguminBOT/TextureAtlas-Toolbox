@@ -3,28 +3,15 @@
 
 """Skyline bin packing algorithm with multiple placement heuristics.
 
-The Skyline algorithm maintains a "skyline" representing the top edge of
-placed rectangles. Each segment has a position (x) and height (y). New
-rectangles are placed by finding the best position along the skyline.
+Maintains a "skyline" representing the top edge of placed rectangles. Each
+segment has a position (x) and height (y). New rectangles are placed by
+finding the best position along the skyline.
 
-This is one of the most efficient packing algorithms, offering near-optimal
-results with O(n^2) complexity in the worst case.
+One of the most efficient packing algorithms, offering near-optimal results
+with O(n²) worst-case complexity.
 
-Heuristics:
-    - BOTTOM_LEFT: Place at lowest Y position, tie-break by leftmost X
-    - MIN_WASTE: Place where least space is wasted below the rectangle
-    - BEST_FIT: Find position where rectangle fits best with skyline contour
-
-Usage:
-    from packers.skyline_packer import SkylinePacker
-    from packers.packer_types import FrameInput, PackerOptions
-
-    packer = SkylinePacker()
-    packer.set_heuristic("min_waste")
-    result = packer.pack([
-        FrameInput("frame1", 100, 100),
-        FrameInput("frame2", 50, 75),
-    ])
+Based on Jukka Jylänki's paper "A Thousand Ways to Pack the Bin" and
+reference implementation: https://github.com/juj/RectangleBinPack
 """
 
 from __future__ import annotations
@@ -47,8 +34,8 @@ class SkylineNode:
 
     Attributes:
         x: Starting X position of this segment.
-        y: Height (Y position of the top edge).
-        width: Width of this segment.
+        y: Height (top edge Y coordinate).
+        width: Horizontal extent of this segment.
     """
 
     x: int
@@ -57,16 +44,15 @@ class SkylineNode:
 
 
 class SkylinePacker(BasePacker):
-    """Skyline bin packing algorithm.
+    """Skyline bin packing implementation.
 
-    The skyline is a horizontal line representing the top edge of all placed
-    rectangles. When a rectangle is placed, it updates the skyline by raising
-    the appropriate segments.
+    The skyline is a horizontal contour representing the top edge of all
+    placed rectangles. Placing a rectangle raises the appropriate segments.
 
     Attributes:
-        options: Packer configuration options.
-        skyline: List of skyline segments.
-        heuristic: Placement heuristic to use.
+        options: Packer configuration inherited from BasePacker.
+        skyline: Active skyline segments in the current bin.
+        heuristic: Strategy for selecting placement positions.
     """
 
     ALGORITHM_NAME = "skyline"
@@ -111,7 +97,16 @@ class SkylinePacker(BasePacker):
         width: int,
         height: int,
     ) -> List[PackedFrame]:
-        """Pack frames using the Skyline algorithm."""
+        """Pack frames using the Skyline algorithm.
+
+        Args:
+            frames: Frames to pack.
+            width: Atlas width in pixels.
+            height: Atlas height in pixels.
+
+        Returns:
+            Successfully placed frames with their positions.
+        """
         self._init_bin(width, height)
         packed: List[PackedFrame] = []
         padding = self.options.padding
@@ -122,15 +117,13 @@ class SkylinePacker(BasePacker):
 
             result = self._find_best_position(frame_w, frame_h)
             if result is None:
-                return packed  # Cannot fit this frame
+                return packed
 
             best_x, best_y, placed_w, placed_h, rotated = result
 
-            # Check vertical fit
             if best_y + placed_h > self._bin_height - self.options.border_padding:
-                return packed  # Cannot fit
+                return packed
 
-            # Create packed frame
             packed_frame = PackedFrame(
                 frame=frame,
                 x=best_x,
@@ -139,20 +132,23 @@ class SkylinePacker(BasePacker):
             )
             packed.append(packed_frame)
 
-            # Update skyline
             self._add_skyline_level(best_x, best_y, placed_w, placed_h)
             self._placed.append((best_x, best_y, placed_w, placed_h))
 
         return packed
 
     def _init_bin(self, width: int, height: int) -> None:
-        """Initialize the bin with the given dimensions."""
+        """Initialize the bin with the given dimensions.
+
+        Args:
+            width: Total bin width in pixels.
+            height: Total bin height in pixels.
+        """
         self._bin_width = width
         self._bin_height = height
         self._placed = []
 
         border = self.options.border_padding
-        # Start with a single skyline segment at y=0 (top of usable area)
         self.skyline = [SkylineNode(x=border, y=border, width=width - 2 * border)]
 
     def _find_best_position(
@@ -162,8 +158,12 @@ class SkylinePacker(BasePacker):
     ) -> Optional[Tuple[int, int, int, int, bool]]:
         """Find the best position for a rectangle.
 
+        Args:
+            width: Rectangle width including padding.
+            height: Rectangle height including padding.
+
         Returns:
-            (x, y, width, height, rotated) or None if no fit found.
+            Tuple (x, y, width, height, rotated) or None if no fit.
         """
         best_x = -1
         best_y = -1
@@ -172,7 +172,6 @@ class SkylinePacker(BasePacker):
         best_rotated = False
         best_score = float("inf")
 
-        # Try without rotation
         result = self._find_position_for_size(width, height)
         if result is not None:
             idx, x, y, score = result
@@ -184,13 +183,10 @@ class SkylinePacker(BasePacker):
                 best_height = height
                 best_rotated = False
 
-        # Try with rotation
         if self.options.allow_rotation and width != height:
             result = self._find_position_for_size(height, width)
             if result is not None:
                 idx, x, y, score = result
-                # Small penalty for rotation
-                score += 0.5
                 if score < best_score:
                     best_score = score
                     best_x = x
@@ -209,10 +205,14 @@ class SkylinePacker(BasePacker):
         width: int,
         height: int,
     ) -> Optional[Tuple[int, int, int, float]]:
-        """Find best position for a rectangle of given size.
+        """Find the best position for a rectangle of given size.
+
+        Args:
+            width: Rectangle width.
+            height: Rectangle height.
 
         Returns:
-            (skyline_index, x, y, score) or None if no fit.
+            Tuple (skyline_index, x, y, score) or None if no fit.
         """
         best_idx = -1
         best_x = -1
@@ -227,17 +227,14 @@ class SkylinePacker(BasePacker):
 
             x, y, waste = result
 
-            # Check bounds
             if y + height > self._bin_height - border:
                 continue
 
-            # Calculate score based on heuristic
             if self.heuristic == SkylineHeuristic.BOTTOM_LEFT:
                 score = float(y * self._bin_width + x)
             elif self.heuristic == SkylineHeuristic.MIN_WASTE:
                 score = float(waste)
             elif self.heuristic == SkylineHeuristic.BEST_FIT:
-                # Prefer positions where width matches skyline segment
                 fit_score = abs(width - self.skyline[i].width)
                 score = float(y * 1000 + fit_score)
             else:
@@ -260,19 +257,22 @@ class SkylinePacker(BasePacker):
         width: int,
         height: int,
     ) -> Optional[Tuple[int, int, int]]:
-        """Try to fit a rectangle starting at skyline index.
+        """Try to fit a rectangle starting at the given skyline index.
+
+        Args:
+            idx: Skyline segment index to start from.
+            width: Rectangle width.
+            height: Rectangle height.
 
         Returns:
-            (x, y, waste) if it fits, None otherwise.
+            Tuple (x, y, waste) if it fits, None otherwise.
         """
         x = self.skyline[idx].x
         border = self.options.border_padding
 
-        # Check horizontal bounds
         if x + width > self._bin_width - border:
             return None
 
-        # Find maximum Y across skyline segments the rectangle spans
         width_left = width
         i = idx
         y = 0
@@ -281,24 +281,19 @@ class SkylinePacker(BasePacker):
         while width_left > 0 and i < len(self.skyline):
             node = self.skyline[i]
 
-            # Track highest point
             if node.y > y:
-                # Calculate waste: area between old y and new y
                 waste += (node.y - y) * (width - width_left)
                 y = node.y
             else:
-                # Calculate waste below this segment
                 waste += (y - node.y) * min(width_left, node.width)
 
             if node.x + node.width >= x + width:
-                # This segment extends beyond our rectangle
                 width_left = 0
             else:
                 width_left -= node.width - max(0, x - node.x)
 
             i += 1
 
-        # Check if we ran out of skyline segments
         if width_left > 0:
             return None
 
@@ -311,39 +306,36 @@ class SkylinePacker(BasePacker):
         width: int,
         height: int,
     ) -> None:
-        """Add a new skyline level after placing a rectangle.
+        """Update the skyline after placing a rectangle.
 
-        Updates the skyline to reflect the new top edge.
+        Args:
+            x: Placement X coordinate.
+            y: Placement Y coordinate.
+            width: Placed rectangle width.
+            height: Placed rectangle height.
         """
-        # Create new skyline node for the placed rectangle
         new_node = SkylineNode(x=x, y=y + height, width=width)
 
-        # Build new skyline
         new_skyline: List[SkylineNode] = []
         i = 0
 
-        # Copy nodes before the new rectangle
         while i < len(self.skyline) and self.skyline[i].x + self.skyline[i].width <= x:
             new_skyline.append(self.skyline[i])
             i += 1
 
-        # Handle partial overlap on the left
         if i < len(self.skyline) and self.skyline[i].x < x:
             node = self.skyline[i]
             trimmed = SkylineNode(x=node.x, y=node.y, width=x - node.x)
             new_skyline.append(trimmed)
 
-        # Add the new node
         new_skyline.append(new_node)
 
-        # Skip nodes that are covered by the new rectangle
         while (
             i < len(self.skyline)
             and self.skyline[i].x + self.skyline[i].width <= x + width
         ):
             i += 1
 
-        # Handle partial overlap on the right
         if i < len(self.skyline) and self.skyline[i].x < x + width:
             node = self.skyline[i]
             overlap = x + width - node.x
@@ -352,7 +344,6 @@ class SkylinePacker(BasePacker):
                 new_skyline.append(adjusted)
             i += 1
 
-        # Copy remaining nodes
         while i < len(self.skyline):
             new_skyline.append(self.skyline[i])
             i += 1
@@ -372,7 +363,6 @@ class SkylinePacker(BasePacker):
             last = merged[-1]
 
             if last.y == node.y:
-                # Merge nodes with same height
                 merged[-1] = SkylineNode(
                     x=last.x,
                     y=last.y,
@@ -384,7 +374,7 @@ class SkylinePacker(BasePacker):
         self.skyline = merged
 
     def get_skyline_height(self) -> int:
-        """Get the maximum height of the current skyline."""
+        """Return the maximum height of the current skyline."""
         if not self.skyline:
             return 0
         return max(node.y for node in self.skyline)

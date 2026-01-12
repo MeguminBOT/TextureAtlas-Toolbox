@@ -1,37 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Guillotine bin packing algorithm with multiple split heuristics.
+"""Guillotine bin packing algorithm with configurable split heuristics.
 
-The Guillotine algorithm subdivides the atlas into rectangular regions using
-guillotine cuts (like cutting paper). When a frame is placed, the remaining
-space is split either horizontally or vertically, creating new free rectangles.
+Subdivides the atlas into rectangular regions using guillotine cuts. When a
+frame is placed, remaining space is split horizontally or vertically based on
+the chosen split heuristic.
 
-Placement Heuristics:
-    - BSSF (Best Short Side Fit): Minimize short side remainder
-    - BLSF (Best Long Side Fit): Minimize long side remainder
-    - BAF (Best Area Fit): Minimize area waste
-    - WAF (Worst Area Fit): Maximize area waste (uniform distribution)
-
-Split Heuristics:
-    - SHORTER_LEFTOVER_AXIS: Split along shorter leftover side
-    - LONGER_LEFTOVER_AXIS: Split along longer leftover side
-    - SHORTER_AXIS: Split along shorter frame side
-    - LONGER_AXIS: Split along longer frame side
-    - MIN_AREA: Minimize area of smallest resulting rectangle
-    - MAX_AREA: Maximize area of smallest resulting rectangle
-
-Usage:
-    from packers.guillotine_packer import GuillotinePacker
-    from packers.packer_types import FrameInput, PackerOptions
-
-    packer = GuillotinePacker()
-    packer.set_heuristic("baf")  # Best Area Fit
-    packer.set_split_heuristic("shorter_leftover")
-    result = packer.pack([
-        FrameInput("frame1", 100, 100),
-        FrameInput("frame2", 50, 75),
-    ])
+Based on Jukka Jylänki's paper "A Thousand Ways to Pack the Bin" and
+reference implementation: https://github.com/juj/RectangleBinPack
 """
 
 from __future__ import annotations
@@ -50,18 +27,16 @@ from packers.packer_types import (
 
 
 class GuillotinePacker(BasePacker):
-    """Guillotine bin packing algorithm.
+    """Guillotine bin packing implementation.
 
-    Maintains a list of free rectangles. When placing a frame, finds the best
-    fit according to the placement heuristic, then splits the free rectangle
-    using the split heuristic. Unlike MaxRects, each free rectangle is only
-    split once (no overlap tracking needed).
+    Unlike MaxRects, each free rectangle is split exactly once when used,
+    so no overlap tracking or pruning is needed.
 
     Attributes:
-        options: Packer configuration options.
-        free_rects: List of available free rectangles.
-        placement_heuristic: How to choose where to place frames.
-        split_heuristic: How to split remaining space after placement.
+        options: Packer configuration inherited from BasePacker.
+        free_rects: Available free rectangles in the current bin.
+        placement_heuristic: Strategy for choosing where to place frames.
+        split_heuristic: Strategy for dividing leftover space after placement.
     """
 
     ALGORITHM_NAME = "guillotine"
@@ -131,22 +106,50 @@ class GuillotinePacker(BasePacker):
         width: int,
         height: int,
     ) -> List[PackedFrame]:
-        """Pack frames using the Guillotine algorithm."""
+        """Pack frames using the Guillotine algorithm.
+
+        At each step, selects the remaining frame that best fits the current
+        free-rectangle state (global best-fit).
+
+        Args:
+            frames: Frames to pack.
+            width: Atlas width in pixels.
+            height: Atlas height in pixels.
+
+        Returns:
+            Successfully placed frames with their positions.
+        """
         self._init_bin(width, height)
         packed: List[PackedFrame] = []
         padding = self.options.padding
 
-        for frame in frames:
-            frame_w = frame.width + padding
-            frame_h = frame.height + padding
+        remaining = [
+            (frame, frame.width + padding, frame.height + padding) for frame in frames
+        ]
 
-            result = self._find_best_position(frame_w, frame_h)
-            if result is None:
-                return packed  # Cannot fit this frame
+        while remaining:
+            best_score = float("inf")
+            best_frame_idx: Optional[int] = None
+            best_result: Optional[Tuple[int, int, int, int, int, bool]] = None
 
-            rect_idx, best_x, best_y, placed_w, placed_h, rotated = result
+            for i, (frame, frame_w, frame_h) in enumerate(remaining):
+                result = self._find_best_position(frame_w, frame_h)
+                if result is not None:
+                    rect_idx, x, y, placed_w, placed_h, rotated = result
+                    if rect_idx < len(self.free_rects):
+                        rect = self.free_rects[rect_idx]
+                        score = self._score_placement(placed_w, placed_h, rect)
+                        if score < best_score:
+                            best_score = score
+                            best_frame_idx = i
+                            best_result = result
 
-            # Create packed frame
+            if best_frame_idx is None:
+                return packed
+
+            frame, frame_w, frame_h = remaining[best_frame_idx]
+            rect_idx, best_x, best_y, placed_w, placed_h, rotated = best_result
+
             packed_frame = PackedFrame(
                 frame=frame,
                 x=best_x,
@@ -155,13 +158,20 @@ class GuillotinePacker(BasePacker):
             )
             packed.append(packed_frame)
 
-            # Split the free rectangle
             self._split_free_rect(rect_idx, best_x, best_y, placed_w, placed_h)
+
+            remaining[best_frame_idx] = remaining[-1]
+            remaining.pop()
 
         return packed
 
     def _init_bin(self, width: int, height: int) -> None:
-        """Initialize the bin with the given dimensions."""
+        """Initialize the bin with the given dimensions.
+
+        Args:
+            width: Total bin width in pixels.
+            height: Total bin height in pixels.
+        """
         self._bin_width = width
         self._bin_height = height
         self.free_rects = []
@@ -178,21 +188,23 @@ class GuillotinePacker(BasePacker):
     ) -> Optional[Tuple[int, int, int, int, int, bool]]:
         """Find the best position for a rectangle.
 
+        Args:
+            width: Rectangle width including padding.
+            height: Rectangle height including padding.
+
         Returns:
-            (rect_index, x, y, width, height, rotated) or None if no fit.
+            Tuple (rect_index, x, y, width, height, rotated) or None.
         """
         best_score = float("inf")
         best_result: Optional[Tuple[int, int, int, int, int, bool]] = None
 
         for i, rect in enumerate(self.free_rects):
-            # Try without rotation
             if width <= rect.width and height <= rect.height:
                 score = self._score_placement(width, height, rect)
                 if score < best_score:
                     best_score = score
                     best_result = (i, rect.x, rect.y, width, height, False)
 
-            # Try with rotation
             if self.options.allow_rotation:
                 if height <= rect.width and width <= rect.height:
                     score = self._score_placement(height, width, rect)
@@ -203,25 +215,30 @@ class GuillotinePacker(BasePacker):
         return best_result
 
     def _score_placement(self, width: int, height: int, rect: Rect) -> float:
-        """Score a potential placement (lower is better)."""
+        """Score a potential placement using the active heuristic.
+
+        Args:
+            width: Placed rectangle width.
+            height: Placed rectangle height.
+            rect: Free rectangle being considered.
+
+        Returns:
+            Placement score; lower values are better.
+        """
         leftover_w = rect.width - width
         leftover_h = rect.height - height
 
         if self.placement_heuristic == GuillotinePlacement.BSSF:
-            # Best Short Side Fit
             return float(min(leftover_w, leftover_h))
 
         elif self.placement_heuristic == GuillotinePlacement.BLSF:
-            # Best Long Side Fit
             return float(max(leftover_w, leftover_h))
 
         elif self.placement_heuristic == GuillotinePlacement.BAF:
-            # Best Area Fit - minimize leftover area
-            return float(leftover_w * rect.height + leftover_h * width)
+            return float(rect.width * rect.height - width * height)
 
         elif self.placement_heuristic == GuillotinePlacement.WAF:
-            # Worst Area Fit - maximize leftover area (negate)
-            return -float(leftover_w * rect.height + leftover_h * width)
+            return -float(rect.width * rect.height - width * height)
 
         return 0.0
 
@@ -235,39 +252,37 @@ class GuillotinePacker(BasePacker):
     ) -> None:
         """Split a free rectangle after placing a frame.
 
-        The guillotine split creates two new rectangles from the leftover space.
-        The split direction is determined by the split heuristic.
+        Creates two new rectangles from the leftover space; split direction
+        is determined by the active split heuristic.
+
+        Args:
+            rect_idx: Index of the free rectangle being consumed.
+            x: Placement x-coordinate.
+            y: Placement y-coordinate.
+            width: Placed width.
+            height: Placed height.
         """
         rect = self.free_rects[rect_idx]
         leftover_w = rect.width - width
         leftover_h = rect.height - height
 
-        # Determine split direction
         split_horizontal = self._should_split_horizontal(
             width, height, leftover_w, leftover_h
         )
 
-        # Create new free rectangles
         new_rects: List[Rect] = []
 
         if split_horizontal:
-            # Horizontal split:
-            # Right rect spans full height of original
-            # Bottom rect only spans placed width
             if leftover_w > 0:
                 new_rects.append(Rect(x + width, rect.y, leftover_w, rect.height))
             if leftover_h > 0:
                 new_rects.append(Rect(x, y + height, width, leftover_h))
         else:
-            # Vertical split:
-            # Bottom rect spans full width of original
-            # Right rect only spans placed height
             if leftover_h > 0:
                 new_rects.append(Rect(rect.x, y + height, rect.width, leftover_h))
             if leftover_w > 0:
                 new_rects.append(Rect(x + width, y, leftover_w, height))
 
-        # Remove the used free rectangle and add new ones
         del self.free_rects[rect_idx]
         self.free_rects.extend(new_rects)
 
@@ -278,7 +293,17 @@ class GuillotinePacker(BasePacker):
         leftover_w: int,
         leftover_h: int,
     ) -> bool:
-        """Determine if we should split horizontally or vertically."""
+        """Determine split direction based on the active split heuristic.
+
+        Args:
+            width: Placed rectangle width.
+            height: Placed rectangle height.
+            leftover_w: Remaining width in the free rectangle.
+            leftover_h: Remaining height in the free rectangle.
+
+        Returns:
+            True for horizontal split, False for vertical.
+        """
         heuristic = self.split_heuristic
 
         if heuristic == GuillotineSplit.SHORTER_LEFTOVER_AXIS:
@@ -294,8 +319,6 @@ class GuillotinePacker(BasePacker):
             return width >= height
 
         elif heuristic == GuillotineSplit.MIN_AREA:
-            # Choose split that minimizes the smallest resulting rectangle
-            # Horizontal split
             h_area1 = leftover_w * (height + leftover_h) if leftover_w > 0 else 0
             h_area2 = width * leftover_h if leftover_h > 0 else 0
             h_min = (
@@ -304,7 +327,6 @@ class GuillotinePacker(BasePacker):
                 else max(h_area1, h_area2)
             )
 
-            # Vertical split
             v_area1 = leftover_w * height if leftover_w > 0 else 0
             v_area2 = (width + leftover_w) * leftover_h if leftover_h > 0 else 0
             v_min = (
@@ -316,7 +338,6 @@ class GuillotinePacker(BasePacker):
             return h_min < v_min
 
         elif heuristic == GuillotineSplit.MAX_AREA:
-            # Choose split that maximizes the smallest resulting rectangle
             h_area1 = leftover_w * (height + leftover_h) if leftover_w > 0 else 0
             h_area2 = width * leftover_h if leftover_h > 0 else 0
             h_min = (
@@ -338,10 +359,9 @@ class GuillotinePacker(BasePacker):
         return True  # Default to horizontal
 
     def merge_free_rects(self) -> None:
-        """Attempt to merge adjacent free rectangles.
+        """Merge adjacent free rectangles to reduce fragmentation.
 
-        This is O(n^2) but can improve packing efficiency by reducing
-        fragmentation. Call this periodically during packing for best results.
+        This is O(n²); call periodically during packing if needed.
         """
         i = 0
         while i < len(self.free_rects):
@@ -351,7 +371,6 @@ class GuillotinePacker(BasePacker):
                 r1 = self.free_rects[i]
                 r2 = self.free_rects[j]
 
-                # Check horizontal merge (same height, adjacent)
                 if r1.y == r2.y and r1.height == r2.height:
                     if r1.right == r2.x:
                         self.free_rects[i] = Rect(
@@ -368,7 +387,6 @@ class GuillotinePacker(BasePacker):
                         merged = True
                         continue
 
-                # Check vertical merge (same width, adjacent)
                 if r1.x == r2.x and r1.width == r2.width:
                     if r1.bottom == r2.y:
                         self.free_rects[i] = Rect(
