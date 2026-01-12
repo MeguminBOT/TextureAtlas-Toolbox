@@ -1,0 +1,131 @@
+name: Build Portable Distributions
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.9.6)'
+        required: false
+        default: ''
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Get app version
+        id: version
+        run: |
+          $version = python -c "import re; m = re.search(r'APP_VERSION\s*=\s*[\"'']([^\"'']+)[\"'']', open('src/utils/version.py').read()); print(m.group(1) if m else '0.0.0')"
+          echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+
+      - name: Build portable distribution
+        run: python setup/build_portable.py
+
+      - name: Upload Windows distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: TextureAtlasToolbox-win-x64-embedded-python-v${{ steps.version.outputs.APP_VERSION }}
+          path: |
+            _build-output/portable/*.zip
+            _build-output/portable/*.7z
+          if-no-files-found: error
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Get app version
+        id: version
+        run: |
+          VERSION=$(python -c "import re; m = re.search(r'APP_VERSION\s*=\s*[\"'\''']([^\"'\'']+)[\"'\''']', open('src/utils/version.py').read()); print(m.group(1) if m else '0.0.0')")
+          echo "APP_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxcb-cursor0 libxkbcommon-x11-0
+
+      - name: Build portable distribution
+        run: python setup/build_portable.py
+
+      - name: Upload Linux distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: TextureAtlasToolbox-linux-x64-embedded-python-v${{ steps.version.outputs.APP_VERSION }}
+          path: |
+            _build-output/portable/*.zip
+            _build-output/portable/*.7z
+            _build-output/portable/*.tar.gz
+          if-no-files-found: error
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Get app version
+        id: version
+        run: |
+          VERSION=$(python -c "import re; m = re.search(r'APP_VERSION\s*=\s*[\"'\''']([^\"'\'']+)[\"'\''']', open('src/utils/version.py').read()); print(m.group(1) if m else '0.0.0')")
+          echo "APP_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build portable distribution
+        run: python setup/build_portable.py
+
+      - name: Upload macOS distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: TextureAtlasToolbox-mac-x64-embedded-python-v${{ steps.version.outputs.APP_VERSION }}
+          path: |
+            _build-output/portable/*.zip
+            _build-output/portable/*.7z
+            _build-output/portable/*.tar.gz
+          if-no-files-found: error
+
+  # Optional: Create a release with all artifacts when version is specified
+  create-release:
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.version != '' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            artifacts/portable-windows-x64/*
+            artifacts/portable-linux-x64/*
+            artifacts/portable-macos-x64/*
