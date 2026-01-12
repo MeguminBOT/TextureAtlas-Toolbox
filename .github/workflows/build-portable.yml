@@ -2,11 +2,6 @@ name: Build Portable Distributions
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version tag (e.g., v1.9.6)'
-        required: false
-        default: ''
 
 jobs:
   build-windows:
@@ -20,26 +15,13 @@ jobs:
         with:
           python-version: '3.14'
 
-      - name: Get app version
-        id: version
-        run: |
-          import re
-          from pathlib import Path
-          content = Path("src/utils/version.py").read_text()
-          match = re.search(r'APP_VERSION\s*=\s*["\x27]([^"\x27]+)["\x27]', content)
-          version = match.group(1) if match else "0.0.0"
-          print(f"APP_VERSION={version}")
-          with open("$env:GITHUB_OUTPUT", "a") as f:
-              f.write(f"APP_VERSION={version}\n")
-        shell: python
-
       - name: Build portable distribution
         run: python setup/build_portable.py
 
       - name: Upload Windows distribution
         uses: actions/upload-artifact@v4
         with:
-          name: TextureAtlasToolbox-win-x64-embedded-python-v${{ steps.version.outputs.APP_VERSION }}
+          name: TextureAtlasToolbox-win-x64-embedded-python
           path: |
             _build-output/portable/*.zip
             _build-output/portable/*.7z
@@ -56,19 +38,6 @@ jobs:
         with:
           python-version: '3.14'
 
-      - name: Get app version
-        id: version
-        run: |
-          import os, re
-          from pathlib import Path
-          content = Path("src/utils/version.py").read_text()
-          match = re.search(r'APP_VERSION\s*=\s*["\x27]([^"\x27]+)["\x27]', content)
-          version = match.group(1) if match else "0.0.0"
-          print(f"APP_VERSION={version}")
-          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              f.write(f"APP_VERSION={version}\n")
-        shell: python
-
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -80,7 +49,7 @@ jobs:
       - name: Upload Linux distribution
         uses: actions/upload-artifact@v4
         with:
-          name: TextureAtlasToolbox-linux-x64-embedded-python-v${{ steps.version.outputs.APP_VERSION }}
+          name: TextureAtlasToolbox-linux-x64-embedded-python
           path: |
             _build-output/portable/*.zip
             _build-output/portable/*.7z
@@ -98,29 +67,15 @@ jobs:
         with:
           python-version: '3.14'
 
-      - name: Get app version
-        id: version
-        run: |
-          import os, re
-          from pathlib import Path
-          content = Path("src/utils/version.py").read_text()
-          match = re.search(r'APP_VERSION\s*=\s*["\x27]([^"\x27]+)["\x27]', content)
-          version = match.group(1) if match else "0.0.0"
-          print(f"APP_VERSION={version}")
-          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              f.write(f"APP_VERSION={version}\n")
-        shell: python
-
       - name: Build portable distribution
         run: python setup/build_portable.py
 
       - name: Upload macOS distribution
         uses: actions/upload-artifact@v4
         with:
-          name: TextureAtlasToolbox-mac-x64-embedded-python-v${{ steps.version.outputs.APP_VERSION }}
+          name: TextureAtlasToolbox-mac-x64-embedded-python
           path: |
             _build-output/portable/*.zip
             _build-output/portable/*.7z
             _build-output/portable/*.tar.gz
           if-no-files-found: error
-            artifacts/portable-macos-x64/*
