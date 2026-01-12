@@ -32,6 +32,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -112,8 +113,10 @@ class PortableBuilder:
         self.os_id = get_os_identifier()
         self.arch_id = get_arch_identifier()
         
-        # Asset naming: TextureAtlasToolbox-win-x64-embedded-python-v2.0.0
-        self.dist_name = f"{APP_NAME}-{self.os_id}-{self.arch_id}-embedded-python-v{self.app_version}"
+        # Archive naming: TextureAtlasToolbox-win-x64-embedded-python-v2.0.0
+        self.archive_name = f"{APP_NAME}-{self.os_id}-{self.arch_id}-embedded-python-v{self.app_version}"
+        # Folder name inside archive: user-friendly name
+        self.dist_name = "TextureAtlas Toolbox"
 
     def log(self, message: str) -> None:
         if self.verbose:
@@ -261,6 +264,7 @@ import site
     def _install_requirements(self, python_dir: Path) -> None:
         """Install required packages from requirements.txt."""
         python_exe = python_dir / "python.exe"
+        site_packages = python_dir / "Lib" / "site-packages"
         
         # Try portable requirements first, then fall back to standard
         requirements_path = self.project_root / REQUIREMENTS_FILE
@@ -273,14 +277,22 @@ import site
         self.log(f"Installing packages from: {requirements_path}")
         self.log("Using binary-only packages (no source builds)...")
         
+        # Environment to disable user site-packages
+        # This ensures packages are installed to our local site-packages only
+        env = os.environ.copy()
+        env["PYTHONNOUSERSITE"] = "1"
+        env["PIP_NO_CACHE_DIR"] = "1"  # Don't use cached wheels
+        
         # Use pip to install requirements with binary-only preference
         # This avoids needing compilers for source builds
+        # --target ensures packages go to our local site-packages
         result = subprocess.run(
             [
                 str(python_exe),
                 "-m", "pip",
                 "install",
                 "-r", str(requirements_path),
+                "--target", str(site_packages),
                 "--only-binary", ":all:",
                 "--no-warn-script-location",
                 "--disable-pip-version-check",
@@ -288,6 +300,7 @@ import site
             capture_output=True,
             text=True,
             cwd=python_dir,
+            env=env,
         )
         
         if result.returncode != 0:
@@ -297,16 +310,242 @@ import site
         
         self.log("All packages installed successfully")
         
-        # List installed packages for verification
+        # List installed packages for verification (only local site-packages)
         result = subprocess.run(
-            [str(python_exe), "-m", "pip", "list", "--format=columns"],
+            [str(python_exe), "-m", "pip", "list", "--format=columns", "--path", str(site_packages)],
             capture_output=True,
             text=True,
+            env=env,
         )
         if result.returncode == 0:
             self.log("Installed packages:")
             for line in result.stdout.strip().split('\n'):
                 self.log(f"  {line}")
+
+        # Strip unnecessary PySide6 components to reduce size
+        self._strip_pyside6(site_packages)
+
+        # Verify critical packages are importable
+        self._verify_critical_packages(python_exe)
+
+    def _strip_pyside6(self, site_packages: Path) -> None:
+        """Remove unnecessary PySide6 components to reduce distribution size.
+        
+        This app only uses QtCore, QtGui, and QtWidgets. All other Qt modules
+        and tools (Designer, Linguist, QML, WebEngine, etc.) can be removed.
+        """
+        pyside6_dir = site_packages / "PySide6"
+        if not pyside6_dir.exists():
+            return
+        
+        self.log("Stripping unnecessary PySide6 components...")
+        
+        # Get size before cleanup
+        size_before = sum(f.stat().st_size for f in pyside6_dir.rglob("*") if f.is_file())
+        
+        # Modules to KEEP (only what we actually use)
+        keep_modules = {
+            # Core modules we use
+            "QtCore", "QtGui", "QtWidgets",
+            # Required base files
+            "pyside6", "shiboken6",
+        }
+        
+        # Executables/tools to remove
+        remove_executables = [
+            "assistant.exe", "designer.exe", "linguist.exe",
+            "lrelease.exe", "lupdate.exe", "qmllint.exe", "qmlls.exe",
+            "qmlformat.exe", "qmlcachegen.exe", "qmltyperegistrar.exe",
+            "qmlimportscanner.exe", "balsam.exe", "balsamui.exe",
+            "qsb.exe", "rcc.exe", "uic.exe", "svgtoqml.exe",
+            "QtWebEngineProcess.exe",
+        ]
+        
+        # DLLs to remove (Qt modules we don't use)
+        # Keep: Qt6Core, Qt6Gui, Qt6Widgets and their dependencies
+        remove_dll_patterns = [
+            "Qt63D",          # Qt 3D
+            "Qt6Bluetooth",
+            "Qt6Charts",
+            "Qt6DataVisualization",
+            "Qt6Designer",
+            "Qt6Graphs",
+            "Qt6Help",
+            "Qt6HttpServer",
+            "Qt6Labs",
+            "Qt6Location",
+            "Qt6Multimedia",
+            "Qt6Network",     # Network module
+            "Qt6Nfc",
+            "Qt6OpenGL",
+            "Qt6Pdf",
+            "Qt6Positioning",
+            "Qt6Qml",
+            "Qt6Quick",
+            "Qt6RemoteObjects",
+            "Qt6Scxml",
+            "Qt6Sensors",
+            "Qt6SerialBus",
+            "Qt6SerialPort",
+            "Qt6ShaderTools",
+            "Qt6SpatialAudio",
+            "Qt6Sql",
+            "Qt6StateMachine",
+            # Qt6Svg - KEEP for SVG icon support
+            "Qt6Test",
+            "Qt6TextToSpeech",
+            "Qt6VirtualKeyboard",
+            "Qt6WebChannel",
+            "Qt6WebEngine",
+            "Qt6WebSockets",
+            "Qt6WebView",
+            "Qt6Xml",
+        ]
+        
+        # Python bindings to remove (.pyd and .pyi files)
+        remove_binding_patterns = [
+            "Qt3D", "QtBluetooth", "QtCharts", "QtConcurrent",
+            "QtDataVisualization", "QtDBus", "QtDesigner",
+            "QtGraphs", "QtHelp", "QtHttpServer", "QtLocation",
+            "QtMultimedia", "QtNetwork", "QtNfc", "QtOpenGL",
+            "QtPdf", "QtPositioning", "QtPrintSupport",
+            "QtQml", "QtQuick", "QtRemoteObjects", "QtScxml",
+            "QtSensors", "QtSerialBus", "QtSerialPort",
+            "QtSpatialAudio", "QtSql", "QtStateMachine",
+            # QtSvg - KEEP for SVG icon support
+            "QtTest", "QtTextToSpeech", "QtUiTools", "QtWebChannel",
+            "QtWebEngine", "QtWebSockets", "QtWebView", "QtXml",
+            "QtAxContainer",
+        ]
+        
+        # Directories to remove entirely
+        remove_dirs = [
+            "qml",           # QML files
+            "translations",  # Qt translations (we have our own)
+            "resources",     # Qt resources
+            "typesystems",   # Type system XML files
+            "glue",          # Glue code
+            "include",       # C++ headers
+            "metatypes",     # Meta type info
+            "doc",           # Documentation
+        ]
+        
+        removed_count = 0
+        removed_size = 0
+        
+        # Remove executables
+        for exe in remove_executables:
+            exe_path = pyside6_dir / exe
+            if exe_path.exists():
+                removed_size += exe_path.stat().st_size
+                exe_path.unlink()
+                removed_count += 1
+        
+        # Remove DLLs by pattern
+        for pattern in remove_dll_patterns:
+            for dll in pyside6_dir.glob(f"{pattern}*.dll"):
+                removed_size += dll.stat().st_size
+                dll.unlink()
+                removed_count += 1
+        
+        # Remove Python bindings (.pyd and .pyi files)
+        for pattern in remove_binding_patterns:
+            for ext in [".pyd", ".pyi"]:
+                binding = pyside6_dir / f"{pattern}{ext}"
+                if binding.exists():
+                    removed_size += binding.stat().st_size
+                    binding.unlink()
+                    removed_count += 1
+        
+        # Remove directories (with retry for locked files from antivirus/indexing)
+        for dirname in remove_dirs:
+            dir_path = pyside6_dir / dirname
+            if dir_path.exists() and dir_path.is_dir():
+                dir_size = sum(f.stat().st_size for f in dir_path.rglob("*") if f.is_file())
+                removed_size += dir_size
+                # Retry up to 3 times with delay for transient locks
+                for attempt in range(3):
+                    try:
+                        shutil.rmtree(dir_path)
+                        break
+                    except PermissionError:
+                        if attempt < 2:
+                            time.sleep(0.5)  # Wait for antivirus/indexer to release
+                        else:
+                            raise
+                removed_count += 1
+        
+        # Remove ffmpeg/multimedia DLLs (avcodec, avformat, etc.)
+        for dll in pyside6_dir.glob("av*.dll"):
+            removed_size += dll.stat().st_size
+            dll.unlink()
+            removed_count += 1
+        for dll in pyside6_dir.glob("sw*.dll"):
+            removed_size += dll.stat().st_size
+            dll.unlink()
+            removed_count += 1
+        
+        # Get size after cleanup
+        size_after = sum(f.stat().st_size for f in pyside6_dir.rglob("*") if f.is_file())
+        
+        saved_mb = (size_before - size_after) / (1024 * 1024)
+        self.log(f"  Removed {removed_count} items, saved {saved_mb:.1f} MB")
+        self.log(f"  PySide6 size: {size_before / (1024*1024):.1f} MB → {size_after / (1024*1024):.1f} MB")
+
+    def _verify_critical_packages(self, python_exe: Path) -> None:
+        """Verify that critical packages and their dependencies are importable.
+        
+        This catches issues like missing urllib3 (requests dependency) that could
+        cause runtime crashes if packages are incompletely installed.
+        
+        Uses PYTHONNOUSERSITE to ensure we're only checking packages installed
+        in the bundled site-packages, not user's global packages.
+        """
+        critical_packages = [
+            # Core app dependencies - PySide6 modules we actually use
+            "PySide6.QtCore",
+            "PySide6.QtGui", 
+            "PySide6.QtWidgets",
+            "PIL",  # Pillow
+            "numpy",
+            "wand",
+            # Update checker dependencies (requests and its deps)
+            "requests",
+            "urllib3",
+            "certifi",
+            "charset_normalizer",
+            "idna",
+            # Other utilities
+            "py7zr",
+            "tqdm",
+            "psutil",
+        ]
+        
+        # Disable user site-packages to ensure we only check bundled packages
+        env = os.environ.copy()
+        env["PYTHONNOUSERSITE"] = "1"
+        
+        self.log("Verifying critical packages are importable (isolated environment)...")
+        failed_packages = []
+        
+        for package in critical_packages:
+            result = subprocess.run(
+                [str(python_exe), "-c", f"import {package}; print('{package} OK')"],
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            if result.returncode != 0:
+                failed_packages.append(package)
+                self.log(f"  ✗ {package}: FAILED - {result.stderr.strip()}")
+            else:
+                self.log(f"  ✓ {package}")
+        
+        if failed_packages:
+            raise RuntimeError(
+                f"Critical packages failed to import: {', '.join(failed_packages)}\n"
+                "The portable build may be incomplete or corrupted."
+            )
 
     def _copy_application_files(self, dist_path: Path) -> None:
         """Copy application source code and assets to distribution."""
@@ -477,8 +716,8 @@ pause
         Returns:
             Tuple of (zip_path, sevenz_path). sevenz_path is None if 7z is not available.
         """
-        zip_path = self.output_dir / f"{self.dist_name}.zip"
-        sevenz_path = self.output_dir / f"{self.dist_name}.7z"
+        zip_path = self.output_dir / f"{self.archive_name}.zip"
+        sevenz_path = self.output_dir / f"{self.archive_name}.7z"
         
         # Remove existing archives
         for path in (zip_path, sevenz_path):
@@ -901,13 +1140,13 @@ echo "============================================================"
         """Create a tar.gz archive of the distribution."""
         import tarfile
         
-        archive_name = f"{self.dist_name}.tar.gz"
-        archive_path = self.output_dir / archive_name
+        archive_filename = f"{self.archive_name}.tar.gz"
+        archive_path = self.output_dir / archive_filename
         
         if archive_path.exists():
             archive_path.unlink()
         
-        self.log(f"Creating archive: {archive_name}")
+        self.log(f"Creating archive: {archive_filename}")
         
         with tarfile.open(archive_path, "w:gz") as tar:
             tar.add(dist_path, arcname=dist_path.name)
@@ -980,7 +1219,8 @@ def main():
         verbose=not args.quiet,
     )
     
-    print(f"  Output name: {builder.dist_name}")
+    print(f"  Archive name: {builder.archive_name}")
+    print(f"  Folder name: {builder.dist_name}")
     print()
     
     try:
