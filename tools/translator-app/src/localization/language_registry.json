@@ -17,7 +17,7 @@
     "fr_fr": {
         "name": "français (France)",
         "english_name": "French (France)",
-        "quality": "machine"
+        "quality": "reviewed"
     },
     "it_it": {
         "name": "italiano (Italia)",
@@ -44,7 +44,7 @@
         "english_name": "Portuguese (Brazil)",
         "quality": "unknown"
     },
-    "sv": {
+    "sv_se": {
         "name": "svenska (Sverige)",
         "english_name": "Swedish (Sweden)",
         "quality": "machine"

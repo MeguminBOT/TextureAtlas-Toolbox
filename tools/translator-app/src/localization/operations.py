@@ -3,7 +3,15 @@
 
 This module provides LocalizationOperations, the main engine that wraps
 lupdate/lrelease commands, generates resource files, injects machine-translation
-disclaimers, and reports progress. It is used by both the GUI and CLI.
+disclaimers, and reports progress. Used by both the GUI and CLI.
+
+Usage:
+    from localization.operations import LocalizationOperations
+
+    ops = LocalizationOperations()
+    result = ops.extract(["fr_FR", "de_DE"])
+    if result.success:
+        ops.compile(["fr_FR", "de_DE"])
 """
 
 from __future__ import annotations
@@ -21,7 +29,16 @@ ROOT_SENTINELS = ("main.py", "Main.py", "app_config.cfg")
 
 
 def resolve_language_code(code: Optional[str]) -> Optional[str]:
-    """Return the canonical registry key for a language code or alias."""
+    """Return the canonical registry key for a language code.
+
+    Performs case-insensitive lookup against LANGUAGE_REGISTRY keys.
+
+    Args:
+        code: Language code string to resolve (e.g., "FR_FR", "fr_fr").
+
+    Returns:
+        The matching registry key with original casing, or None if not found.
+    """
 
     if not code:
         return None
@@ -35,9 +52,16 @@ def resolve_language_code(code: Optional[str]) -> Optional[str]:
 
 
 def normalize_languages(languages: Optional[Sequence[str]]) -> List[str]:
-    """Return a validated list of language codes.
+    """Validate and normalize a list of language codes.
 
-    Passing "all" or nothing returns the full registry. Unknown codes are ignored.
+    Resolves each code against the registry. Passing "all" or an empty
+    sequence returns all registered languages.
+
+    Args:
+        languages: Language codes to validate; None or empty for all.
+
+    Returns:
+        List of canonical registry keys. Unknown codes are silently dropped.
     """
 
     if not languages:
@@ -69,16 +93,18 @@ class TranslationPaths:
 
     @classmethod
     def discover(cls, start: Optional[Path] = None) -> "TranslationPaths":
-        """Discover paths by walking parent directories.
+        """Auto-discover project paths by walking parent directories.
 
-        Searches for a src/ folder containing known sentinel files that mark
-        the project root.
+        Searches upward for a src/ folder containing sentinel files
+        (Main.py, app_config.cfg) that mark the project root.
 
         Args:
-            start: Starting path for the search; defaults to this file's location.
+            start: Starting path for the search; defaults to this module's
+                location.
 
         Returns:
-            A TranslationPaths instance with discovered paths.
+            A TranslationPaths instance with resolved paths. Falls back to
+            current working directory layout if no project is found.
         """
 
         start_path = (start or Path(__file__)).resolve()
@@ -108,7 +134,14 @@ class TranslationPaths:
 
     @staticmethod
     def _looks_like_project_root(src_dir: Path) -> bool:
-        """Return True if the src folder contains known project markers."""
+        """Check if src_dir contains known TextureAtlas Toolbox markers.
+
+        Args:
+            src_dir: Path to a candidate src folder.
+
+        Returns:
+            True if any ROOT_SENTINELS file exists in the directory.
+        """
 
         return any((src_dir / marker).exists() for marker in ROOT_SENTINELS)
 
@@ -136,14 +169,15 @@ class CommandRunner:
     """Thin wrapper around subprocess.run for easier test mocking."""
 
     def run(self, command: Sequence[str], cwd: Optional[Path] = None) -> CommandResult:
-        """Execute a command and capture its output.
+        """Execute a shell command and capture its output.
 
         Args:
-            command: Sequence of command-line arguments.
-            cwd: Working directory for the command.
+            command: Command-line arguments as a sequence.
+            cwd: Working directory; uses current directory if omitted.
 
         Returns:
-            A CommandResult with captured stdout, stderr, and exit code.
+            A CommandResult with stdout, stderr, and exit code. Returns
+            exit code 127 if the executable is not found.
         """
         try:
             process = subprocess.run(
@@ -190,20 +224,34 @@ class OperationResult:
     details: Dict[str, object] = field(default_factory=dict)
 
     def add_log(self, message: str) -> None:
-        """Append an informational message to the logs."""
+        """Append an informational message to the logs.
+
+        Args:
+            message: Log message to record.
+        """
         self.logs.append(message)
 
     def add_error(self, message: str) -> None:
-        """Record an error message and mark the operation as failed."""
+        """Record an error and mark the operation as failed.
+
+        Args:
+            message: Error message to record.
+        """
         self.errors.append(message)
         self.success = False
 
 
 def _count_messages(ts_path: Path) -> Tuple[int, int, int]:
-    """Return (total_messages, finished_messages, machine_translated) for a TS file.
+    """Count translation message statistics in a .ts file.
 
-    Excludes vanished/obsolete strings from the count since they
-    no longer exist in the source code.
+    Excludes vanished/obsolete strings from the count since they no longer
+    exist in the source code.
+
+    Args:
+        ts_path: Path to the .ts file to analyze.
+
+    Returns:
+        A tuple of (total_active, finished, machine_translated) counts.
     """
 
     if not ts_path.exists():
@@ -260,8 +308,8 @@ class LocalizationOperations:
 
         Args:
             paths: Pre-resolved translation paths; auto-discovered if omitted.
-            runner: Command runner for subprocess execution; defaults to
-                standard subprocess if omitted.
+            runner: Command runner for subprocess execution; uses standard
+                subprocess runner if omitted.
         """
         self.paths = paths or TranslationPaths.discover()
         self.runner = runner or CommandRunner()
@@ -270,6 +318,8 @@ class LocalizationOperations:
     def set_translations_dir(self, translations_dir: Path | str) -> TranslationPaths:
         """Override the translations directory at runtime.
 
+        Clears the tool cache after updating paths.
+
         Args:
             translations_dir: New path to the translations folder.
 
@@ -277,7 +327,7 @@ class LocalizationOperations:
             The updated TranslationPaths instance.
 
         Raises:
-            ValueError: If the path does not exist or is not valid.
+            ValueError: If the path does not exist or lacks project markers.
         """
         new_paths = self._build_paths_from_translations(translations_dir)
         self.paths = new_paths
@@ -287,7 +337,18 @@ class LocalizationOperations:
     def _build_paths_from_translations(
         self, translations_dir: Path | str
     ) -> TranslationPaths:
-        """Construct TranslationPaths from a given translations folder."""
+        """Construct TranslationPaths from a translations folder.
+
+        Args:
+            translations_dir: Path to the translations folder.
+
+        Returns:
+            A new TranslationPaths instance.
+
+        Raises:
+            ValueError: If the path is invalid or not inside a recognized
+                project structure.
+        """
         candidate = Path(translations_dir).expanduser().resolve()
         if not candidate.exists() or not candidate.is_dir():
             raise ValueError("Translations directory does not exist.")
@@ -304,12 +365,58 @@ class LocalizationOperations:
         project_root = src_dir.parent
         return TranslationPaths(project_root, src_dir, candidate)
 
+    def set_src_dir(self, src_dir: Path | str) -> TranslationPaths:
+        """Override the source directory at runtime.
+
+        Use this to manually select the TextureAtlas Toolbox src folder
+        when auto-detection fails. Clears the tool cache after updating.
+
+        Args:
+            src_dir: Path to the src folder of TextureAtlas Toolbox.
+
+        Returns:
+            The updated TranslationPaths instance.
+
+        Raises:
+            ValueError: If the path does not exist or lacks project markers.
+        """
+        candidate = Path(src_dir).expanduser().resolve()
+        if not candidate.exists() or not candidate.is_dir():
+            raise ValueError("Source directory does not exist.")
+
+        if not TranslationPaths._looks_like_project_root(candidate):
+            raise ValueError(
+                "Selected folder does not appear to be the TextureAtlas Toolbox src directory. "
+                "Expected to find Main.py or app_config.cfg."
+            )
+
+        project_root = candidate.parent
+        translations_dir = candidate / "translations"
+        self.paths = TranslationPaths(project_root, candidate, translations_dir)
+        self._tool_cache.clear()
+        return self.paths
+
+    def is_project_detected(self) -> bool:
+        """Check if a valid TextureAtlas Toolbox project is configured.
+
+        Returns:
+            True if src_dir exists and contains expected project markers.
+        """
+        return (
+            self.paths.src_dir.exists()
+            and TranslationPaths._looks_like_project_root(self.paths.src_dir)
+        )
+
     def _ensure_translations_dir(self) -> None:
         """Create the translations directory if it does not exist."""
         self.paths.translations_dir.mkdir(parents=True, exist_ok=True)
 
     def _collect_source_files(self) -> List[Path]:
-        """Return all .py and .ui files under the src directory."""
+        """Gather all translatable source files under src_dir.
+
+        Returns:
+            Sorted list of unique .py and .ui file paths.
+        """
         if not self.paths.src_dir.exists():
             return []
 
@@ -321,7 +428,15 @@ class LocalizationOperations:
         return sorted(unique_files)
 
     def _build_tool_command(self, tool: str, extra_args: Sequence[str]) -> List[str]:
-        """Construct a command list for a Qt translation tool."""
+        """Construct a command list for a Qt translation tool.
+
+        Args:
+            tool: Tool name ("lupdate" or "lrelease").
+            extra_args: Additional arguments to append.
+
+        Returns:
+            Complete command list ready for subprocess execution.
+        """
         base = self._tool_cache.get(tool)
         if base is None:
             base = self._resolve_tool(tool)
@@ -329,7 +444,17 @@ class LocalizationOperations:
         return base + list(extra_args)
 
     def _resolve_tool(self, tool: str) -> List[str]:
-        """Locate the lupdate or lrelease executable."""
+        """Locate the lupdate or lrelease executable.
+
+        Searches in order: environment variables, PySide6 installation,
+        system PATH.
+
+        Args:
+            tool: Tool name ("lupdate" or "lrelease").
+
+        Returns:
+            Command list for invoking the tool.
+        """
         env_key = {"lupdate": "QT_LUPDATE", "lrelease": "QT_LRELEASE"}.get(tool)
         if env_key:
             env_value = os.environ.get(env_key)
@@ -371,11 +496,14 @@ class LocalizationOperations:
     def extract(self, languages: Optional[Sequence[str]] = None) -> OperationResult:
         """Run lupdate to refresh .ts files from source code.
 
+        Scans all .py and .ui files under src_dir for translatable strings
+        and updates the corresponding .ts files.
+
         Args:
-            languages: Subset of language codes to update; all if omitted.
+            languages: Language codes to update; processes all if omitted.
 
         Returns:
-            An OperationResult summarizing success and per-language details.
+            An OperationResult with per-language success details.
         """
         self._ensure_translations_dir()
         result = OperationResult("extract", True)
@@ -422,10 +550,10 @@ class LocalizationOperations:
         """Run lrelease to compile .ts files into .qm binaries.
 
         Args:
-            languages: Subset of language codes to compile; all if omitted.
+            languages: Language codes to compile; processes all if omitted.
 
         Returns:
-            An OperationResult summarizing success and per-language details.
+            An OperationResult with per-language success details.
         """
         self._ensure_translations_dir()
         result = OperationResult("compile", True)
@@ -464,7 +592,7 @@ class LocalizationOperations:
         """Generate a translations.qrc file listing compiled .qm files.
 
         Returns:
-            An OperationResult indicating success or missing .qm files.
+            An OperationResult indicating success. Fails if no .qm files exist.
         """
         self._ensure_translations_dir()
         result = OperationResult("resource", True)
@@ -492,13 +620,16 @@ class LocalizationOperations:
     def status_report(
         self, languages: Optional[Sequence[str]] = None
     ) -> OperationResult:
-        """Generate a translation progress report for the given languages.
+        """Generate a translation progress report.
+
+        Collects statistics including message counts, completion status,
+        and file existence for each language.
 
         Args:
-            languages: Subset of language codes to report; all if omitted.
+            languages: Language codes to report; processes all if omitted.
 
         Returns:
-            An OperationResult with detailed entries per language.
+            An OperationResult with detailed entries in result.details["entries"].
         """
         result = OperationResult("status", True)
         selected = normalize_languages(languages)
@@ -537,15 +668,16 @@ class LocalizationOperations:
     def inject_disclaimers(
         self, languages: Optional[Sequence[str]] = None
     ) -> OperationResult:
-        """Insert machine-translation disclaimer contexts into .ts files.
+        """Insert machine-translation disclaimer into .ts files.
 
-        Only applies to languages marked with quality="machine" in the registry.
+        Only applies to languages with quality="machine" in the registry.
+        Skips files that already contain the disclaimer.
 
         Args:
-            languages: Subset of language codes to process; all if omitted.
+            languages: Language codes to process; processes all if omitted.
 
         Returns:
-            An OperationResult summarizing which files were modified.
+            An OperationResult listing which files were modified.
         """
         self._ensure_translations_dir()
         result = OperationResult("disclaimer", True)
@@ -575,6 +707,134 @@ class LocalizationOperations:
             ts_file.write_text(updated, encoding="utf-8")
             result.add_log(f"Inserted disclaimer into {ts_file.name}")
         return result
+
+    def remove_disclaimers(
+        self, languages: Optional[Sequence[str]] = None
+    ) -> OperationResult:
+        """Remove machine-translation disclaimer from .ts files.
+
+        Args:
+            languages: Language codes to process; processes all if omitted.
+
+        Returns:
+            An OperationResult listing which files were modified.
+        """
+        self._ensure_translations_dir()
+        result = OperationResult("remove_disclaimer", True)
+        selected = normalize_languages(languages)
+
+        for lang in selected:
+            ts_file = self.paths.translations_dir / f"app_{lang}.ts"
+            if not ts_file.exists():
+                result.add_log(f"Skipping {lang}: missing {ts_file}")
+                continue
+
+            content = ts_file.read_text(encoding="utf-8")
+            if "MachineTranslationDisclaimer" not in content:
+                result.add_log(f"No disclaimer found in {ts_file.name}")
+                continue
+
+            updated = content.replace(DISCLAIMER_BLOCK + "\n", "")
+            updated = updated.replace(DISCLAIMER_BLOCK, "")
+
+            ts_file.write_text(updated, encoding="utf-8")
+            result.add_log(f"Removed disclaimer from {ts_file.name}")
+        return result
+
+    def toggle_disclaimers(
+        self, languages: Optional[Sequence[str]] = None
+    ) -> OperationResult:
+        """Toggle machine-translation disclaimers in .ts files.
+
+        Removes the disclaimer if present, adds it if absent. Uses regex
+        fallback to handle non-standard disclaimer formats.
+
+        Args:
+            languages: Language codes to process; processes all if omitted.
+
+        Returns:
+            An OperationResult with added/removed counts in details.
+        """
+        self._ensure_translations_dir()
+        result = OperationResult("toggle_disclaimer", True)
+        selected = normalize_languages(languages)
+
+        added_count = 0
+        removed_count = 0
+
+        for lang in selected:
+            ts_file = self.paths.translations_dir / f"app_{lang}.ts"
+            if not ts_file.exists():
+                result.add_log(f"Skipping {lang}: missing {ts_file}")
+                continue
+
+            with open(ts_file, "r", encoding="utf-8") as f:
+                content = f.read()
+            has_disclaimer = "<name>MachineTranslationDisclaimer</name>" in content
+
+            if has_disclaimer:
+                updated = content
+                removed = False
+
+                if DISCLAIMER_BLOCK + "\n" in updated:
+                    updated = updated.replace(DISCLAIMER_BLOCK + "\n", "")
+                    removed = True
+                elif DISCLAIMER_BLOCK in updated:
+                    updated = updated.replace(DISCLAIMER_BLOCK, "")
+                    removed = True
+
+                if not removed or "MachineTranslationDisclaimer</name>" in updated:
+                    import re
+
+                    pattern = r"<context>\s*<name>MachineTranslationDisclaimer</name>(?!Dialog).*?</context>\s*"
+                    updated, count = re.subn(pattern, "", updated, flags=re.DOTALL)
+                    if count > 0:
+                        removed = True
+
+                if "<name>MachineTranslationDisclaimer</name>" in updated:
+                    result.add_error(
+                        f"Failed to remove disclaimer from {ts_file.name} - pattern mismatch"
+                    )
+                    continue
+
+                with open(ts_file, "w", encoding="utf-8") as f:
+                    f.write(updated)
+                    f.flush()
+                result.add_log(f"Removed disclaimer from {ts_file.name}")
+                removed_count += 1
+            else:
+                if "</TS>" not in content:
+                    result.add_error(f"Malformed TS file (missing </TS>): {ts_file}")
+                    continue
+
+                updated = content.replace("</TS>", DISCLAIMER_BLOCK + "\n</TS>")
+                with open(ts_file, "w", encoding="utf-8") as f:
+                    f.write(updated)
+                    f.flush()
+                result.add_log(f"Inserted disclaimer into {ts_file.name}")
+                added_count += 1
+
+        result.details["added"] = added_count
+        result.details["removed"] = removed_count
+        return result
+
+    def has_disclaimer(self, language: str) -> bool:
+        """Check if a language's .ts file contains the MT disclaimer.
+
+        Looks for the exact context name, not the Dialog variant.
+
+        Args:
+            language: Language code to check.
+
+        Returns:
+            True if the MachineTranslationDisclaimer context is present.
+        """
+        ts_file = self.paths.translations_dir / f"app_{language}.ts"
+        if not ts_file.exists():
+            return False
+        with open(ts_file, "r", encoding="utf-8") as f:
+            content = f.read()
+        return "<name>MachineTranslationDisclaimer</name>" in content
 
 
 __all__ = [

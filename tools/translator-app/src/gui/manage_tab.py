@@ -7,12 +7,14 @@ up vanished strings across multiple .ts files.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 import xml.etree.ElementTree as ET
 
-from PySide6.QtCore import Qt, QThreadPool
+from PySide6.QtCore import Qt, QThreadPool, QTimer
 from PySide6.QtWidgets import (
+    QApplication,
     QFileDialog,
     QDialog,
     QGridLayout,
@@ -92,6 +94,8 @@ class ManageTab(QWidget):
         self.manage_action_buttons: List[QPushButton] = []
         self.manage_task_running = False
         self.translations_path_label: Optional[QLabel] = None
+        self.src_path_label: Optional[QLabel] = None
+        self.src_warning_label: Optional[QLabel] = None
         self._pending_extract_languages: List[str] = []
         self._current_worker: Optional[BackgroundTaskWorker] = None
 
@@ -102,6 +106,25 @@ class ManageTab(QWidget):
     def _build_ui(self) -> None:
         """Construct the tab layout with language list, action buttons, and status table."""
         layout = QVBoxLayout(self)
+
+        # Source directory row (TextureAtlas Toolbox src folder)
+        src_row = QHBoxLayout()
+        src_caption = QLabel("Source Directory:")
+        src_caption.setMinimumWidth(140)
+        src_row.addWidget(src_caption)
+        self.src_path_label = QLabel()
+        self.src_path_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        src_row.addWidget(self.src_path_label, 1)
+        self.src_warning_label = QLabel()
+        src_row.addWidget(self.src_warning_label)
+        src_change_btn = QPushButton("Browse...")
+        src_change_btn.setToolTip(
+            "Select the TextureAtlas Toolbox 'src' folder if auto-detection failed."
+        )
+        src_change_btn.clicked.connect(self.prompt_src_folder)
+        src_row.addWidget(src_change_btn)
+        layout.addLayout(src_row)
+        self._update_src_path_label()
 
         path_row = QHBoxLayout()
         path_caption = QLabel("Translations Folder:")
@@ -127,6 +150,9 @@ class ManageTab(QWidget):
         )
         self.language_list_widget.itemDoubleClicked.connect(
             self._handle_language_double_click
+        )
+        self.language_list_widget.itemSelectionChanged.connect(
+            self._update_disclaimer_button_text
         )
         language_layout.addWidget(self.language_list_widget)
 
@@ -163,32 +189,28 @@ class ManageTab(QWidget):
         actions_layout = QGridLayout(actions_group)
         buttons = [
             (
-                "Update Source Files",
+                "Update selected files",
                 "extract",
-                "Run lupdate to refresh every .ts file.",
+                "Runs `lupdate` to get the latest translateable strings for the selected .ts file.\n\nRequires This directly detects new and obsolete strings from the source code files.",
             ),
             (
-                "Build Compiled Files",
+                "Build selected files",
                 "compile",
-                "Run lrelease to build .qm files for the selection.",
+                "Runs `lrelease` to build .qm files for the selected .ts files.",
             ),
             (
-                "Regenerate Resource",
+                "Regenerate resource file",
                 "resource",
-                "Write translations.qrc referencing the current .qm files.",
+                "Writes the translations.qrc referencing the current compiled files.",
             ),
             (
-                "Add MT Disclaimers",
+                "Toggle MT Disclaimers",
                 "disclaimer",
-                "Inject the machine translation notice for auto-translated languages.",
-            ),
-            (
-                "Run Full Pipeline",
-                "all",
-                "Execute update, compile, resource, and status in sequence.",
+                "Add or remove the machine translation notice for selected languages.",
             ),
         ]
         self.manage_action_buttons = []
+        self.disclaimer_button: Optional[QPushButton] = None
         for index, (label, action, tooltip) in enumerate(buttons):
             button = QPushButton(label)
             button.setToolTip(tooltip)
@@ -199,6 +221,8 @@ class ManageTab(QWidget):
             col = index % 2
             actions_layout.addWidget(button, row, col)
             self.manage_action_buttons.append(button)
+            if action == "disclaimer":
+                self.disclaimer_button = button
         top_layout.addWidget(actions_group, 3)
 
         layout.addLayout(top_layout)
@@ -243,6 +267,9 @@ class ManageTab(QWidget):
         self.language_list_widget.clear()
         icon_provider = IconProvider.instance()
         for code in sorted(LANGUAGE_REGISTRY.keys()):
+            # Skip English - it's the source language, not a translation target
+            if code.lower() == "en":
+                continue
             meta = LANGUAGE_REGISTRY[code]
             display_name = meta.get("name", code)
             english = meta.get("english_name")
@@ -261,6 +288,216 @@ class ManageTab(QWidget):
             self.language_list_widget.addItem(item)
             if code in selected_codes:
                 item.setSelected(True)
+        # Force immediate UI update
+        self.language_list_widget.update()
+        self.language_list_widget.repaint()
+        QApplication.processEvents()
+
+    def check_incomplete_locale_codes(self) -> None:
+        """Check for incomplete locale codes and prompt user to fix them.
+
+        Call this after the main window is shown to avoid blocking startup.
+        """
+        QTimer.singleShot(100, self._prompt_fix_incomplete_locales)
+
+    def _prompt_fix_incomplete_locales(self) -> None:
+        """Show warning for incomplete locales and offer to fix them."""
+        if not hasattr(self, "_locale_warning_shown"):
+            self._locale_warning_shown: set[str] = set()
+
+        base_codes = [
+            code
+            for code in LANGUAGE_REGISTRY.keys()
+            if "_" not in code
+            and code.lower() != "en"  # Skip English - it's the source language
+            and code not in self._locale_warning_shown
+        ]
+
+        if not base_codes:
+            return
+
+        self._locale_warning_shown.update(base_codes)
+        codes_list = ", ".join(f'"{c}"' for c in sorted(base_codes))
+
+        reply = QMessageBox.question(
+            self,
+            "Incomplete Locale Codes Detected",
+            f"The following languages use base codes without a locale:\n\n"
+            f"{codes_list}\n\n"
+            f"Full locale codes (e.g., 'fr_FR' instead of 'fr') are recommended "
+            f"for proper language identification.\n\n"
+            f"Would you like to fix them now?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.Yes,
+        )
+
+        if reply != QMessageBox.Yes:
+            return
+
+        for code in sorted(base_codes):
+            self._fix_single_locale_code(code)
+
+    def _fix_single_locale_code(self, old_code: str) -> None:
+        """Open edit dialog to fix a single incomplete locale code.
+
+        Args:
+            old_code: The language code to fix (e.g., 'fr').
+        """
+        meta = LANGUAGE_REGISTRY.get(old_code)
+        if not meta:
+            return
+
+        dialog = AddLanguageDialog(
+            self,
+            initial_data={
+                "code": old_code,
+                "native_name": meta.get("name", old_code),
+                "english_name": meta.get("english_name", meta.get("name", old_code)),
+                "quality": meta.get("quality", "unknown"),
+            },
+            code_editable=True,  # Allow changing the code
+        )
+        dialog.setWindowTitle(f"Fix Locale Code: {old_code.upper()}")
+
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        data = dialog.get_data()
+        if not data:
+            return
+
+        new_code = data["code"].lower()
+
+        # If code unchanged, just update metadata
+        if new_code == old_code:
+            LANGUAGE_REGISTRY[old_code] = {
+                "name": data["native_name"],
+                "english_name": data["english_name"],
+                "quality": data["quality"],
+            }
+            save_language_registry(LANGUAGE_REGISTRY)
+            self.populate_language_list(preserve_selection=False)
+            self._refresh_status_table()
+            self._update_disclaimer_button_text()
+            return
+
+        # Code changed - need to rename files and update registry
+        self._migrate_language_code(old_code, new_code, data)
+
+    def _migrate_language_code(
+        self, old_code: str, new_code: str, data: Dict[str, str]
+    ) -> None:
+        """Migrate a language from old code to new code.
+
+        Renames files and updates the registry.
+
+        Args:
+            old_code: Original language code.
+            new_code: New language code.
+            data: New metadata from the dialog.
+        """
+        translations_dir = self.localization_ops.paths.translations_dir
+        renamed_files: list[str] = []
+        failed_renames: list[str] = []
+
+        # Update language attribute inside .ts file before renaming
+        old_ts_path = translations_dir / f"app_{old_code}.ts"
+        if old_ts_path.exists():
+            try:
+                content = old_ts_path.read_text(encoding="utf-8")
+                # Update the language attribute in the TS root element
+                # Format: <TS version="2.1" language="xx"> or <TS language="xx" version="2.1">
+                # Match language="old_code" (case-insensitive for the code)
+                pattern = r'(<TS[^>]*\slanguage=")' + re.escape(old_code) + r'(")'
+                replacement = r"\g<1>" + new_code + r"\g<2>"
+                updated_content, count = re.subn(
+                    pattern, replacement, content, flags=re.IGNORECASE
+                )
+                if count > 0:
+                    old_ts_path.write_text(updated_content, encoding="utf-8")
+                    if self.manage_log_view:
+                        self.manage_log_view.appendPlainText(
+                            f"    Updated language attribute in {old_ts_path.name}\n"
+                        )
+            except Exception as exc:
+                if self.manage_log_view:
+                    self.manage_log_view.appendPlainText(
+                        f"    Warning: Could not update language attribute: {exc}\n"
+                    )
+
+        # Rename .ts and .qm files
+        for suffix in (".ts", ".qm"):
+            old_path = translations_dir / f"app_{old_code}{suffix}"
+            new_path = translations_dir / f"app_{new_code}{suffix}"
+
+            if not old_path.exists():
+                continue
+
+            if new_path.exists():
+                failed_renames.append(
+                    f"{old_path.name} -> {new_path.name}: Target already exists"
+                )
+                continue
+
+            try:
+                old_path.rename(new_path)
+                renamed_files.append(f"{old_path.name} -> {new_path.name}")
+            except OSError as exc:
+                failed_renames.append(f"{old_path.name}: {exc}")
+
+        if failed_renames:
+            QMessageBox.warning(
+                self,
+                "File Rename Issues",
+                "Some files could not be renamed:\n" + "\n".join(failed_renames),
+            )
+
+        # Add new registry entry
+        LANGUAGE_REGISTRY[new_code] = {
+            "name": data["native_name"],
+            "english_name": data["english_name"],
+            "quality": data["quality"],
+        }
+        save_language_registry(LANGUAGE_REGISTRY)
+
+        # Log the migration
+        if self.manage_log_view:
+            self.manage_log_view.appendPlainText(
+                f"[MIGRATE] {old_code.upper()} -> {new_code.upper()}\n"
+            )
+            if renamed_files:
+                self.manage_log_view.appendPlainText(
+                    "    Renamed: " + ", ".join(renamed_files) + "\n"
+                )
+
+        # Ask to remove old entry
+        reply = QMessageBox.question(
+            self,
+            "Remove Old Language Entry",
+            f"Language files have been renamed to use '{new_code.upper()}'.\n\n"
+            f"Do you want to remove the old '{old_code.upper()}' entry from the registry?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.Yes,
+        )
+
+        if reply == QMessageBox.Yes and old_code in LANGUAGE_REGISTRY:
+            LANGUAGE_REGISTRY.pop(old_code, None)
+            save_language_registry(LANGUAGE_REGISTRY)
+            if self.manage_log_view:
+                self.manage_log_view.appendPlainText(
+                    f"    Removed old entry: {old_code.upper()}\n"
+                )
+
+        self.populate_language_list(
+            preserve_selection=False, ensure_selected=[new_code]
+        )
+        self._refresh_status_table()
+        self._update_disclaimer_button_text()
+
+        if self.status_bar:
+            self.status_bar.showMessage(
+                f"Migrated {old_code.upper()} to {new_code.upper()}."
+            )
 
     def select_all_languages(self) -> None:
         """Select all languages in the list widget."""
@@ -271,6 +508,43 @@ class ManageTab(QWidget):
         """Clear the current language selection."""
         if self.language_list_widget:
             self.language_list_widget.clearSelection()
+
+    def _update_disclaimer_button_text(self) -> None:
+        """Update disclaimer button text based on selection's disclaimer state."""
+        if not self.disclaimer_button or not self.language_list_widget:
+            return
+
+        selected_items = self.language_list_widget.selectedItems()
+        if not selected_items:
+            self.disclaimer_button.setText("Toggle MT Disclaimers")
+            self.disclaimer_button.update()
+            self.disclaimer_button.repaint()
+            return
+
+        languages = [
+            item.data(Qt.UserRole) for item in selected_items if item.data(Qt.UserRole)
+        ]
+        if not languages:
+            self.disclaimer_button.setText("Toggle MT Disclaimers")
+            self.disclaimer_button.update()
+            self.disclaimer_button.repaint()
+            return
+
+        has_disclaimer_count = sum(
+            1 for lang in languages if self.localization_ops.has_disclaimer(lang)
+        )
+
+        if has_disclaimer_count == len(languages):
+            self.disclaimer_button.setText("Remove MT Disclaimers")
+        elif has_disclaimer_count == 0:
+            self.disclaimer_button.setText("Add MT Disclaimers")
+        else:
+            self.disclaimer_button.setText("Toggle MT Disclaimers")
+
+        # Force UI update
+        self.disclaimer_button.update()
+        self.disclaimer_button.repaint()
+        QApplication.processEvents()
 
     def _handle_language_double_click(self, item: QListWidgetItem) -> None:
         """Open the corresponding .ts file when a language is double-clicked."""
@@ -323,6 +597,7 @@ class ManageTab(QWidget):
         }
         save_language_registry(LANGUAGE_REGISTRY)
         self.populate_language_list(preserve_selection=False, ensure_selected=[code])
+        self._refresh_status_table()
         if self.status_bar:
             self.status_bar.showMessage(f"Added {code.upper()} to the language list.")
         if self.manage_task_running:
@@ -358,17 +633,7 @@ class ManageTab(QWidget):
                 "Select at least one language to delete.",
             )
             return
-        protected = {code for code in languages if code.lower() == "en"}
-        deletable = [code for code in languages if code.lower() != "en"]
-        if protected:
-            QMessageBox.warning(
-                self,
-                "Protected Languages",
-                "English (EN) is required and cannot be deleted.",
-            )
-            if not deletable:
-                return
-        codes_preview = ", ".join(code.upper() for code in deletable)
+        codes_preview = ", ".join(code.upper() for code in languages)
         prompt = QMessageBox(self)
         prompt.setIcon(QMessageBox.Warning)
         prompt.setWindowTitle("Delete Languages")
@@ -390,7 +655,7 @@ class ManageTab(QWidget):
         if clicked == cancel_btn:
             return
         delete_files = clicked == delete_files_btn
-        self._delete_languages(deletable, delete_files)
+        self._delete_languages(languages, delete_files)
 
     def prompt_translations_folder(self) -> None:
         """Prompt user to select a different translations directory."""
@@ -449,22 +714,34 @@ class ManageTab(QWidget):
                 "english_name": meta.get("english_name", meta.get("name", code)),
                 "quality": meta.get("quality", "unknown"),
             },
-            code_editable=False,
+            code_editable=True,
         )
         if dialog.exec() != QDialog.Accepted:
             return
         data = dialog.get_data()
         if not data:
             return
-        LANGUAGE_REGISTRY[code] = {
-            "name": data["native_name"],
-            "english_name": data["english_name"],
-            "quality": data["quality"],
-        }
-        save_language_registry(LANGUAGE_REGISTRY)
-        self.populate_language_list(preserve_selection=False, ensure_selected=[code])
-        if self.status_bar:
-            self.status_bar.showMessage(f"Updated metadata for {code.upper()}.")
+
+        new_code = data["code"].lower().strip()
+
+        # Check if locale code changed - need to migrate
+        if new_code != code:
+            self._migrate_language_code(code, new_code, data)
+        else:
+            # Just update metadata, no migration needed
+            LANGUAGE_REGISTRY[code] = {
+                "name": data["native_name"],
+                "english_name": data["english_name"],
+                "quality": data["quality"],
+            }
+            save_language_registry(LANGUAGE_REGISTRY)
+            self.populate_language_list(
+                preserve_selection=False, ensure_selected=[code]
+            )
+            self._refresh_status_table()
+            self._update_disclaimer_button_text()
+            if self.status_bar:
+                self.status_bar.showMessage(f"Updated metadata for {code.upper()}.")
 
     def get_selected_languages(self) -> List[str]:
         """Retrieve language codes for the currently selected list items.
@@ -492,7 +769,7 @@ class ManageTab(QWidget):
             )
             return
         languages = self.get_selected_languages()
-        language_required_ops = {"extract", "compile", "status", "disclaimer", "all"}
+        language_required_ops = {"extract", "compile", "status", "disclaimer"}
         needs_languages = op_name in language_required_ops
         if needs_languages and not languages:
             QMessageBox.information(
@@ -518,23 +795,11 @@ class ManageTab(QWidget):
         elif op_name == "status":
             self._enqueue_operation(self.localization_ops.status_report, languages)
         elif op_name == "disclaimer":
-            self._enqueue_operation(self.localization_ops.inject_disclaimers, languages)
-        elif op_name == "all":
-            self._pending_extract_languages = languages.copy()
-            self._enqueue_operation(self._run_full_workflow, languages)
+            self._enqueue_operation(self.localization_ops.toggle_disclaimers, languages)
         else:
             QMessageBox.warning(
                 self, "Unknown Operation", f"Unsupported action: {op_name}"
             )
-
-    def _run_full_workflow(self, languages: List[str]) -> List[OperationResult]:
-        results = [
-            self.localization_ops.extract(languages),
-            self.localization_ops.compile(languages),
-            self.localization_ops.create_resource_file(),
-        ]
-        results.append(self.localization_ops.status_report(languages))
-        return results
 
     def _enqueue_operation(self, fn: Callable[..., Any], *args: object) -> None:
         self.manage_task_running = True
@@ -589,6 +854,10 @@ class ManageTab(QWidget):
             self.status_bar.showMessage(f"Localization task {status_text.lower()}.")
         self.set_manage_buttons_enabled(True)
         self.manage_task_running = False
+        # Update button text immediately and schedule a delayed update as backup
+        QApplication.processEvents()
+        self._update_disclaimer_button_text()
+        QTimer.singleShot(200, self._update_disclaimer_button_text)
 
     def _handle_operation_failed(self, message: str) -> None:
         self._current_worker = None
@@ -617,6 +886,67 @@ class ManageTab(QWidget):
         display = self._format_path(current_path)
         self.translations_path_label.setText(display)
         self.translations_path_label.setToolTip(str(current_path))
+
+    def _update_src_path_label(self) -> None:
+        """Update the source directory label and warning indicator."""
+        if not self.src_path_label:
+            return
+        current_path = self.localization_ops.paths.src_dir
+        display = self._format_path(current_path)
+        self.src_path_label.setText(display)
+        self.src_path_label.setToolTip(str(current_path))
+
+        # Show warning if project not properly detected
+        if self.src_warning_label:
+            if self.localization_ops.is_project_detected():
+                self.src_warning_label.setText("")
+                self.src_warning_label.setToolTip("")
+                self.src_warning_label.setStyleSheet("")
+            else:
+                self.src_warning_label.setText("[!] Not detected")
+                self.src_warning_label.setToolTip(
+                    "TextureAtlas Toolbox source directory not found. "
+                    "Click 'Browse...' to select it manually."
+                )
+                self.src_warning_label.setStyleSheet(
+                    "color: orange; font-weight: bold;"
+                )
+
+    def prompt_src_folder(self) -> None:
+        """Prompt user to select the TextureAtlas Toolbox src directory."""
+        if self.manage_task_running:
+            QMessageBox.information(
+                self,
+                "Task Running",
+                "Please wait for the current operation to finish before changing folders.",
+            )
+            return
+
+        current_dir = str(self.localization_ops.paths.src_dir)
+        new_dir = QFileDialog.getExistingDirectory(
+            self,
+            "Select TextureAtlas Toolbox 'src' Folder",
+            current_dir,
+        )
+        if not new_dir:
+            return
+
+        try:
+            self.localization_ops.set_src_dir(Path(new_dir))
+        except ValueError as exc:
+            QMessageBox.warning(self, "Invalid Folder", str(exc))
+            return
+
+        self._update_src_path_label()
+        self._update_translations_path_label()
+        if self._translations_dir_changed:
+            self._translations_dir_changed(self.localization_ops.paths.translations_dir)
+        self.populate_language_list(preserve_selection=False)
+        self._refresh_status_table()
+        if self.status_bar:
+            self.status_bar.showMessage(
+                f"Source directory set to {self.localization_ops.paths.src_dir}"
+            )
 
     @staticmethod
     def _format_locale_label(code: str) -> str:
@@ -822,6 +1152,11 @@ class ManageTab(QWidget):
             entries = result.details.get("entries", []) if result.details else []
             if isinstance(entries, list):
                 self._update_status_table(entries)
+        # Force immediate UI update
+        if self.manage_table:
+            self.manage_table.update()
+            self.manage_table.repaint()
+            QApplication.processEvents()
 
     def _check_for_unused_strings(self, languages: List[str]) -> None:
         """Check extracted .ts files for vanished (obsolete) strings and prompt for cleanup.

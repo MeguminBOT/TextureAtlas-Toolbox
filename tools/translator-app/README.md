@@ -1,4 +1,4 @@
-# Translation Helper
+# Translation Editor
 
 A comprehensive Qt-based GUI tool for editing translation files (.ts) for the TextureAtlas Toolbox.
 
@@ -11,34 +11,35 @@ A comprehensive Qt-based GUI tool for editing translation files (.ts) for the Te
 - **Validation System**: Prevents saving files with missing or extra placeholders
 - **Context Information**: Shows all contexts where each string is used
 - **Copy Source**: Quick button to copy source text as a starting point for translation
-- **Translation Services Integration**: Supports usage of Google Cloud, DeepL and LibreTranslate services.
+- **Translation Services Integration**: Supports Google Cloud, DeepL and LibreTranslate services
+- **Language Management**: Register languages, set quality levels, and manage MT disclaimers
+- **CLI Support**: Batch operations for CI/CD integration
 
 ## Usage
 
 ### Running the Application
 
-**Option 1: Using the regular executable (Windows)**
-1. Run `Translation Editor.exe` in the app folder or run the shortcut `Launch Translation Editor.bat`
-**Note**: May be detected as a false positive by anti-virus.
+**Option 1: Using the launcher script (Recommended)**
 
+*Windows:*
+```bash
+Launch Translation Editor.bat
+```
 
-**Option 2: Using the compressed "standalone" executable (Windows)**
-1. Run `Translation Editor (Standalone).exe`
-**Note**: This variant are more likely to be detected as a false positive by anti-virus than Option 1.
+*Linux/macOS:*
+```bash
+./launch-translation-editor.sh
+```
 
-**Option 3: Using Python**
+**Option 2: Running directly with Python**
 ```bash
 # From the src directory
 cd src
-python translation_editor.py
+python Main.py
 
-# Or from anywhere with a file argument
-python tools/translator-app/src/translation_editor.py path/to/file.ts
-
-# Using the launcher (Windows)
+# Or open a specific .ts file
+python Main.py path/to/file.ts
 ```
-
-**Note**: The executable version includes all dependencies and doesn't require Python to be installed.
 
 ### Quick Start
 
@@ -50,9 +51,9 @@ python tools/translator-app/src/translation_editor.py path/to/file.ts
 
 ### Visual Indicators
 
-- ✅ **Green checkmark**: Translation is complete
-- ❌ **Red X**: Translation is missing
-- 📎**Number**: String appears in multiple contexts (grouped)
+- Green checkmark: Translation is complete
+- Red X: Translation is missing
+- Number badge: String appears in multiple contexts (grouped)
 
 ### Keyboard Shortcuts
 
@@ -66,13 +67,20 @@ python tools/translator-app/src/translation_editor.py path/to/file.ts
 ```
 translator-app/
 ├── src/
-│   ├── translation_editor.py    # Main application
-│   └── setup/
-│       └── build-windows.bat    # Windows build script
-
-├── launch-translation-helper.bat # Quick launcher
-├── requirements.txt             # Python dependencies
-└── README.md                   # This file
+│   ├── Main.py              # Main application entry point
+│   ├── cli.py               # Command-line interface
+│   ├── core/                # Core translation logic
+│   ├── gui/                 # UI components
+│   ├── localization/        # Language registry and operations
+│   ├── providers/           # Translation service providers
+│   └── utils/               # Utilities and preferences
+├── setup/
+│   ├── build_portable.py    # Portable build script
+│   ├── build-portable-windows.bat
+│   └── build-portable-unix.sh
+├── templates/               # Translation file templates
+├── Launch Translation Editor.bat   # Windows launcher
+└── README.md
 ```
 
 ## Smart Grouping Feature
@@ -92,3 +100,62 @@ The tool validates that:
 - Files cannot be saved with validation errors
 
 This prevents runtime errors in the main application.
+
+## Command-Line Interface
+
+The Translation Editor includes a CLI for batch operations and CI/CD integration.
+
+### CLI Usage
+
+```bash
+# Run CLI through Main.py
+python Main.py --cli <command> [options]
+
+# Or run cli.py directly
+python cli.py <command> [options]
+
+# Get help
+python cli.py help
+python cli.py help <command>
+```
+
+### Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `extract` | Run lupdate to extract translatable strings from source |
+| `compile` | Run lrelease to compile .ts files to .qm binaries |
+| `resource` | Generate translations.qrc file |
+| `status` | Show translation progress report |
+| `disclaimer` | Add, remove, or toggle MT disclaimers |
+| `quality` | Set translation quality level (machine/reviewed/unknown) |
+| `help` | Show help for a command |
+
+### CLI Examples
+
+```bash
+# Extract strings for specific languages
+python cli.py extract fr_FR de_DE
+
+# Compile all languages
+python cli.py compile
+
+# Show translation status
+python cli.py status
+
+# Add disclaimer to French translation
+python cli.py disclaimer --add fr_FR
+
+# Remove disclaimer
+python cli.py disclaimer --remove fr_FR
+
+# Toggle disclaimer (add if missing, remove if present)
+python cli.py disclaimer --toggle fr_FR
+
+# Set quality level
+python cli.py quality fr_FR --set reviewed
+python cli.py quality de_DE es_ES --set machine
+
+# Specify custom source directory
+python cli.py --src-dir /path/to/project/src status
+```

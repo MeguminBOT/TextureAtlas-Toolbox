@@ -1,28 +1,31 @@
 #!/usr/bin/env python3
+"""Qt-based GUI and CLI for editing TextureAtlas Toolbox translation files.
+
+Provides a user-friendly alternative to Qt Linguist for contributors who
+prefer not to install developer tools. Features smart string grouping,
+placeholder syntax highlighting, and real-time validation.
+
+Machine translation (optional) requires the ``requests`` package and an API key:
+    - DeepL: set ``DEEPL_API_KEY`` (and ``DEEPL_API_ENDPOINT`` for Pro).
+    - Google Cloud: set ``GOOGLE_TRANSLATE_API_KEY``.
+    - LibreTranslate: set ``LIBRETRANSLATE_ENDPOINT`` and optionally the key.
+
+Usage:
+    python Main.py                           # Launch GUI
+    python Main.py path/to/file.ts           # Open file in GUI
+    python Main.py --cli extract fr_FR de_DE # CLI mode
+    python Main.py --cli status              # Show translation progress
 """
-Translation Editor - A Qt-based GUI for editing translation files
 
-This tool was created to make it easier for users to contribute translations
-to the "TextureAtlas Toolbox" project, even if they don't know how to code
-or don't want to install development tools like Qt Linguist,
-or being overwhelmed by the sheer amount of text if opened with a text editor.
-
-It provides a clean, user-friendly interface with features like
-* Smart string grouping
-* Simple syntax highlighting for placeholders
-* Real-time validation
-
-Machine translation requires the optional 'requests' package and an API key:
-* Set DEEPL_API_KEY for DeepL (optionally override DEEPL_API_ENDPOINT).
-* Set GOOGLE_TRANSLATE_API_KEY for Google Cloud Translation API usage.
-"""
-
+import atexit
 import os
 import re
+import signal
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 import xml.etree.ElementTree as ET
+import faulthandler
 
 from PySide6.QtCore import QThreadPool
 from PySide6.QtGui import QAction, QIcon
@@ -51,20 +54,72 @@ from gui.unused_strings_dialog import UnusedStringsDialog
 from localization import LocalizationOperations
 from utils.preferences import load_preferences, save_preferences, get_shortcuts
 
+_CRASH_LOG_FILE: Optional[Any] = None
+
+
+def _enable_crash_logging() -> Optional[Path]:
+    """Enable faulthandler dumps for hard crashes such as segfaults.
+
+    Registers signal handlers for SIGSEGV and SIGABRT to write stack traces
+    to a log file. The log path defaults to ``translator_app_crash.log`` in
+    the current directory but can be overridden via the environment variable
+    ``TRANSLATOR_APP_CRASH_LOG``.
+
+    Returns:
+        Path to the crash log file if logging was enabled, or None on failure.
+    """
+    global _CRASH_LOG_FILE
+
+    log_env = os.environ.get("TRANSLATOR_APP_CRASH_LOG")
+    log_path = Path(log_env) if log_env else Path.cwd() / "translator_app_crash.log"
+
+    try:
+        _CRASH_LOG_FILE = open(log_path, "w", encoding="utf-8")
+    except OSError:
+        try:
+            faulthandler.enable(all_threads=True)
+        except Exception:
+            return None
+        return None
+
+    try:
+        faulthandler.enable(file=_CRASH_LOG_FILE, all_threads=True)
+    except Exception:
+        _CRASH_LOG_FILE.close()
+        _CRASH_LOG_FILE = None
+        return None
+
+    for sig in (getattr(signal, "SIGSEGV", None), getattr(signal, "SIGABRT", None)):
+        if sig is None:
+            continue
+        try:
+            faulthandler.register(sig, file=_CRASH_LOG_FILE, all_threads=True)
+        except Exception:
+            pass
+
+    atexit.register(_CRASH_LOG_FILE.close)
+    return log_path
+
 
 class TranslationEditor(QMainWindow):
     """Main application window for the Translation Editor.
 
     Hosts two tabs: ManageTab for file/language management and EditorTab for
-    editing individual translation entries. Handles file open/save, dark-mode
-    toggling, and user preferences.
+    editing individual translation entries. Manages file open/save, theme
+    toggling, keyboard shortcuts, and user preferences.
 
     Attributes:
-        translation_manager: Manager for translation providers.
-        localization_ops: Backend for running Qt localization commands.
-        thread_pool: Thread pool for background tasks.
-        dark_mode: True if dark theme is enabled.
-        preferences: Dictionary of persisted user settings.
+        translation_manager: Provider registry for machine translation.
+        localization_ops: Backend for Qt lupdate/lrelease commands.
+        thread_pool: Shared thread pool for background tasks.
+        current_ts_language: Language code of the currently loaded .ts file.
+        preferences: Persisted user settings dictionary.
+        dark_mode: Whether dark theme is active.
+        tabs: Central tab widget holding ManageTab and EditorTab.
+        status_bar: Status bar for transient messages.
+        editor_tab: Tab for viewing and editing translation entries.
+        manage_tab: Tab for language file management.
+        dark_mode_action: Menu action for toggling dark mode.
     """
 
     def __init__(self) -> None:
@@ -118,8 +173,7 @@ class TranslationEditor(QMainWindow):
         return None
 
     def init_ui(self) -> None:
-        """Build the main window layout, tabs, and status bar."""
-
+        """Build the main window layout, tabs, menu bar, and status bar."""
         self.setWindowTitle("Translation Editor - TextureAtlas Toolbox")
         self.setGeometry(100, 100, 1200, 800)
 
@@ -171,7 +225,7 @@ class TranslationEditor(QMainWindow):
         self.create_menu_bar()
 
     def create_menu_bar(self) -> None:
-        """Create the File, Options, and Help menus."""
+        """Create the File, Options, and Help menus with their actions."""
         menubar = self.menuBar()
 
         file_menu = menubar.addMenu("File")
@@ -219,7 +273,7 @@ class TranslationEditor(QMainWindow):
         api_help_action.triggered.connect(self.show_api_key_help)
 
     def show_usage_help(self) -> None:
-        """Display a help dialog with usage instructions."""
+        """Show the getting-started help dialog."""
         html = (
             "<h3>Getting started</h3>"
             "<ol>"
@@ -234,7 +288,7 @@ class TranslationEditor(QMainWindow):
         self.show_help_dialog("Translator App Help", html)
 
     def show_api_key_help(self) -> None:
-        """Display a help dialog explaining API key configuration."""
+        """Show the translation API key configuration help dialog."""
         html = (
             "<p>Machine translation is optional. Provide your own API key.</p>"
             "<h3>DeepL (paid subscription)</h3>"
@@ -252,11 +306,11 @@ class TranslationEditor(QMainWindow):
         self.show_help_dialog("Translation API Keys", html)
 
     def show_help_dialog(self, title: str, html: str) -> None:
-        """Display a modal help dialog with the given HTML content.
+        """Display a modal dialog with HTML help content.
 
         Args:
-            title: Window title for the dialog.
-            html: HTML-formatted help content.
+            title: Dialog window title.
+            html: HTML body to render in a QTextBrowser.
         """
         dialog = QDialog(self)
         dialog.setWindowTitle(title)
@@ -275,11 +329,11 @@ class TranslationEditor(QMainWindow):
         dialog.exec()
 
     def _check_unsaved_changes(self) -> bool:
-        """Check for unsaved changes and prompt user if needed.
+        """Prompt to save unsaved changes before a destructive action.
 
         Returns:
-            True if it's safe to proceed (saved, discarded, or no changes).
-            False if the user cancelled the operation.
+            True if safe to proceed (no changes, saved, or discarded).
+            False if the user cancelled.
         """
         if not self.editor_tab or not self.editor_tab.has_unsaved_changes():
             return True
@@ -302,7 +356,7 @@ class TranslationEditor(QMainWindow):
             return False
 
     def open_file(self) -> None:
-        """Prompt the user to select and open a .ts file."""
+        """Open a file dialog and load the selected .ts file."""
         if not self._check_unsaved_changes():
             return
         file_path, _ = QFileDialog.getOpenFileName(
@@ -315,11 +369,14 @@ class TranslationEditor(QMainWindow):
             self.load_ts_file(file_path)
 
     def load_ts_file(self, file_path: str, check_unsaved: bool = True) -> None:
-        """Parse a .ts file and load its translations into the editor.
+        """Parse a Qt .ts file and populate the editor with its entries.
+
+        Groups duplicate source strings across contexts, preserves markers and
+        machine-translation flags, and prompts to remove vanished strings.
 
         Args:
-            file_path: Path to the Qt translation file.
-            check_unsaved: Whether to check for unsaved changes before loading.
+            file_path: Absolute or relative path to the .ts file.
+            check_unsaved: If True, prompt before discarding unsaved changes.
         """
         if not self.editor_tab:
             return
@@ -447,7 +504,7 @@ class TranslationEditor(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to load file:\n{exc}")
 
     def save_file(self) -> None:
-        """Save the current translations to the open .ts file."""
+        """Save translations to the currently open file, validating first."""
         if not self.editor_tab:
             return
         current_file = self.editor_tab.get_current_file()
@@ -473,7 +530,7 @@ class TranslationEditor(QMainWindow):
         self.save_ts_file(current_file)
 
     def save_file_as(self) -> None:
-        """Prompt the user for a path and save translations there."""
+        """Open a save dialog and write translations to the chosen path."""
         if not self.editor_tab or not self.editor_tab.get_translations():
             QMessageBox.warning(self, "Warning", "No translations to save.")
             return
@@ -504,10 +561,14 @@ class TranslationEditor(QMainWindow):
             self.save_ts_file(file_path)
 
     def save_ts_file(self, file_path: str) -> None:
-        """Write the current translations to a .ts file.
+        """Serialize translations to a Qt .ts file.
+
+        Writes all translation entries grouped by context, preserving markers,
+        machine flags, and vanished status. Refreshes the ManageTab status
+        table after a successful save.
 
         Args:
-            file_path: Destination path for the file.
+            file_path: Destination path for the .ts file.
         """
         if not self.editor_tab:
             return
@@ -582,29 +643,28 @@ class TranslationEditor(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to save file:\n{exc}")
 
     def _extract_language_from_root(self, root: ET.Element) -> Optional[str]:
-        """Extract the language code from the TS element's attributes.
+        """Return the language code from the TS element's attributes.
 
         Args:
-            root: The root TS element of the parsed XML.
+            root: Root ``<TS>`` element of the parsed XML.
 
         Returns:
-            The language code from the 'language' or 'sourcelanguage' attribute.
+            Value of the ``language`` or ``sourcelanguage`` attribute, or None.
         """
         return root.get("language") or root.get("sourcelanguage")
 
     def _extract_vanished_strings(self, root: ET.Element) -> List[Tuple[str, str]]:
-        """Extract vanished/obsolete strings from a parsed .ts file.
+        """Collect vanished or obsolete strings from a parsed .ts file.
 
-        Qt's lupdate marks strings that no longer exist in the source code
-        with type="vanished" (newer Qt) or type="obsolete" (older Qt).
-        Strings that exist as active entries elsewhere (moved to another context)
-        are excluded since they're not truly unused.
+        Qt's lupdate marks removed strings with ``type="vanished"`` (Qt 5+) or
+        ``type="obsolete"`` (older Qt). Strings that still exist as active
+        entries elsewhere (moved to another context) are excluded.
 
         Args:
-            root: The root element of the parsed .ts XML.
+            root: Root ``<TS>`` element of the parsed XML.
 
         Returns:
-            List of (source, translation) tuples for vanished/obsolete strings.
+            List of (source, translation) tuples for truly unused strings.
         """
         # First, collect all active (non-vanished/obsolete) source strings
         active_sources: set[str] = set()
@@ -640,13 +700,13 @@ class TranslationEditor(QMainWindow):
         return vanished
 
     def _infer_language_from_path(self, file_path: str) -> Optional[str]:
-        """Infer the language code from the filename (e.g., app_es.ts → es).
+        """Infer the language code from a filename like ``app_es.ts``.
 
         Args:
             file_path: Path to a .ts file.
 
         Returns:
-            The extracted language code, or None if the pattern doesn't match.
+            Extracted language code (e.g., ``es``), or None if unrecognized.
         """
         filename = Path(file_path).name
         match = re.search(r"app_([A-Za-z0-9_\-]+)\.ts$", filename, re.IGNORECASE)
@@ -655,7 +715,7 @@ class TranslationEditor(QMainWindow):
         return None
 
     def closeEvent(self, event) -> None:  # type: ignore[override]
-        """Prompt to save unsaved changes before closing."""
+        """Prompt to save unsaved changes before the window closes."""
         if self.editor_tab and self.editor_tab.has_unsaved_changes():
             reply = QMessageBox.question(
                 self,
@@ -674,10 +734,10 @@ class TranslationEditor(QMainWindow):
             event.accept()
 
     def toggle_dark_mode(self, checked: bool) -> None:
-        """Toggle dark mode and update the UI accordingly.
+        """Enable or disable dark mode and refresh the theme.
 
         Args:
-            checked: True if dark mode should be enabled.
+            checked: Whether dark mode should be enabled.
         """
         self.dark_mode = checked
         if self.dark_mode_action and self.dark_mode_action.isChecked() != checked:
@@ -689,11 +749,11 @@ class TranslationEditor(QMainWindow):
             self.editor_tab.set_dark_mode(self.dark_mode)
 
     def apply_theme(self) -> None:
-        """Apply the current theme stylesheet to the main window."""
+        """Apply the current light or dark theme stylesheet."""
         apply_app_theme(self, dark_mode=self.dark_mode)
 
     def _open_ts_file_from_manage(self, ts_path: Path) -> None:
-        """Open a .ts file from the ManageTab and switch to the Editor."""
+        """Load a .ts file from ManageTab and switch to the Editor tab."""
         if not ts_path.exists():
             QMessageBox.warning(
                 self, "File Missing", f"Translation file not found:\n{ts_path}"
@@ -709,12 +769,12 @@ class TranslationEditor(QMainWindow):
                 self.tabs.setCurrentIndex(editor_index)
 
     def _handle_translations_dir_change(self, path: Path) -> None:
-        """Persist the new translations directory to user preferences."""
+        """Save the new translations directory path to preferences."""
         self.preferences["translations_folder"] = str(path)
         self._persist_preferences()
 
     def _apply_saved_translations_dir(self) -> None:
-        """Restore the translations directory from saved preferences."""
+        """Restore the translations directory from persisted preferences."""
         saved_path = self.preferences.get("translations_folder")
         if not saved_path:
             return
@@ -725,7 +785,7 @@ class TranslationEditor(QMainWindow):
             self._persist_preferences()
 
     def _persist_preferences(self) -> None:
-        """Write the current preferences to disk."""
+        """Write current preferences (theme, paths, shortcuts) to disk."""
         prefs = dict(self.preferences)
         prefs["dark_mode"] = self.dark_mode
         prefs["translations_folder"] = str(self.localization_ops.paths.translations_dir)
@@ -738,7 +798,7 @@ class TranslationEditor(QMainWindow):
         self.preferences = prefs
 
     def _init_icon_provider(self) -> None:
-        """Initialize the icon provider from saved preferences."""
+        """Initialize the global IconProvider from saved preferences."""
         style_str = self.preferences.get("icon_style", "simplified")
         try:
             style = IconStyle(style_str)
@@ -752,7 +812,7 @@ class TranslationEditor(QMainWindow):
         IconProvider.set_instance(provider)
 
     def show_theme_options(self) -> None:
-        """Display the theme options configuration dialog."""
+        """Open the theme and icon style configuration dialog."""
         icon_provider = IconProvider.instance()
         custom_path = (
             str(icon_provider.custom_assets_path)
@@ -769,10 +829,10 @@ class TranslationEditor(QMainWindow):
         dialog.exec()
 
     def _apply_theme_settings(self, settings: Dict[str, Any]) -> None:
-        """Apply theme settings from the options dialog.
+        """Apply theme settings emitted by the options dialog.
 
         Args:
-            settings: Dictionary with 'dark_mode', 'icon_style', 'custom_icons_path'.
+            settings: Keys ``dark_mode``, ``icon_style``, ``custom_icons_path``.
         """
         # Apply dark mode
         new_dark_mode = settings.get("dark_mode", self.dark_mode)
@@ -802,7 +862,7 @@ class TranslationEditor(QMainWindow):
             self.status_bar.showMessage("Theme settings updated", 3000)
 
     def _refresh_ui_icons(self) -> None:
-        """Refresh UI elements that display icons after style change."""
+        """Refresh icons in both tabs after an icon style change."""
         # Refresh manage tab language list and status table
         if self.manage_tab:
             self.manage_tab.populate_language_list(preserve_selection=True)
@@ -813,14 +873,14 @@ class TranslationEditor(QMainWindow):
             self.editor_tab.update_translation_list()
 
     def _apply_shortcuts(self) -> None:
-        """Apply keyboard shortcuts from preferences to the editor tab."""
+        """Apply saved keyboard shortcuts to the editor tab."""
         if not self.editor_tab:
             return
         shortcuts = get_shortcuts(self.preferences)
         self.editor_tab.setup_shortcuts(shortcuts)
 
     def show_shortcuts_dialog(self) -> None:
-        """Display the keyboard shortcuts configuration dialog."""
+        """Open the keyboard shortcuts configuration dialog."""
         current_shortcuts = get_shortcuts(self.preferences)
         dialog = ShortcutsDialog(self, current_shortcuts)
         if dialog.exec() == QDialog.Accepted:
@@ -833,7 +893,26 @@ class TranslationEditor(QMainWindow):
 
 
 def main() -> None:
-    """Entry point for the Translation Editor application."""
+    """Launch the Translation Editor in GUI or CLI mode.
+
+    Pass ``--cli`` as the first argument to invoke the command-line interface;
+    otherwise the PySide6 GUI is started. An optional .ts file path opens
+    that file directly in the editor.
+    """
+    if len(sys.argv) > 1 and sys.argv[1] == "--cli":
+        from cli import main as cli_main
+
+        sys.exit(cli_main(sys.argv[2:]))
+
+    crash_log_file = _enable_crash_logging()
+    if crash_log_file:
+        try:
+            sys.stderr.write(
+                f"[translator-app] Crash traces will be written to {crash_log_file}\n"
+            )
+        except Exception:
+            pass
+
     app = QApplication(sys.argv)
     app.setApplicationName("Translation Editor")
     app.setApplicationDisplayName("Translation Editor - TextureAtlas Toolbox")
@@ -842,6 +921,9 @@ def main() -> None:
 
     window = TranslationEditor()
     window.show()
+
+    if window.manage_tab:
+        window.manage_tab.check_incomplete_locale_codes()
 
     if len(sys.argv) > 1:
         file_path = sys.argv[1]
