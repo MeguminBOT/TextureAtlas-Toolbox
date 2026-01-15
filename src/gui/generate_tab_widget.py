@@ -610,8 +610,11 @@ class GenerateTabWidget(BaseTabWidget):
                     # Create animation group
                     self.animation_tree.add_animation_group(animation_name)
 
-                    # Sort frames by name to maintain proper order
-                    frames_data.sort(key=lambda x: x["name"])
+                    # Sort frames by name using natural sort for proper numeric order.
+                    # E.g. "animframe 2" should come before "animframe 10".
+                    frames_data.sort(
+                        key=lambda x: Utilities.natural_sort_key(x["name"])
+                    )
 
                     frames_added_to_animation = 0
                     for sprite_data in frames_data:

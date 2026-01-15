@@ -124,6 +124,29 @@ class Utilities:
             .rstrip()
         )
 
+    _NATURAL_SORT_PATTERN = re.compile(r"(\d+)")
+
+    @staticmethod
+    def natural_sort_key(text: str) -> tuple:
+        """Generate a sort key for natural (human-friendly) ordering.
+
+        Splits the input into alternating text and numeric segments, converting
+        numeric parts to integers so that ``"frame2"`` sorts before ``"frame10"``.
+
+        Handles common spritesheet naming patterns:
+        - Zero-padded: ``Idle0001``, ``Idle0002``, ...
+        - Unpadded: ``scroll 0``, ``scroll 1``, ``scroll 10``, ...
+        - Multi-prefix: ``Pico shoot 10000``, ``Pico shoot 20001``, ...
+
+        Args:
+            text: String to generate a sort key for.
+
+        Returns:
+            Tuple of strings and integers suitable for comparison.
+        """
+        parts = Utilities._NATURAL_SORT_PATTERN.split(text)
+        return tuple(int(part) if part.isdigit() else part.lower() for part in parts)
+
     @staticmethod
     def format_filename(
         prefix: str | None,
