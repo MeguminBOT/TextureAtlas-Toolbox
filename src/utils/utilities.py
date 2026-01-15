@@ -60,7 +60,11 @@ class Utilities:
 
     @staticmethod
     def is_compiled() -> bool:
-        """Check if the application is running as a Nuitka-compiled executable."""
+        """Check if the application is running as a Nuitka-compiled executable.
+
+        Returns:
+            ``True`` when running from a compiled Nuitka binary, ``False`` otherwise.
+        """
 
         if "__compiled__" in globals():
             return True
@@ -69,7 +73,14 @@ class Utilities:
 
     @staticmethod
     def count_spritesheets(spritesheet_list: list) -> int:
-        """Return the number of spritesheets in a list."""
+        """Return the number of spritesheets in a list.
+
+        Args:
+            spritesheet_list: List of spritesheet entries.
+
+        Returns:
+            Length of the input list.
+        """
 
         return len(spritesheet_list)
 
@@ -78,6 +89,12 @@ class Utilities:
         """Replace filesystem-invalid characters with underscores.
 
         Replaces ``\\ / : * ? " < > |`` and strips trailing whitespace.
+
+        Args:
+            name: Filename or path component to sanitize.
+
+        Returns:
+            Sanitized string safe for use in filesystem paths.
         """
 
         return re.sub(r'[\\/:*?"<>|]', "_", name).rstrip()
