@@ -86,11 +86,26 @@ class Utilities:
     def strip_trailing_digits(name: str) -> str:
         """Remove trailing frame numbers and optional ``.png`` extension.
 
-        Strips 1-4 trailing digits, preceding underscores/spaces, and any
-        trailing underscores or whitespace.
+        Strips any number of trailing digits, preceding underscores/spaces,
+        and any trailing underscores or whitespace.
+
+        Args:
+            name: Sprite or frame name (e.g., ``"idle_0001"`` or ``"run 5.png"``).
+
+        Returns:
+            Base animation name with trailing digits removed.
         """
 
-        return re.sub(r"[_\s]*\d{1,4}(?:\.png)?$", "", name).rstrip("_").rstrip()
+        return (
+            re.sub(
+                r"[_\s]*\d+(?:\.(?:png|jpe?g|gif|webp|bmp|tiff?|tga|avif|dds))?$",
+                "",
+                name,
+                flags=re.IGNORECASE,
+            )
+            .rstrip("_")
+            .rstrip()
+        )
 
     @staticmethod
     def format_filename(
