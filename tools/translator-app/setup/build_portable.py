@@ -342,12 +342,11 @@ import site
         )
 
         # Executables/tools to remove
+        # Keep: lrelease.exe, lupdate.exe (needed for .ts/.qm translation workflow)
         remove_executables = [
             "assistant.exe",
             "designer.exe",
             "linguist.exe",
-            "lrelease.exe",
-            "lupdate.exe",
             "qmllint.exe",
             "qmlls.exe",
             "qmlformat.exe",
@@ -365,6 +364,7 @@ import site
 
         # DLLs to remove (Qt modules we don't use)
         # Keep: Qt6Core, Qt6Gui, Qt6Widgets and their dependencies
+        # Keep: Qt6Xml (needed by lrelease/lupdate for parsing .ts XML files)
         remove_dll_patterns = [
             "Qt63D",
             "Qt6Bluetooth",
@@ -401,7 +401,6 @@ import site
             "Qt6WebEngine",
             "Qt6WebSockets",
             "Qt6WebView",
-            "Qt6Xml",
         ]
 
         # Python bindings to remove (.pyd and .pyi files)
