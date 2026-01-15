@@ -1,4 +1,9 @@
 {
+    "da_dk": {
+        "name": "dansk (Danmark)",
+        "english_name": "Danish (Denmark)",
+        "quality": "machine"
+    },
     "de_de": {
         "name": "Deutsch (Deutschland)",
         "english_name": "German (Germany)",
