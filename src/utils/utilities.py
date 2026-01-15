@@ -157,10 +157,18 @@ class Utilities:
         if not replace_rules:
             replace_rules = []
 
-        # Normalize to lowercase for comparison (supports legacy values)
         format_lower = filename_format.lower() if filename_format else "standardized"
 
         sprite_name = os.path.splitext(sprite_name)[0]
+
+        include_sprite = not Utilities._has_placeholder_removal_rule(
+            replace_rules,
+            ("$sprite", "$spritesheet", "$spritemap", "$atlas", "$textureatlas"),
+        )
+        include_anim = not Utilities._has_placeholder_removal_rule(
+            replace_rules, ("$anim", "$animation")
+        )
+
         if format_lower in (
             "standardized",
             "no_spaces",
@@ -168,14 +176,14 @@ class Utilities:
             "no spaces",
             "no special characters",
         ):
-            if prefix and suffix:
-                base_name = f"{prefix} - {sprite_name} - {animation_name} - {suffix}"
-            elif prefix:
-                base_name = f"{prefix} - {sprite_name} - {animation_name}"
-            elif suffix:
-                base_name = f"{sprite_name} - {animation_name} - {suffix}"
-            else:
-                base_name = f"{sprite_name} - {animation_name}"
+            parts = [prefix]
+            if include_sprite:
+                parts.append(sprite_name)
+            if include_anim:
+                parts.append(animation_name)
+            parts.append(suffix)
+            parts = [p for p in parts if p]
+            base_name = " - ".join(parts)
 
             if format_lower in ("no_spaces", "no spaces"):
                 base_name = base_name.replace(" ", "")
@@ -191,9 +199,68 @@ class Utilities:
                 base_name = f"{base_name} - {suffix}"
 
         for rule in replace_rules:
+            find_pattern = rule["find"]
+            find_pattern = Utilities._expand_filename_placeholders(
+                find_pattern, sprite_name, animation_name
+            )
+
             if rule["regex"]:
-                base_name = re.sub(rule["find"], rule["replace"], base_name)
+                base_name = re.sub(find_pattern, rule["replace"], base_name)
             else:
-                base_name = base_name.replace(rule["find"], rule["replace"])
+                base_name = base_name.replace(find_pattern, rule["replace"])
 
         return Utilities.replace_invalid_chars(base_name)
+
+    @staticmethod
+    def _expand_filename_placeholders(
+        pattern: str,
+        sprite_name: str,
+        animation_name: str,
+    ) -> str:
+        """Expand filename placeholders to their actual values.
+
+        Supports placeholders for sprite/spritesheet and animation names,
+        allowing find/replace rules to target specific filename components.
+
+        Args:
+            pattern: The find pattern potentially containing placeholders.
+            sprite_name: The spritesheet/atlas name to substitute.
+            animation_name: The animation name to substitute.
+
+        Returns:
+            Pattern with all placeholders expanded to actual values.
+        """
+        for placeholder in (
+            "$sprite",
+            "$spritesheet",
+            "$spritemap",
+            "$atlas",
+            "$textureatlas",
+        ):
+            pattern = pattern.replace(placeholder, sprite_name)
+
+        for placeholder in ("$anim", "$animation"):
+            pattern = pattern.replace(placeholder, animation_name)
+
+        return pattern
+
+    @staticmethod
+    def _has_placeholder_removal_rule(
+        replace_rules: list[dict],
+        placeholders: tuple[str, ...],
+    ) -> bool:
+        """Check if any rule removes a placeholder (find=placeholder, replace='').
+
+        Args:
+            replace_rules: List of rule dicts with 'find' and 'replace' keys.
+            placeholders: Tuple of placeholder strings to check for.
+
+        Returns:
+            True if a removal rule exists for any of the placeholders.
+        """
+        for rule in replace_rules:
+            find_val = rule.get("find", "")
+            replace_val = rule.get("replace", "")
+            if find_val in placeholders and replace_val == "":
+                return True
+        return False
