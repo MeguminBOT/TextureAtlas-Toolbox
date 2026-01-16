@@ -647,7 +647,7 @@ class AnimationPreviewWindow(QDialog):
             "animation_format": self.format_combo.currentText(),
             "delay": self.delay_spinbox.value(),
             "period": self.period_spinbox.value(),
-            "threshold": self.threshold_spinbox.value(),
+            "threshold": self.threshold_spinbox.value() / 100.0,
             "var_delay": self.var_delay_checkbox.isChecked(),
             "crop_option": self.crop_combo.currentData(),
         }
@@ -813,10 +813,11 @@ class AnimationPreviewWindow(QDialog):
         playback_layout.addWidget(self.crop_combo, 7, 1)
 
         playback_layout.addWidget(QLabel(self.tr("Alpha threshold")), 8, 0)
-        self.threshold_spinbox = QDoubleSpinBox()
-        self.threshold_spinbox.setRange(0.0, 1.0)
-        self.threshold_spinbox.setSingleStep(0.1)
-        self.threshold_spinbox.setValue(self.settings.get("threshold", 0.5))
+        self.threshold_spinbox = QSpinBox()
+        self.threshold_spinbox.setRange(0, 100)
+        self.threshold_spinbox.setSingleStep(1)
+        self.threshold_spinbox.setSuffix(" %")
+        self.threshold_spinbox.setValue(int(self.settings.get("threshold", 0.5) * 100))
         self.threshold_spinbox.valueChanged.connect(self.on_threshold_changed)
         playback_layout.addWidget(self.threshold_spinbox, 8, 1)
 
@@ -1853,9 +1854,9 @@ class AnimationPreviewWindow(QDialog):
         """Update the GIF threshold and regenerate.
 
         Args:
-            threshold: Quantization threshold for GIF exports.
+            threshold: Quantization threshold percentage (0-100).
         """
-        self.settings["threshold"] = threshold
+        self.settings["threshold"] = threshold / 100.0
         self.regenerate_animation()
 
     def on_resampling_changed(self, index: int):

@@ -325,10 +325,10 @@ class OverrideSettingsWindow(QDialog):
         row += 1
 
         layout.addWidget(QLabel(self.tr("Alpha threshold")), row, 0)
-        self.threshold_spinbox = QDoubleSpinBox()
-        self.threshold_spinbox.setRange(0.0, 1.0)
-        self.threshold_spinbox.setSingleStep(0.01)
-        self.threshold_spinbox.setDecimals(3)
+        self.threshold_spinbox = QSpinBox()
+        self.threshold_spinbox.setRange(0, 100)
+        self.threshold_spinbox.setSingleStep(1)
+        self.threshold_spinbox.setSuffix(" %")
         layout.addWidget(self.threshold_spinbox, row, 1)
         row += 1
 
@@ -556,9 +556,10 @@ class OverrideSettingsWindow(QDialog):
         )
         self.resampling_combo.setCurrentIndex(get_resampling_index(resampling_method))
 
-        self.threshold_spinbox.setValue(
-            self.local_settings.get("threshold", self.settings.get("threshold", 0.1))
+        threshold_value = self.local_settings.get(
+            "threshold", self.settings.get("threshold", 0.5)
         )
+        self.threshold_spinbox.setValue(int(threshold_value * 100))
 
         indices = self.local_settings.get("indices", self.settings.get("indices", []))
         if indices:
@@ -739,7 +740,7 @@ class OverrideSettingsWindow(QDialog):
         settings["resampling_method"] = get_resampling_name(
             self.resampling_combo.currentIndex()
         )
-        settings["threshold"] = self.threshold_spinbox.value()
+        settings["threshold"] = self.threshold_spinbox.value() / 100.0
         settings["var_delay"] = self.var_delay_check.isChecked()
 
         indices_text = self.indices_edit.text().strip()
