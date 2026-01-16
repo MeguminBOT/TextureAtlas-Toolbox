@@ -1714,6 +1714,8 @@ class ExtractTabWidget(BaseTabWidget):
                 settings
             )
 
+        self.update_global_settings()
+
         try:
             from gui.extractor.override_settings_window import (
                 OverrideSettingsWindow,
@@ -1754,6 +1756,8 @@ class ExtractTabWidget(BaseTabWidget):
             self.parent_app.settings_manager.spritesheet_settings[spritesheet_name] = (
                 settings
             )
+
+        self.update_global_settings()
 
         try:
             from gui.extractor.override_settings_window import (
@@ -1797,6 +1801,8 @@ class ExtractTabWidget(BaseTabWidget):
             self.parent_app.settings_manager.spritesheet_settings[spritesheet_name] = (
                 settings
             )
+
+        self.update_global_settings()
 
         try:
             from gui.extractor.override_settings_window import (
@@ -2059,6 +2065,8 @@ class ExtractTabWidget(BaseTabWidget):
             self.parent_app.settings_manager.animation_settings[full_anim_name] = (
                 settings
             )
+
+        self.update_global_settings()
 
         try:
             from gui.extractor.override_settings_window import (
