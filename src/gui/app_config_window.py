@@ -456,7 +456,10 @@ class AppConfigWindow(QDialog):
 
         frame_layout.addWidget(QLabel(self.tr("Frame selection")), row, 0)
         frame_selection_combo = QComboBox()
-        populate_combobox(frame_selection_combo, FRAME_SELECTION_OPTIONS, self.tr)
+        options_without_custom = tuple(
+            opt for opt in FRAME_SELECTION_OPTIONS if opt.internal != "custom"
+        )
+        populate_combobox(frame_selection_combo, options_without_custom, self.tr)
         frame_selection_combo.setCurrentIndex(0)
         frame_selection_combo.setToolTip(
             self.tr(

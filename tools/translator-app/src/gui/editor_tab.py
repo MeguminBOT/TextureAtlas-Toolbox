@@ -10,8 +10,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QFont, QKeySequence, QShortcut
+from PySide6.QtCore import Qt, QModelIndex
+from PySide6.QtGui import QFont, QKeySequence, QShortcut, QStandardItemModel, QStandardItem
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -20,8 +20,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
-    QListWidget,
-    QListWidgetItem,
+    QListView,
     QMessageBox,
     QPushButton,
     QScrollArea,
@@ -37,6 +36,7 @@ from core import TranslationError, TranslationItem, TranslationMarker, MARKER_LA
 from core.translation_manager import TranslationManager
 from .icon_provider import IconProvider, IconStyle, IconType
 from .placeholder_highlighter import PlaceholderHighlighter
+from .translation_filter_model import TranslationFilterProxyModel, TranslationRoles
 
 
 class EditorTab(QWidget):
@@ -85,12 +85,9 @@ class EditorTab(QWidget):
         self.translation_highlighter: Optional[PlaceholderHighlighter] = None
         self._shortcuts: Dict[str, QShortcut] = {}
 
-        # Debounce timer for search input
-        self._filter_timer = QTimer(self)
-        self._filter_timer.setSingleShot(True)
-        self._filter_timer.setInterval(150)  # 150ms debounce
-        self._filter_timer.timeout.connect(self._do_filter)
-        self._filter_in_progress = False
+        self._list_model = QStandardItemModel(self)
+        self._filter_proxy = TranslationFilterProxyModel(self)
+        self._filter_proxy.setSourceModel(self._list_model)
 
         self._build_ui()
         self._setup_connections()
@@ -189,13 +186,12 @@ class EditorTab(QWidget):
 
     def clear_translations(self) -> None:
         """Reset the editor to an empty state."""
-        self._filter_timer.stop()
         self.translations.clear()
+        self._list_model.clear()
         self.current_item = None
         self.current_file = None
         self.is_modified = False
         self.clear_editor()
-        self.update_translation_list()
         self.update_stats()
         if hasattr(self.window, "setWindowTitle"):
             self.window.setWindowTitle("Translation Editor")
@@ -218,6 +214,8 @@ class EditorTab(QWidget):
         self._apply_preview_theme()
 
     def _build_ui(self) -> None:
+        """Construct the main layout with left and right panels."""
+
         main_layout = QHBoxLayout(self)
         splitter = QSplitter(Qt.Horizontal)
         main_layout.addWidget(splitter)
@@ -227,22 +225,38 @@ class EditorTab(QWidget):
         splitter.setSizes([360, 840])
 
     def _create_left_panel(self, parent: QSplitter) -> None:
+        """Build the left panel with filter input, translation list, and stats.
+
+        Args:
+            parent: Splitter widget to add the panel to.
+        """
+
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
 
         filter_layout = QHBoxLayout()
         filter_label = QLabel("Filter:")
         self.filter_input = QLineEdit()
-        self.filter_input.setPlaceholderText("Search translations...")
+        self.filter_input.setPlaceholderText("Search or use is:missing, has:ph...")
         self.filter_input.setToolTip(
-            "Use text to search contents. Keywords: <ph>/<placeholders>/<keys> (has placeholders); <machine>/<mt> (machine translated); <translated>/<done>; <untranslated>/<missing>; <unsure>; <vanished>/<obsolete>; context:<name> / ctx:<name> to match context names."
+            "Filter syntax:\n"
+            "• is:translated / is:done - Translated items\n"
+            "• is:missing / is:untranslated - Untranslated items\n"
+            "• is:mt / is:machine - Machine translated\n"
+            "• is:unsure - Marked as unsure\n"
+            "• is:vanished - Obsolete/vanished items\n"
+            "• has:placeholder / has:ph - Items with placeholders\n"
+            "• ctx:<name> - Items in specific context\n"
+            "• Plain text searches in source and translation"
         )
         filter_layout.addWidget(filter_label)
         filter_layout.addWidget(self.filter_input)
         left_layout.addLayout(filter_layout)
 
-        self.translation_list = QListWidget()
+        self.translation_list = QListView()
         self.translation_list.setAlternatingRowColors(True)
+        self.translation_list.setModel(self._filter_proxy)
+        self.translation_list.setSelectionMode(QListView.SingleSelection)
         left_layout.addWidget(self.translation_list)
 
         self.stats_label = QLabel("No file loaded")
@@ -252,6 +266,12 @@ class EditorTab(QWidget):
         parent.addWidget(left_widget)
 
     def _create_right_panel(self, parent: QSplitter) -> None:
+        """Build the right panel with source, translation, preview, and context.
+
+        Args:
+            parent: Splitter widget to add the panel to.
+        """
+
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
 
@@ -308,7 +328,6 @@ class EditorTab(QWidget):
         self.target_lang_combo = QComboBox()
         controls.addWidget(self.target_lang_combo, 1, 3)
 
-        # Marker control for translation quality feedback
         marker_label = QLabel("Mark as:")
         controls.addWidget(marker_label, 1, 4, alignment=Qt.AlignRight)
         self.marker_combo = QComboBox()
@@ -382,43 +401,98 @@ class EditorTab(QWidget):
         self._apply_preview_theme()
 
     def _setup_connections(self) -> None:
-        self.translation_list.currentItemChanged.connect(self.on_translation_selected)
+        """Wire up signals and slots for user interaction."""
+
+        selection_model = self.translation_list.selectionModel()
+        if selection_model:
+            selection_model.currentChanged.connect(self._on_selection_changed)
         self.translation_text.textChanged.connect(self.on_translation_changed)
-        self.filter_input.textChanged.connect(self.filter_translations)
+        self.filter_input.textChanged.connect(self._on_filter_text_changed)
         self.copy_source_btn.clicked.connect(self.copy_source_to_translation)
         self.translate_btn.clicked.connect(self.handle_auto_translate)
         self.provider_combo.currentIndexChanged.connect(self.on_provider_changed)
 
-    def update_translation_list(self) -> None:
-        # Block signals during clear to prevent accessing deleted items
-        self.translation_list.blockSignals(True)
-        self.translation_list.clear()
-        self.translation_list.blockSignals(False)
-        filter_text = self.filter_input.text()
-        icon_provider = IconProvider.instance()
-        for item in self.translations:
-            if not self._matches_filter(item, filter_text):
-                continue
-            list_item = QListWidgetItem()
-            self._set_translation_item_display(list_item, item, icon_provider)
-            list_item.setData(Qt.UserRole, item)
-            self.translation_list.addItem(list_item)
+    def _on_filter_text_changed(self, text: str) -> None:
+        """Handle filter text changes by updating the proxy model.
 
-    def _set_translation_item_display(
+        Args:
+            text: The new filter string.
+        """
+
+        self._filter_proxy.set_filter_text(text)
+
+    def _on_selection_changed(self, current: QModelIndex, previous: QModelIndex) -> None:
+        """Handle selection changes in the translation list view.
+
+        Args:
+            current: The newly selected model index.
+            previous: The previously selected model index (unused).
+        """
+
+        if not current.isValid():
+            self.current_item = None
+            self.clear_editor()
+            return
+
+        item = current.data(TranslationRoles.ItemRole)
+        if not isinstance(item, TranslationItem):
+            self.current_item = None
+            self.clear_editor()
+            return
+
+        self.current_item = item
+        self.load_translation_in_editor()
+
+    def update_translation_list(self) -> None:
+        """Rebuild the translation list model from scratch."""
+
+        self._list_model.clear()
+        icon_provider = IconProvider.instance()
+
+        for item in self.translations:
+            list_item = self._create_model_item(item, icon_provider)
+            self._list_model.appendRow(list_item)
+
+    def _create_model_item(
+        self, item: TranslationItem, icon_provider: IconProvider
+    ) -> QStandardItem:
+        """Create a QStandardItem for a TranslationItem.
+
+        Args:
+            item: The TranslationItem data.
+            icon_provider: The icon provider instance.
+
+        Returns:
+            A configured QStandardItem for the model.
+        """
+        list_item = QStandardItem()
+        self._update_model_item_display(list_item, item, icon_provider)
+        list_item.setData(item, TranslationRoles.ItemRole)
+        list_item.setData(item.source.lower(), TranslationRoles.SourceRole)
+        list_item.setData(item.translation.lower(), TranslationRoles.TranslationRole)
+        list_item.setData(item.has_placeholders(), TranslationRoles.HasPlaceholdersRole)
+        list_item.setData(item.is_machine_translated, TranslationRoles.IsMachineTranslatedRole)
+        list_item.setData(item.is_translated, TranslationRoles.IsTranslatedRole)
+        list_item.setData(item.marker, TranslationRoles.MarkerRole)
+        list_item.setData(getattr(item, "is_vanished", False), TranslationRoles.IsVanishedRole)
+        list_item.setData([ctx.lower() for ctx in item.contexts], TranslationRoles.ContextsRole)
+
+        return list_item
+
+    def _update_model_item_display(
         self,
-        list_item: QListWidgetItem,
+        list_item: QStandardItem,
         item: TranslationItem,
         icon_provider: IconProvider,
     ) -> None:
-        """Set the display text and icon for a translation list item.
+        """Update the display text and icon for a model item.
 
         Args:
-            list_item: The QListWidgetItem to configure.
+            list_item: The QStandardItem to configure.
             item: The TranslationItem data.
             icon_provider: The icon provider instance.
         """
-        # Determine the icon to show based on translation status and marker
-        # Priority: not translated > unsure marker > machine translated > success
+        # Icon priority: not translated > unsure > machine translated > success
         if not item.is_translated:
             icon_type = IconType.ERROR
         elif item.marker == TranslationMarker.UNSURE:
@@ -441,7 +515,6 @@ class EditorTab(QWidget):
             )
             list_item.setText(display_text)
         else:
-            # Icon mode - icon reflects both status and marker
             list_item.setIcon(icon_provider.get_icon(icon_type))
             group_indicator = (
                 f" [{len(item.contexts)}]" if len(item.contexts) > 1 else ""
@@ -453,35 +526,16 @@ class EditorTab(QWidget):
             list_item.setText(display_text)
 
     def update_stats(self) -> None:
+        """Refresh the progress label with current translation counts."""
+
         total = len(self.translations)
         translated = sum(1 for item in self.translations if item.is_translated)
         percentage = (translated / total * 100) if total else 0
         self.stats_label.setText(f"Progress: {translated}/{total} ({percentage:.1f}%)")
 
-    def on_translation_selected(
-        self, current: QListWidgetItem, previous: QListWidgetItem
-    ) -> None:
-        # Defensive guard: ignore invalid selections
-        if current is None:
-            self.current_item = None
-            self.clear_editor()
-            return
-
-        data = current.data(Qt.UserRole)
-        if not isinstance(data, TranslationItem):
-            self.current_item = None
-            self.clear_editor()
-            return
-
-        self.current_item = data
-        try:
-            self.load_translation_in_editor()
-        except Exception:
-            # Never crash the UI from a selection; just clear if something is off
-            self.current_item = None
-            self.clear_editor()
-
     def clear_editor(self) -> None:
+        """Reset editor fields to their default empty state."""
+
         self.source_text.clear()
         self.translation_text.clear()
         self.preview_text.clear()
@@ -494,6 +548,8 @@ class EditorTab(QWidget):
         self.marker_combo.blockSignals(False)
 
     def load_translation_in_editor(self) -> None:
+        """Populate editor fields with the currently selected item."""
+
         if not self.current_item:
             return
         self.copy_source_btn.setEnabled(True)
@@ -502,7 +558,6 @@ class EditorTab(QWidget):
         self.translation_text.blockSignals(True)
         self.translation_text.setPlainText(self.current_item.translation)
         self.translation_text.blockSignals(False)
-        # Load the current marker
         self.marker_combo.blockSignals(True)
         for i in range(self.marker_combo.count()):
             if self.marker_combo.itemData(i) == self.current_item.marker:
@@ -522,6 +577,8 @@ class EditorTab(QWidget):
         self.update_preview()
 
     def setup_placeholders(self) -> None:
+        """Create input fields for placeholders found in the current item."""
+
         if not self.current_item or not self.current_item.has_placeholders():
             self.placeholder_group.setVisible(False)
             return
@@ -566,6 +623,8 @@ class EditorTab(QWidget):
         self.placeholder_group.setVisible(True)
 
     def _apply_preview_theme(self) -> None:
+        """Apply dark or light theme styling to the preview area."""
+
         if not hasattr(self, "preview_text") or self.preview_text is None:
             return
         if self.dark_mode:
@@ -599,6 +658,12 @@ class EditorTab(QWidget):
         return values
 
     def populate_language_combos(self, provider_key: Optional[str] = None) -> None:
+        """Fill source and target language combo boxes for the selected provider.
+
+        Args:
+            provider_key: Provider identifier, or None to use the current selection.
+        """
+
         if not self.source_lang_combo or not self.target_lang_combo:
             return
         provider_choice = (
@@ -652,6 +717,8 @@ class EditorTab(QWidget):
         self.target_lang_combo.blockSignals(False)
 
     def populate_provider_combo(self) -> None:
+        """Fill the provider combo box with available translation services."""
+
         if not self.provider_combo:
             return
         self.provider_combo.blockSignals(True)
@@ -668,6 +735,8 @@ class EditorTab(QWidget):
         self.update_provider_status(None)
 
     def on_provider_changed(self) -> None:
+        """Handle provider combo box selection change."""
+
         provider_key = (
             self.provider_combo.currentData() if self.provider_combo else None
         )
@@ -675,6 +744,12 @@ class EditorTab(QWidget):
         self.update_provider_status(provider_key)
 
     def update_provider_status(self, provider_key: Optional[str]) -> None:
+        """Update status label and button states for the given provider.
+
+        Args:
+            provider_key: Provider identifier, or None if disabled.
+        """
+
         if not self.provider_status_label or not self.translate_btn:
             return
         if not provider_key:
@@ -704,6 +779,8 @@ class EditorTab(QWidget):
         self.populate_language_combos(provider_key)
 
     def handle_auto_translate(self) -> None:
+        """Translate the current item using the selected provider."""
+
         if not self.current_item:
             QMessageBox.information(
                 self, "Auto-Translate", "Select a source string first."
@@ -756,7 +833,6 @@ class EditorTab(QWidget):
             translated, placeholder_map
         )
         self.translation_text.setPlainText(restored)
-        # Mark as machine translated so the icon reflects this
         if self.current_item:
             self.current_item.is_machine_translated = True
         if self.status_bar:
@@ -765,6 +841,8 @@ class EditorTab(QWidget):
             )
 
     def auto_translate_all_entries(self) -> None:
+        """Machine-translate all untranslated entries in the current file."""
+
         if not self.translations:
             QMessageBox.information(
                 self,
@@ -855,31 +933,28 @@ class EditorTab(QWidget):
             self.update_provider_status(self.provider_combo.currentData())
         if translated_count:
             self.is_modified = True
-            current_row = self.translation_list.currentRow()
-            self.translation_list.blockSignals(True)
-            try:
-                self.update_translation_list()
-                self.update_stats()
-                if 0 <= current_row < self.translation_list.count():
-                    self.translation_list.setCurrentRow(current_row)
-                    # Manually load to avoid relying on signals during blocked state
-                    current_item = self.translation_list.item(current_row)
-                    data = current_item.data(Qt.UserRole) if current_item else None
-                    if isinstance(data, TranslationItem):
-                        self.current_item = data
+            saved_item = self.current_item
+            self.update_translation_list()
+            self.update_stats()
+
+            if saved_item:
+                for row in range(self._filter_proxy.rowCount()):
+                    proxy_index = self._filter_proxy.index(row, 0)
+                    item = proxy_index.data(TranslationRoles.ItemRole)
+                    if item is saved_item:
+                        self.translation_list.setCurrentIndex(proxy_index)
+                        self.current_item = saved_item
                         self.translation_text.blockSignals(True)
-                        self.translation_text.setPlainText(
-                            self.current_item.translation
-                        )
+                        self.translation_text.setPlainText(self.current_item.translation)
                         self.translation_text.blockSignals(False)
-                    else:
-                        self.current_item = None
-                        self.clear_editor()
+                        break
                 else:
                     self.current_item = None
                     self.clear_editor()
-            finally:
-                self.translation_list.blockSignals(False)
+            else:
+                self.current_item = None
+                self.clear_editor()
+
             if self.status_bar:
                 self.status_bar.showMessage(
                     f"Auto-translated {translated_count} entries using {provider_name}."
@@ -900,6 +975,8 @@ class EditorTab(QWidget):
             self.auto_translate_all_btn.setEnabled(bool(self.translations))
 
     def update_preview(self) -> None:
+        """Render the translation with placeholder values in the preview area."""
+
         if not self.current_item:
             self.preview_text.clear()
             return
@@ -910,6 +987,8 @@ class EditorTab(QWidget):
         )
 
     def on_translation_changed(self) -> None:
+        """Sync translation text changes to the current item and model."""
+
         if not self.current_item:
             return
         new_translation = self.translation_text.toPlainText()
@@ -917,12 +996,8 @@ class EditorTab(QWidget):
             self.current_item.translation = new_translation
             self.current_item.is_translated = bool(new_translation.strip())
             self.is_modified = True
-            current_list_item = self.translation_list.currentItem()
-            if current_list_item:
-                icon_provider = IconProvider.instance()
-                self._set_translation_item_display(
-                    current_list_item, self.current_item, icon_provider
-                )
+            self._update_current_model_item()
+
             self.update_stats()
             self.update_preview()
             if self.current_file and hasattr(self.window, "setWindowTitle"):
@@ -937,169 +1012,28 @@ class EditorTab(QWidget):
             elif self.status_bar:
                 self.status_bar.showMessage("Ready")
 
-    def filter_translations(self) -> None:
-        """Schedule a debounced filter operation.
+    def _update_current_model_item(self) -> None:
+        """Sync current_item's data to the corresponding model item."""
 
-        This prevents rapid filter operations during fast typing,
-        which can cause Qt widget access issues.
-        """
-        # Restart the debounce timer on each keystroke
-        self._filter_timer.stop()
-        self._filter_timer.start()
-
-    def _do_filter(self) -> None:
-        """Perform the actual filtering operation (called after debounce delay)."""
-        # Prevent re-entry if a filter is already in progress
-        if self._filter_in_progress:
+        if not self.current_item:
             return
-        self._filter_in_progress = True
-        self._filter_timer.stop()
 
-        try:
-            # Save current item DATA (not the QListWidgetItem which will be deleted)
-            saved_item_data = self.current_item
+        current_index = self.translation_list.currentIndex()
+        if not current_index.isValid():
+            return
 
-            # Clear current item reference BEFORE modifying the list
-            self.current_item = None
+        source_index = self._filter_proxy.mapToSource(current_index)
+        if not source_index.isValid():
+            return
 
-            if not self.translation_list:
-                return
-
-            # Block signals on the list during the entire operation
-            self.translation_list.blockSignals(True)
-            self.translation_list.setUpdatesEnabled(False)
-            try:
-                self.translation_list.clear()
-
-                filter_text = self.filter_input.text()
-                icon_provider = IconProvider.instance()
-                found_saved_row = -1
-
-                for item in self.translations:
-                    if not self._matches_filter(item, filter_text):
-                        continue
-                    list_item = QListWidgetItem()
-                    self._set_translation_item_display(list_item, item, icon_provider)
-                    list_item.setData(Qt.UserRole, item)
-                    self.translation_list.addItem(list_item)
-
-                    # Track if we found the previously selected item
-                    if saved_item_data is not None and item is saved_item_data:
-                        found_saved_row = self.translation_list.count() - 1
-
-                # Restore selection while signals are blocked to avoid re-entrancy
-                if found_saved_row >= 0:
-                    self.translation_list.setCurrentRow(found_saved_row)
-                    current_item = self.translation_list.item(found_saved_row)
-                    data = current_item.data(Qt.UserRole) if current_item else None
-                    self.current_item = (
-                        data if isinstance(data, TranslationItem) else None
-                    )
-                    if self.current_item:
-                        self.load_translation_in_editor()
-                    else:
-                        self.clear_editor()
-                else:
-                    # Item not in filtered list - clear the editor
-                    self.clear_editor()
-            finally:
-                self.translation_list.setUpdatesEnabled(True)
-                self.translation_list.blockSignals(False)
-        finally:
-            self._filter_in_progress = False
-
-    def _matches_filter(self, item: TranslationItem, raw_filter: str) -> bool:
-        """Return True if the item matches the current filter string."""
-        if not raw_filter.strip():
-            return True
-
-        tokens = [tok for tok in raw_filter.strip().lower().split() if tok]
-        placeholder_keywords = {"ph", "placeholder", "placeholders", "key", "keys"}
-        machine_keywords = {"machine", "mt", "auto", "autotranslate", "autotranslated"}
-        translated_keywords = {
-            "translated",
-            "done",
-            "finished",
-            "complete",
-            "completed",
-        }
-        untranslated_keywords = {
-            "untranslated",
-            "missing",
-            "todo",
-            "blank",
-            "empty",
-            "unfinished",
-        }
-        unsure_keywords = {"unsure", "review", "needsreview", "needs_review"}
-        vanished_keywords = {"vanished", "obsolete", "unused"}
-
-        context_terms: List[str] = []
-
-        require_placeholders = False
-        require_machine = False
-        require_translated = False
-        require_untranslated = False
-        require_unsure = False
-        require_vanished = False
-        remaining_parts: List[str] = []
-
-        for token in tokens:
-            normalized = token.strip("<>")
-            if normalized in placeholder_keywords:
-                require_placeholders = True
-                continue
-            if normalized in machine_keywords:
-                require_machine = True
-                continue
-            if normalized in translated_keywords:
-                require_translated = True
-                continue
-            if normalized in untranslated_keywords:
-                require_untranslated = True
-                continue
-            if normalized in unsure_keywords:
-                require_unsure = True
-                continue
-            if normalized in vanished_keywords:
-                require_vanished = True
-                continue
-            if normalized.startswith("context:") or normalized.startswith("ctx:"):
-                term = normalized.split(":", 1)[1].strip()
-                if term:
-                    context_terms.append(term)
-                continue
-            remaining_parts.append(token)
-
-        if require_translated and require_untranslated:
-            return False
-
-        if require_placeholders and not item.has_placeholders():
-            return False
-        if require_machine and not item.is_machine_translated:
-            return False
-        if require_translated and not item.is_translated:
-            return False
-        if require_untranslated and item.is_translated:
-            return False
-        if require_unsure and item.marker != TranslationMarker.UNSURE:
-            return False
-        if require_vanished and not getattr(item, "is_vanished", False):
-            return False
-        if context_terms:
-            context_values = [ctx.lower() for ctx in item.contexts]
-            if not any(
-                any(term in ctx for term in context_terms) for ctx in context_values
-            ):
-                return False
-
-        remaining_text = " ".join(remaining_parts).strip()
-        if not remaining_text:
-            return True
-
-        source_text = item.source.lower()
-        translation_text = item.translation.lower()
-        return remaining_text in source_text or remaining_text in translation_text
+        model_item = self._list_model.itemFromIndex(source_index)
+        if model_item:
+            icon_provider = IconProvider.instance()
+            self._update_model_item_display(model_item, self.current_item, icon_provider)
+            model_item.setData(self.current_item.translation.lower(), TranslationRoles.TranslationRole)
+            model_item.setData(self.current_item.is_translated, TranslationRoles.IsTranslatedRole)
+            model_item.setData(self.current_item.is_machine_translated, TranslationRoles.IsMachineTranslatedRole)
+            model_item.setData(self.current_item.marker, TranslationRoles.MarkerRole)
 
     def _on_marker_changed(self) -> None:
         """Handle marker combo box selection change."""
@@ -1108,16 +1042,10 @@ class EditorTab(QWidget):
         new_marker = self.marker_combo.currentData()
         if new_marker != self.current_item.marker:
             self.current_item.marker = new_marker
-            # Clear machine translated flag - user has reviewed/interacted with this
             self.current_item.is_machine_translated = False
             self.is_modified = True
-            # Update the list item to show the marker indicator
-            current_list_item = self.translation_list.currentItem()
-            if current_list_item:
-                icon_provider = IconProvider.instance()
-                self._set_translation_item_display(
-                    current_list_item, self.current_item, icon_provider
-                )
+            self._update_current_model_item()
+
             if self.current_file and hasattr(self.window, "setWindowTitle"):
                 filename = Path(self.current_file).name
                 self.window.setWindowTitle(f"Translation Editor - {filename} *")
@@ -1144,18 +1072,26 @@ class EditorTab(QWidget):
         """Move to the next item in the translation list."""
         if not self.translation_list:
             return
-        current_row = self.translation_list.currentRow()
-        if current_row < self.translation_list.count() - 1:
-            self.translation_list.setCurrentRow(current_row + 1)
+        current_index = self.translation_list.currentIndex()
+        row_count = self._filter_proxy.rowCount()
+        if current_index.isValid() and current_index.row() < row_count - 1:
+            next_index = self._filter_proxy.index(current_index.row() + 1, 0)
+            self.translation_list.setCurrentIndex(next_index)
+            self.translation_text.setFocus()
+        elif not current_index.isValid() and row_count > 0:
+            # No selection, select first item
+            first_index = self._filter_proxy.index(0, 0)
+            self.translation_list.setCurrentIndex(first_index)
             self.translation_text.setFocus()
 
     def select_prev_item(self) -> None:
         """Move to the previous item in the translation list."""
         if not self.translation_list:
             return
-        current_row = self.translation_list.currentRow()
-        if current_row > 0:
-            self.translation_list.setCurrentRow(current_row - 1)
+        current_index = self.translation_list.currentIndex()
+        if current_index.isValid() and current_index.row() > 0:
+            prev_index = self._filter_proxy.index(current_index.row() - 1, 0)
+            self.translation_list.setCurrentIndex(prev_index)
             self.translation_text.setFocus()
 
     def handle_auto_translate_with_focus(self) -> None:
@@ -1170,7 +1106,6 @@ class EditorTab(QWidget):
         Args:
             shortcuts: Dictionary mapping shortcut keys to key sequences.
         """
-        # Clear existing shortcuts
         for shortcut in self._shortcuts.values():
             shortcut.setEnabled(False)
             shortcut.deleteLater()
@@ -1192,6 +1127,8 @@ class EditorTab(QWidget):
                 self._shortcuts[key] = shortcut
 
     def update_provider_state_after_load(self) -> None:
+        """Refresh provider status after loading a new file."""
+
         if self.provider_combo:
             self.update_provider_status(self.provider_combo.currentData())
 

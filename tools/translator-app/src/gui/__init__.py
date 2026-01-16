@@ -14,6 +14,7 @@ from .placeholder_highlighter import PlaceholderHighlighter
 from .shortcuts_dialog import ShortcutsDialog, DEFAULT_SHORTCUTS, SHORTCUT_LABELS
 from .theme_options_dialog import ThemeOptionsDialog
 from .themes import apply_app_theme, theme_stylesheet
+from .translation_filter_model import TranslationFilterProxyModel, TranslationRoles
 from .unused_strings_dialog import UnusedStringsDialog
 
 __all__ = [
@@ -27,6 +28,8 @@ __all__ = [
     "SHORTCUT_LABELS",
     "ShortcutsDialog",
     "ThemeOptionsDialog",
+    "TranslationFilterProxyModel",
+    "TranslationRoles",
     "UnusedStringsDialog",
     "apply_app_theme",
     "get_icon_provider",

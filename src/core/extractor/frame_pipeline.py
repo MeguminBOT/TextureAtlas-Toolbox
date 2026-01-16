@@ -25,6 +25,7 @@ from core.extractor.image_utils import (
     ensure_rgba_array,
     frame_bbox,
 )
+from utils.utilities import Utilities
 
 FrameTuple = Tuple[str, FrameSource, dict]
 
@@ -142,7 +143,7 @@ class FramePipeline:
                 ),
             )
         else:
-            frames.sort(key=lambda frame: frame[0])
+            frames.sort(key=lambda frame: Utilities.natural_sort_key(frame[0]))
 
         indices = self._sanitize_indices(settings.get("indices"), len(frames))
         if indices:

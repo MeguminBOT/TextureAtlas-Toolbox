@@ -87,7 +87,7 @@ class FrameSelector:
         # Support both new internal values and legacy display text values
         kept_frames_lower = kept_frames.lower() if isinstance(kept_frames, str) else ""
 
-        if kept_frames_lower in ("all", ""):
+        if kept_frames_lower in ("all", "", "custom"):
             return [str(i) for i in range(len(image_tuples))]
         elif kept_frames_lower == "first":
             return ["0"]

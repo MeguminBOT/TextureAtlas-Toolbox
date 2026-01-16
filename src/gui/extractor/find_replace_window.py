@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QWidget,
     QGroupBox,
+    QMenu,
 )
 from PySide6.QtCore import Qt
 
@@ -65,8 +66,9 @@ class FindReplaceWindow(QDialog):
 
         instructions = QLabel(
             self.tr(
-                "Create rules to find and replace text in exported filenames. "
-                "Regular expressions are supported for advanced pattern matching."
+                "Create rules to find and replace text in exported filenames.\n"
+                "Use $sprite or $anim placeholders to match actual names.\n"
+                "Example: Find '$sprite' → Replace '' removes the sprite name from filename."
             )
         )
         instructions.setWordWrap(True)
@@ -86,10 +88,25 @@ class FindReplaceWindow(QDialog):
         scroll_area.setWidget(self.rules_container)
         layout.addWidget(scroll_area)
 
+        buttons_row = QHBoxLayout()
+
         add_btn = QPushButton(self.tr("Add Rule"))
         add_btn.clicked.connect(self.add_rule)
-        add_btn.setMaximumWidth(100)
-        layout.addWidget(add_btn)
+        buttons_row.addWidget(add_btn)
+
+        preset_btn = QPushButton(self.tr("Add Preset Rule"))
+        preset_menu = QMenu(self)
+        preset_menu.addAction(
+            self.tr("Remove sprite name"), self._add_preset_remove_sprite
+        )
+        preset_menu.addAction(
+            self.tr("Shorten frame numbers"), self._add_preset_shorten_digits
+        )
+        preset_btn.setMenu(preset_menu)
+        buttons_row.addWidget(preset_btn)
+
+        buttons_row.addStretch()
+        layout.addLayout(buttons_row)
 
         button_layout = QHBoxLayout()
 
@@ -213,3 +230,15 @@ class FindReplaceWindow(QDialog):
         """
         window = FindReplaceWindow(on_store_callback, replace_rules, parent)
         window.exec()
+
+    def _add_preset_remove_sprite(self):
+        """Add a preset rule to exclude the sprite name from filenames."""
+        self.add_rule({"find": "$sprite", "replace": "", "regex": False})
+
+    def _add_preset_shorten_digits(self):
+        """Add a preset rule to shorten long frame numbers.
+
+        Converts padded numbers like 0001, 10001 to minimal digits (1, 1).
+        Uses regex to strip leading zeros from digit sequences.
+        """
+        self.add_rule({"find": r"(?<!\d)0+(\d+)", "replace": r"\1", "regex": True})
