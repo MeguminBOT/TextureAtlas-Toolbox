@@ -35,10 +35,27 @@ from PySide6.QtGui import QFont
 
 from utils.translation_manager import tr as translate
 from utils.combo_options import (
-    FRAME_SELECTION_OPTIONS,
+    ANIMATION_FORMAT_OPTIONS,
     CROPPING_METHOD_OPTIONS,
     FILENAME_FORMAT_OPTIONS,
+    FRAME_FORMAT_OPTIONS,
+    FRAME_SELECTION_OPTIONS,
+    GENERATOR_IMAGE_FORMAT_OPTIONS,
+    get_display_texts,
     populate_combobox,
+)
+from utils.ui_constants import (
+    Labels,
+    GroupTitles,
+    SpinBoxConfig,
+    Tooltips,
+    ButtonLabels,
+    DialogTitles,
+    WindowTitles,
+    TabTitles,
+    CheckBoxLabels,
+    Placeholders,
+    configure_spinbox,
 )
 from utils.duration_utils import (
     DURATION_NATIVE,
@@ -76,7 +93,7 @@ class AppConfigWindow(QDialog):
         """
         super().__init__(parent)
         self.app_config = app_config
-        self.setWindowTitle(self.tr("App Options"))
+        self.setWindowTitle(self.tr(WindowTitles.APP_OPTIONS))
         self.setModal(True)
         self.resize(520, 750)
 
@@ -167,39 +184,39 @@ class AppConfigWindow(QDialog):
         tab_widget = QTabWidget()
 
         system_tab = self.create_system_tab()
-        tab_widget.addTab(system_tab, "System Resources")
+        tab_widget.addTab(system_tab, self.tr(TabTitles.SYSTEM_RESOURCES))
 
         interface_tab = self.create_interface_tab()
-        tab_widget.addTab(interface_tab, "Interface")
+        tab_widget.addTab(interface_tab, self.tr(TabTitles.INTERFACE))
 
         extraction_tab = self.create_extraction_tab()
-        tab_widget.addTab(extraction_tab, "Extraction Defaults")
+        tab_widget.addTab(extraction_tab, self.tr(TabTitles.EXTRACTION_DEFAULTS))
 
         generator_tab = self.create_generator_tab()
-        tab_widget.addTab(generator_tab, "Generator Defaults")
+        tab_widget.addTab(generator_tab, self.tr(TabTitles.GENERATOR_DEFAULTS))
 
         compression_tab = self.create_compression_tab()
-        tab_widget.addTab(compression_tab, "Compression Defaults")
+        tab_widget.addTab(compression_tab, self.tr(TabTitles.COMPRESSION_DEFAULTS))
 
         update_tab = self.create_update_tab()
-        tab_widget.addTab(update_tab, "Updates")
+        tab_widget.addTab(update_tab, self.tr(TabTitles.UPDATES))
 
         main_layout.addWidget(tab_widget)
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        reset_btn = QPushButton(self.tr("Reset to defaults"))
+        reset_btn = QPushButton(self.tr(ButtonLabels.RESET_TO_DEFAULTS))
         reset_btn.clicked.connect(self.reset_to_defaults)
         reset_btn.setMinimumWidth(130)
         button_layout.addWidget(reset_btn)
 
-        cancel_btn = QPushButton(self.tr("Cancel"))
+        cancel_btn = QPushButton(self.tr(ButtonLabels.CANCEL))
         cancel_btn.clicked.connect(self.reject)
         cancel_btn.setMinimumWidth(100)
         button_layout.addWidget(cancel_btn)
 
-        save_btn = QPushButton(self.tr("Save"))
+        save_btn = QPushButton(self.tr(ButtonLabels.SAVE))
         save_btn.clicked.connect(self.save_config)
         save_btn.setMinimumWidth(100)
         save_btn.setDefault(True)
@@ -248,7 +265,7 @@ class AppConfigWindow(QDialog):
         widget = QWidget()
         layout = QVBoxLayout(widget)
 
-        sys_group = QGroupBox("Your Computer")
+        sys_group = QGroupBox(self.tr("Your Computer"))
         sys_layout = QVBoxLayout(sys_group)
 
         cpu_label = QLabel(
@@ -267,7 +284,7 @@ class AppConfigWindow(QDialog):
 
         layout.addWidget(sys_group)
 
-        resource_group = QGroupBox("App Resource Limits")
+        resource_group = QGroupBox(self.tr("App Resource Limits"))
         resource_layout = QGridLayout(resource_group)
 
         cpu_threads_tooltip = self.tr(
@@ -334,20 +351,20 @@ class AppConfigWindow(QDialog):
         layout = QVBoxLayout(widget)
 
         # Animation export group
-        anim_group = QGroupBox("Animation Export Defaults")
+        anim_group = QGroupBox(self.tr(GroupTitles.ANIMATION_EXPORT_DEFAULTS))
         anim_layout = QGridLayout(anim_group)
 
         row = 0
-        anim_layout.addWidget(QLabel(self.tr("Enable animation export:")), row, 0)
+        anim_layout.addWidget(QLabel(self.tr(Labels.ENABLE_ANIMATION_EXPORT)), row, 0)
         anim_export_cb = QCheckBox()
         anim_export_cb.setChecked(True)
         self.extraction_fields["animation_export"] = anim_export_cb
         anim_layout.addWidget(anim_export_cb, row, 1)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr("Animation format")), row, 0)
+        anim_layout.addWidget(QLabel(self.tr(Labels.ANIMATION_FORMAT)), row, 0)
         anim_format_combo = QComboBox()
-        anim_format_combo.addItems(["GIF", "WebP", "APNG"])
+        anim_format_combo.addItems(get_display_texts(ANIMATION_FORMAT_OPTIONS))
         anim_format_combo.setCurrentText("GIF")
         anim_format_combo.currentTextChanged.connect(self._on_animation_format_changed)
         self.extraction_fields["animation_format"] = anim_format_combo
@@ -367,7 +384,7 @@ class AppConfigWindow(QDialog):
         duration_spinbox.valueChanged.connect(self._on_duration_spinbox_changed)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr("Loop delay")), row, 0)
+        anim_layout.addWidget(QLabel(self.tr(Labels.LOOP_DELAY)), row, 0)
         delay_spinbox = QSpinBox()
         delay_spinbox.setRange(0, 99999)
         delay_spinbox.setValue(250)
@@ -375,7 +392,7 @@ class AppConfigWindow(QDialog):
         anim_layout.addWidget(delay_spinbox, row, 1)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr("Minimum period")), row, 0)
+        anim_layout.addWidget(QLabel(self.tr(Labels.MINIMUM_PERIOD)), row, 0)
         period_spinbox = QSpinBox()
         period_spinbox.setRange(0, 99999)
         period_spinbox.setValue(0)
@@ -383,36 +400,26 @@ class AppConfigWindow(QDialog):
         anim_layout.addWidget(period_spinbox, row, 1)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr("Scale")), row, 0)
+        anim_layout.addWidget(QLabel(self.tr(Labels.SCALE)), row, 0)
         scale_spinbox = QDoubleSpinBox()
-        scale_spinbox.setRange(0.01, 100.0)
-        scale_spinbox.setDecimals(2)
-        scale_spinbox.setSingleStep(0.01)
-        scale_spinbox.setValue(1.0)
+        configure_spinbox(scale_spinbox, SpinBoxConfig.SCALE)
         scale_spinbox.setSuffix(" x")
         self.extraction_fields["scale"] = scale_spinbox
         anim_layout.addWidget(scale_spinbox, row, 1)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr("Alpha threshold")), row, 0)
+        anim_layout.addWidget(QLabel(self.tr(Labels.ALPHA_THRESHOLD)), row, 0)
         threshold_spinbox = QSpinBox()
         threshold_spinbox.setRange(0, 100)
         threshold_spinbox.setSingleStep(1)
         threshold_spinbox.setValue(50)
         threshold_spinbox.setSuffix(" %")
-        threshold_spinbox.setToolTip(
-            self.tr(
-                "Alpha threshold for GIF transparency (0-100%):\n"
-                "• 0%: All pixels visible\n"
-                "• 50%: Default, balanced transparency\n"
-                "• 100%: Only fully opaque pixels visible"
-            )
-        )
+        threshold_spinbox.setToolTip(self.tr(Tooltips.ALPHA_THRESHOLD))
         self.extraction_fields["threshold"] = threshold_spinbox
         anim_layout.addWidget(threshold_spinbox, row, 1)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr("Variable delay:")), row, 0)
+        anim_layout.addWidget(QLabel(self.tr(Labels.VARIABLE_DELAY) + ":"), row, 0)
         variable_delay_cb = QCheckBox()
         variable_delay_cb.setChecked(False)
         self.extraction_fields["variable_delay"] = variable_delay_cb
@@ -422,82 +429,61 @@ class AppConfigWindow(QDialog):
         layout.addWidget(anim_group)
 
         # Frame export group
-        frame_group = QGroupBox("Frame Export Defaults")
+        frame_group = QGroupBox(self.tr(GroupTitles.FRAME_EXPORT_DEFAULTS))
         frame_layout = QGridLayout(frame_group)
 
         row = 0
-        frame_layout.addWidget(QLabel(self.tr("Enable frame export:")), row, 0)
+        frame_layout.addWidget(QLabel(self.tr(Labels.ENABLE_FRAME_EXPORT)), row, 0)
         frame_export_cb = QCheckBox()
         frame_export_cb.setChecked(True)
         self.extraction_fields["frame_export"] = frame_export_cb
         frame_layout.addWidget(frame_export_cb, row, 1)
         row += 1
 
-        frame_layout.addWidget(QLabel(self.tr("Frame format")), row, 0)
+        frame_layout.addWidget(QLabel(self.tr(Labels.FRAME_FORMAT)), row, 0)
         frame_format_combo = QComboBox()
-        frame_format_combo.addItems(
-            ["AVIF", "BMP", "DDS", "PNG", "TGA", "TIFF", "WebP"]
-        )
+        frame_format_combo.addItems(get_display_texts(FRAME_FORMAT_OPTIONS))
         frame_format_combo.setCurrentText("PNG")
         self.extraction_fields["frame_format"] = frame_format_combo
         frame_layout.addWidget(frame_format_combo, row, 1)
         row += 1
 
-        frame_layout.addWidget(QLabel(self.tr("Frame scale")), row, 0)
+        frame_layout.addWidget(QLabel(self.tr(Labels.FRAME_SCALE)), row, 0)
         frame_scale_spinbox = QDoubleSpinBox()
-        frame_scale_spinbox.setRange(0.01, 100.0)
-        frame_scale_spinbox.setDecimals(2)
-        frame_scale_spinbox.setSingleStep(0.01)
-        frame_scale_spinbox.setValue(1.0)
+        configure_spinbox(frame_scale_spinbox, SpinBoxConfig.FRAME_SCALE)
         frame_scale_spinbox.setSuffix(" x")
         self.extraction_fields["frame_scale"] = frame_scale_spinbox
         frame_layout.addWidget(frame_scale_spinbox, row, 1)
         row += 1
 
-        frame_layout.addWidget(QLabel(self.tr("Frame selection")), row, 0)
+        frame_layout.addWidget(QLabel(self.tr(Labels.FRAME_SELECTION)), row, 0)
         frame_selection_combo = QComboBox()
         options_without_custom = tuple(
             opt for opt in FRAME_SELECTION_OPTIONS if opt.internal != "custom"
         )
         populate_combobox(frame_selection_combo, options_without_custom, self.tr)
         frame_selection_combo.setCurrentIndex(0)
-        frame_selection_combo.setToolTip(
-            self.tr(
-                "Which frames to export:\n"
-                "• All: Export every frame\n"
-                "• No duplicates: Export unique frames only (skip repeated frames)\n"
-                "• First: Export only the first frame\n"
-                "• Last: Export only the last frame\n"
-                "• First, Last: Export first and last frames"
-            )
-        )
+        frame_selection_combo.setToolTip(self.tr(Tooltips.FRAME_SELECTION))
         self.extraction_fields["frame_selection"] = frame_selection_combo
         frame_layout.addWidget(frame_selection_combo, row, 1)
 
         layout.addWidget(frame_group)
 
         # General export settings group
-        general_group = QGroupBox("General Export Settings")
+        general_group = QGroupBox(self.tr(GroupTitles.GENERAL_EXPORT_SETTINGS))
         general_layout = QGridLayout(general_group)
 
         row = 0
-        general_layout.addWidget(QLabel(self.tr("Cropping method")), row, 0)
+        general_layout.addWidget(QLabel(self.tr(Labels.CROPPING_METHOD)), row, 0)
         crop_combo = QComboBox()
         populate_combobox(crop_combo, CROPPING_METHOD_OPTIONS, self.tr)
         crop_combo.setCurrentIndex(1)  # Default to "Animation based"
-        crop_combo.setToolTip(
-            self.tr(
-                "How cropping should be done:\n"
-                "• None: No cropping, keep original sprite size\n"
-                "• Animation based: Crop to fit all frames in an animation\n"
-                "• Frame based: Crop each frame individually (frames only)"
-            )
-        )
+        crop_combo.setToolTip(self.tr(Tooltips.CROPPING_METHOD))
         self.extraction_fields["crop_option"] = crop_combo
         general_layout.addWidget(crop_combo, row, 1)
         row += 1
 
-        general_layout.addWidget(QLabel(self.tr("Resampling method")), row, 0)
+        general_layout.addWidget(QLabel(self.tr(Labels.RESAMPLING_METHOD)), row, 0)
         from utils.resampling import (
             RESAMPLING_DISPLAY_NAMES,
             get_resampling_tooltip,
@@ -517,7 +503,7 @@ class AppConfigWindow(QDialog):
         general_layout.addWidget(resampling_combo, row, 1)
         row += 1
 
-        general_layout.addWidget(QLabel(self.tr("Filename format")), row, 0)
+        general_layout.addWidget(QLabel(self.tr(Labels.FILENAME_FORMAT)), row, 0)
         from utils.version import APP_NAME
 
         filename_format_combo = QComboBox()
@@ -535,16 +521,16 @@ class AppConfigWindow(QDialog):
         general_layout.addWidget(filename_format_combo, row, 1)
         row += 1
 
-        general_layout.addWidget(QLabel(self.tr("Filename prefix")), row, 0)
+        general_layout.addWidget(QLabel(self.tr(Labels.FILENAME_PREFIX)), row, 0)
         prefix_entry = QLineEdit()
-        prefix_entry.setPlaceholderText(self.tr("Optional prefix"))
+        prefix_entry.setPlaceholderText(self.tr(Placeholders.OPTIONAL_PREFIX))
         self.extraction_fields["filename_prefix"] = prefix_entry
         general_layout.addWidget(prefix_entry, row, 1)
         row += 1
 
-        general_layout.addWidget(QLabel(self.tr("Filename suffix")), row, 0)
+        general_layout.addWidget(QLabel(self.tr(Labels.FILENAME_SUFFIX)), row, 0)
         suffix_entry = QLineEdit()
-        suffix_entry.setPlaceholderText(self.tr("Optional suffix"))
+        suffix_entry.setPlaceholderText(self.tr(Placeholders.OPTIONAL_SUFFIX))
         self.extraction_fields["filename_suffix"] = suffix_entry
         general_layout.addWidget(suffix_entry, row, 1)
 
@@ -727,7 +713,7 @@ class AppConfigWindow(QDialog):
         algo_layout.addWidget(algorithm_combo, row, 1)
         row += 1
 
-        algo_layout.addWidget(QLabel(self.tr("Heuristic")), row, 0)
+        algo_layout.addWidget(QLabel(self.tr(Labels.HEURISTIC)), row, 0)
         heuristic_combo = QComboBox()
         heuristic_combo.addItem("Auto (Best Result)", "auto")
         heuristic_combo.setToolTip(
@@ -778,7 +764,7 @@ class AppConfigWindow(QDialog):
         size_layout.addWidget(padding_spinbox, row, 1)
         row += 1
 
-        power_of_two_cb = QCheckBox(self.tr('Use "Power of 2" sizes'))
+        power_of_two_cb = QCheckBox(self.tr(CheckBoxLabels.POWER_OF_TWO))
         power_of_two_cb.setChecked(False)
         power_of_two_cb.setToolTip(
             self.tr(
@@ -792,10 +778,10 @@ class AppConfigWindow(QDialog):
         layout.addWidget(size_group)
 
         # Sprite optimization group
-        optim_group = QGroupBox("Sprite Optimization")
+        optim_group = QGroupBox(self.tr("Sprite Optimization"))
         optim_layout = QVBoxLayout(optim_group)
 
-        allow_rotation_cb = QCheckBox(self.tr("Allow rotation (90°)"))
+        allow_rotation_cb = QCheckBox(self.tr(CheckBoxLabels.ALLOW_ROTATION))
         allow_rotation_cb.setChecked(False)
         allow_rotation_cb.setToolTip(
             self.tr(
@@ -806,7 +792,7 @@ class AppConfigWindow(QDialog):
         self.generator_fields["allow_rotation"] = allow_rotation_cb
         optim_layout.addWidget(allow_rotation_cb)
 
-        allow_flip_cb = QCheckBox(self.tr("Allow flip X/Y (non-standard)"))
+        allow_flip_cb = QCheckBox(self.tr(CheckBoxLabels.ALLOW_FLIP))
         allow_flip_cb.setChecked(False)
         allow_flip_cb.setToolTip(
             self.tr(
@@ -819,7 +805,7 @@ class AppConfigWindow(QDialog):
         self.generator_fields["allow_flip"] = allow_flip_cb
         optim_layout.addWidget(allow_flip_cb)
 
-        trim_sprites_cb = QCheckBox(self.tr("Trim transparent edges"))
+        trim_sprites_cb = QCheckBox(self.tr(CheckBoxLabels.TRIM_TRANSPARENT))
         trim_sprites_cb.setChecked(False)
         trim_sprites_cb.setToolTip(
             self.tr(
@@ -834,7 +820,7 @@ class AppConfigWindow(QDialog):
         layout.addWidget(optim_group)
 
         # Output format group
-        output_group = QGroupBox("Output Format")
+        output_group = QGroupBox(self.tr("Output Format"))
         output_layout = QGridLayout(output_group)
 
         row = 0
@@ -869,9 +855,9 @@ class AppConfigWindow(QDialog):
 
         output_layout.addWidget(QLabel(self.tr("Image format")), row, 0)
         image_format_combo = QComboBox()
-        image_format_combo.addItems(["PNG", "JPEG", "WebP", "BMP", "TGA", "TIFF"])
+        image_format_combo.addItems(get_display_texts(GENERATOR_IMAGE_FORMAT_OPTIONS))
         image_format_combo.setCurrentText("PNG")
-        image_format_combo.setToolTip(self.tr("Image format for the atlas texture."))
+        image_format_combo.setToolTip(self.tr(Tooltips.IMAGE_FORMAT))
         self.generator_fields["image_format"] = image_format_combo
         output_layout.addWidget(image_format_combo, row, 1)
 
@@ -893,30 +879,34 @@ class AppConfigWindow(QDialog):
         png_layout = QGridLayout(png_group)
 
         row = 0
-        png_layout.addWidget(QLabel(self.tr("Compress Level (0-9):")), row, 0)
+        png_layout.addWidget(QLabel(self.tr(Labels.COMPRESS_LEVEL_0_9)), row, 0)
         png_compress_spinbox = QSpinBox()
         png_compress_spinbox.setRange(0, 9)
         png_compress_spinbox.setValue(9)
         png_compress_spinbox.setToolTip(
-            "PNG compression level (0-9):\n"
-            "• 0: No compression (fastest, largest file)\n"
-            "• 1-3: Low compression\n"
-            "• 4-6: Medium compression\n"
-            "• 7-9: High compression (slowest, smallest file)\n"
-            "This doesn't affect the quality of the image, only the file size"
+            self.tr(
+                "PNG compression level (0-9):\n"
+                "• 0: No compression (fastest, largest file)\n"
+                "• 1-3: Low compression\n"
+                "• 4-6: Medium compression\n"
+                "• 7-9: High compression (slowest, smallest file)\n"
+                "This doesn't affect the quality of the image, only the file size"
+            )
         )
         self.compression_fields["png_compress_level"] = png_compress_spinbox
         png_layout.addWidget(png_compress_spinbox, row, 1)
         row += 1
 
-        png_optimize_checkbox = QCheckBox(self.tr("Optimize PNG"))
+        png_optimize_checkbox = QCheckBox(self.tr(CheckBoxLabels.OPTIMIZE_PNG))
         png_optimize_checkbox.setChecked(True)
         png_optimize_checkbox.setToolTip(
-            "PNG optimize:\n"
-            "• Enabled: Uses additional compression techniques for smaller files\n"
-            "When enabled, compression level is automatically set to 9\n"
-            "Results in slower processing but better compression\n\n"
-            "This doesn't affect the quality of the image, only the file size"
+            self.tr(
+                "PNG optimize:\n"
+                "• Enabled: Uses additional compression techniques for smaller files\n"
+                "When enabled, compression level is automatically set to 9\n"
+                "Results in slower processing but better compression\n\n"
+                "This doesn't affect the quality of the image, only the file size"
+            )
         )
         self.compression_fields["png_optimize"] = png_optimize_checkbox
         png_layout.addWidget(png_optimize_checkbox, row, 0, 1, 2)
@@ -927,70 +917,80 @@ class AppConfigWindow(QDialog):
         webp_layout = QGridLayout(webp_group)
 
         row = 0
-        webp_lossless_checkbox = QCheckBox(self.tr("Lossless WebP"))
+        webp_lossless_checkbox = QCheckBox(self.tr(CheckBoxLabels.LOSSLESS_WEBP))
         webp_lossless_checkbox.setChecked(True)
         webp_lossless_checkbox.setToolTip(
-            "WebP lossless mode:\n"
-            "• Enabled: Perfect quality preservation, larger file size\n"
-            "• Disabled: Lossy compression with adjustable quality\n"
-            "When enabled, quality sliders are disabled"
+            self.tr(
+                "WebP lossless mode:\n"
+                "• Enabled: Perfect quality preservation, larger file size\n"
+                "• Disabled: Lossy compression with adjustable quality\n"
+                "When enabled, quality sliders are disabled"
+            )
         )
         self.compression_fields["webp_lossless"] = webp_lossless_checkbox
         webp_layout.addWidget(webp_lossless_checkbox, row, 0, 1, 2)
         row += 1
 
-        webp_layout.addWidget(QLabel(self.tr("Quality (0-100):")), row, 0)
+        webp_layout.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), row, 0)
         webp_quality_spinbox = QSpinBox()
         webp_quality_spinbox.setRange(0, 100)
         webp_quality_spinbox.setValue(90)
         webp_quality_spinbox.setToolTip(
-            "WebP quality (0-100):\n"
-            "• 0: Lowest quality, smallest file\n"
-            "• 75: Balanced quality/size\n"
-            "• 100: Highest quality, largest file\n"
-            "Only used in lossy mode"
+            self.tr(
+                "WebP quality (0-100):\n"
+                "• 0: Lowest quality, smallest file\n"
+                "• 75: Balanced quality/size\n"
+                "• 100: Highest quality, largest file\n"
+                "Only used in lossy mode"
+            )
         )
         self.compression_fields["webp_quality"] = webp_quality_spinbox
         webp_layout.addWidget(webp_quality_spinbox, row, 1)
         row += 1
 
-        webp_layout.addWidget(QLabel(self.tr("Method (0-6):")), row, 0)
+        webp_layout.addWidget(QLabel(self.tr(Labels.METHOD_0_6)), row, 0)
         webp_method_spinbox = QSpinBox()
         webp_method_spinbox.setRange(0, 6)
         webp_method_spinbox.setValue(3)
         webp_method_spinbox.setToolTip(
-            "WebP compression method (0-6):\n"
-            "• 0: Fastest encoding, larger file\n"
-            "• 3: Balanced speed/compression\n"
-            "• 6: Slowest encoding, best compression\n"
-            "Higher values take more time but produce smaller files"
+            self.tr(
+                "WebP compression method (0-6):\n"
+                "• 0: Fastest encoding, larger file\n"
+                "• 3: Balanced speed/compression\n"
+                "• 6: Slowest encoding, best compression\n"
+                "Higher values take more time but produce smaller files"
+            )
         )
         self.compression_fields["webp_method"] = webp_method_spinbox
         webp_layout.addWidget(webp_method_spinbox, row, 1)
         row += 1
 
-        webp_layout.addWidget(QLabel(self.tr("Alpha Quality (0-100):")), row, 0)
+        webp_layout.addWidget(QLabel(self.tr(Labels.ALPHA_QUALITY_0_100)), row, 0)
         webp_alpha_quality_spinbox = QSpinBox()
         webp_alpha_quality_spinbox.setRange(0, 100)
         webp_alpha_quality_spinbox.setValue(90)
         webp_alpha_quality_spinbox.setToolTip(
-            "WebP alpha channel quality (0-100):\n"
-            "Controls transparency compression quality\n"
-            "• 0: Maximum alpha compression\n"
-            "• 100: Best alpha quality\n"
-            "Only used in lossy mode"
+            self.tr(
+                "WebP alpha channel quality (0-100):\n"
+                "Controls transparency compression quality\n"
+                "• 0: Maximum alpha compression\n"
+                "• 100: Best alpha quality\n"
+                "Only used in lossy mode"
+            )
         )
         self.compression_fields["webp_alpha_quality"] = webp_alpha_quality_spinbox
         webp_layout.addWidget(webp_alpha_quality_spinbox, row, 1)
         row += 1
 
-        webp_exact_checkbox = QCheckBox(self.tr("Exact WebP"))
+        webp_exact_checkbox = QCheckBox(self.tr(CheckBoxLabels.EXACT_WEBP))
         webp_exact_checkbox.setChecked(True)
         webp_exact_checkbox.setToolTip(
-            "WebP exact mode:\n"
-            "• Enabled: Preserves RGB values in transparent areas\n"
-            "• Disabled: Allows optimization of transparent pixels\n"
-            "Enable for better quality when transparency matters"
+            self.tr(
+                "WebP exact mode:\n"
+                "• Enabled: Preserves RGB values in transparent areas\n"
+                "• Disabled: Allows optimization of transparent pixels\n"
+                "Enable for better quality when transparency matters"
+            )
         )
         self.compression_fields["webp_exact"] = webp_exact_checkbox
         webp_layout.addWidget(webp_exact_checkbox, row, 0, 1, 2)
@@ -1001,37 +1001,41 @@ class AppConfigWindow(QDialog):
         avif_layout = QGridLayout(avif_group)
 
         row = 0
-        avif_lossless_checkbox = QCheckBox(self.tr("Lossless AVIF"))
+        avif_lossless_checkbox = QCheckBox(self.tr(CheckBoxLabels.LOSSLESS_AVIF))
         avif_lossless_checkbox.setChecked(True)
         self.compression_fields["avif_lossless"] = avif_lossless_checkbox
         avif_layout.addWidget(avif_lossless_checkbox, row, 0, 1, 2)
         row += 1
 
-        avif_layout.addWidget(QLabel(self.tr("Quality (0-100):")), row, 0)
+        avif_layout.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), row, 0)
         avif_quality_spinbox = QSpinBox()
         avif_quality_spinbox.setRange(0, 100)
         avif_quality_spinbox.setValue(90)
         avif_quality_spinbox.setToolTip(
-            "AVIF quality (0-100):\n"
-            "• 0-30: Low quality, very small files\n"
-            "• 60-80: Good quality for most images\n"
-            "• 85-95: High quality (recommended)\n"
-            "• 95-100: Excellent quality, larger files"
+            self.tr(
+                "AVIF quality (0-100):\n"
+                "• 0-30: Low quality, very small files\n"
+                "• 60-80: Good quality for most images\n"
+                "• 85-95: High quality (recommended)\n"
+                "• 95-100: Excellent quality, larger files"
+            )
         )
         self.compression_fields["avif_quality"] = avif_quality_spinbox
         avif_layout.addWidget(avif_quality_spinbox, row, 1)
         row += 1
 
-        avif_layout.addWidget(QLabel(self.tr("Speed (0-10):")), row, 0)
+        avif_layout.addWidget(QLabel(self.tr(Labels.SPEED_0_10)), row, 0)
         avif_speed_spinbox = QSpinBox()
         avif_speed_spinbox.setRange(0, 10)
         avif_speed_spinbox.setValue(5)
         avif_speed_spinbox.setToolTip(
-            "AVIF encoding speed (0-10):\n"
-            "• 0: Slowest encoding, best compression\n"
-            "• 5: Balanced speed/compression (default)\n"
-            "• 10: Fastest encoding, larger files\n"
-            "Higher values encode faster but produce larger files"
+            self.tr(
+                "AVIF encoding speed (0-10):\n"
+                "• 0: Slowest encoding, best compression\n"
+                "• 5: Balanced speed/compression (default)\n"
+                "• 10: Fastest encoding, larger files\n"
+                "Higher values encode faster but produce larger files"
+            )
         )
         self.compression_fields["avif_speed"] = avif_speed_spinbox
         avif_layout.addWidget(avif_speed_spinbox, row, 1)
@@ -1042,43 +1046,49 @@ class AppConfigWindow(QDialog):
         tiff_layout = QGridLayout(tiff_group)
 
         row = 0
-        tiff_layout.addWidget(QLabel(self.tr("Compression Type:")), row, 0)
+        tiff_layout.addWidget(QLabel(self.tr(Labels.COMPRESSION_TYPE)), row, 0)
         tiff_compression_combobox = QComboBox()
         tiff_compression_combobox.addItems(["none", "lzw", "zip", "jpeg"])
         tiff_compression_combobox.setCurrentText("lzw")
         tiff_compression_combobox.setToolTip(
-            "TIFF compression algorithm:\n"
-            "• none: No compression, largest files\n"
-            "• lzw: Lossless, good compression (recommended)\n"
-            "• zip: Lossless, better compression\n"
-            "• jpeg: Lossy compression, smallest files"
+            self.tr(
+                "TIFF compression algorithm:\n"
+                "• none: No compression, largest files\n"
+                "• lzw: Lossless, good compression (recommended)\n"
+                "• zip: Lossless, better compression\n"
+                "• jpeg: Lossy compression, smallest files"
+            )
         )
         self.compression_fields["tiff_compression_type"] = tiff_compression_combobox
         tiff_layout.addWidget(tiff_compression_combobox, row, 1)
         row += 1
 
-        tiff_layout.addWidget(QLabel(self.tr("Quality (0-100):")), row, 0)
+        tiff_layout.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), row, 0)
         tiff_quality_spinbox = QSpinBox()
         tiff_quality_spinbox.setRange(0, 100)
         tiff_quality_spinbox.setValue(90)
         tiff_quality_spinbox.setToolTip(
-            "TIFF quality (0-100):\n"
-            "Only used with JPEG compression\n"
-            "• 0-50: Low quality, small files\n"
-            "• 75-90: Good quality\n"
-            "• 95-100: Excellent quality"
+            self.tr(
+                "TIFF quality (0-100):\n"
+                "Only used with JPEG compression\n"
+                "• 0-50: Low quality, small files\n"
+                "• 75-90: Good quality\n"
+                "• 95-100: Excellent quality"
+            )
         )
         self.compression_fields["tiff_quality"] = tiff_quality_spinbox
         tiff_layout.addWidget(tiff_quality_spinbox, row, 1)
         row += 1
 
-        tiff_optimize_checkbox = QCheckBox(self.tr("Optimize TIFF"))
+        tiff_optimize_checkbox = QCheckBox(self.tr(CheckBoxLabels.OPTIMIZE_TIFF))
         tiff_optimize_checkbox.setChecked(True)
         tiff_optimize_checkbox.setToolTip(
-            "TIFF optimization:\n"
-            "• Enabled: Optimize file structure for smaller size\n"
-            "• Disabled: Standard TIFF format\n"
-            "Recommended to keep enabled"
+            self.tr(
+                "TIFF optimization:\n"
+                "• Enabled: Optimize file structure for smaller size\n"
+                "• Disabled: Standard TIFF format\n"
+                "Recommended to keep enabled"
+            )
         )
         self.compression_fields["tiff_optimize"] = tiff_optimize_checkbox
         self.compression_fields["tiff_optimize"] = tiff_optimize_checkbox
@@ -1101,11 +1111,11 @@ class AppConfigWindow(QDialog):
         group = QGroupBox(self.tr("Update Preferences"))
         group_layout = QVBoxLayout(group)
 
-        self.check_updates_cb = QCheckBox(self.tr("Check for updates on startup"))
+        self.check_updates_cb = QCheckBox(self.tr(CheckBoxLabels.CHECK_UPDATES_STARTUP))
         self.check_updates_cb.stateChanged.connect(self.on_check_updates_change)
         group_layout.addWidget(self.check_updates_cb)
 
-        self.auto_update_cb = QCheckBox(self.tr("Auto-download and install updates"))
+        self.auto_update_cb = QCheckBox(self.tr(CheckBoxLabels.AUTO_DOWNLOAD_UPDATES))
         group_layout.addWidget(self.auto_update_cb)
 
         note_label = QLabel(
@@ -1256,8 +1266,10 @@ class AppConfigWindow(QDialog):
 
         reply = QMessageBox.question(
             self,
-            "Reset to Defaults",
-            "Are you sure you want to reset all settings to their default values?",
+            self.tr(DialogTitles.RESET_TO_DEFAULTS),
+            self.tr(
+                "Are you sure you want to reset all settings to their default values?"
+            ),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
@@ -1463,7 +1475,7 @@ class AppConfigWindow(QDialog):
 
             QMessageBox.information(
                 self,
-                self.tr("Settings Saved"),
+                self.tr(DialogTitles.SETTINGS_SAVED),
                 self.tr("Configuration has been saved successfully."),
             )
             self.accept()
@@ -1471,13 +1483,13 @@ class AppConfigWindow(QDialog):
         except ValueError as e:
             QMessageBox.critical(
                 self,
-                self.tr("Invalid Input"),
+                self.tr(DialogTitles.INVALID_INPUT),
                 self.tr("Error: {error}").format(error=str(e)),
             )
         except Exception as e:
             QMessageBox.critical(
                 self,
-                self.tr("Error"),
+                self.tr(DialogTitles.ERROR),
                 self.tr("Failed to save configuration: {error}").format(error=str(e)),
             )
 
@@ -1544,7 +1556,7 @@ class AppConfigWindow(QDialog):
         dir_layout = QVBoxLayout(dir_group)
 
         self.remember_input_dir_cb = QCheckBox(
-            self.tr("Remember last used input directory")
+            self.tr(CheckBoxLabels.REMEMBER_INPUT_DIR)
         )
         self.remember_input_dir_cb.setToolTip(
             self.tr(
@@ -1554,7 +1566,7 @@ class AppConfigWindow(QDialog):
         dir_layout.addWidget(self.remember_input_dir_cb)
 
         self.remember_output_dir_cb = QCheckBox(
-            self.tr("Remember last used output directory")
+            self.tr(CheckBoxLabels.REMEMBER_OUTPUT_DIR)
         )
         self.remember_output_dir_cb.setToolTip(
             self.tr(
@@ -1570,7 +1582,7 @@ class AppConfigWindow(QDialog):
         spritemap_layout = QVBoxLayout(spritemap_group)
 
         self.filter_single_frame_spritemaps_cb = QCheckBox(
-            self.tr("Hide single-frame spritemap animations")
+            self.tr(CheckBoxLabels.HIDE_SINGLE_FRAME)
         )
         self.filter_single_frame_spritemaps_cb.setToolTip(
             self.tr(
@@ -1587,7 +1599,7 @@ class AppConfigWindow(QDialog):
         file_dialog_layout = QVBoxLayout(file_dialog_group)
 
         self.use_native_file_dialog_cb = QCheckBox(
-            self.tr("Use native file picker when available")
+            self.tr(CheckBoxLabels.USE_NATIVE_FILE_PICKER)
         )
         self.use_native_file_dialog_cb.setToolTip(
             self.tr(
@@ -1603,7 +1615,7 @@ class AppConfigWindow(QDialog):
         anim_behavior_group = QGroupBox(self.tr("Animation Behavior"))
         anim_behavior_layout = QVBoxLayout(anim_behavior_group)
 
-        self.merge_duplicates_cb = QCheckBox(self.tr("Merge duplicate frames"))
+        self.merge_duplicates_cb = QCheckBox(self.tr(CheckBoxLabels.MERGE_DUPLICATES))
         self.merge_duplicates_cb.setChecked(True)
         self.merge_duplicates_cb.setToolTip(
             self.tr(

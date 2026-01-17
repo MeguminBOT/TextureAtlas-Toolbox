@@ -16,6 +16,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels
 
 
 class SettingsWindow(QDialog):
@@ -61,7 +62,7 @@ class SettingsWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        close_button = QPushButton(self.tr("Close"))
+        close_button = QPushButton(self.tr(ButtonLabels.CLOSE))
         close_button.clicked.connect(self.accept)
         button_layout.addWidget(close_button)
 

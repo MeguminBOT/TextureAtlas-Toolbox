@@ -32,11 +32,27 @@ from PySide6.QtGui import QAction
 from gui.base_tab_widget import BaseTabWidget
 from utils.translation_manager import tr as translate
 from utils.combo_options import (
-    FRAME_SELECTION_OPTIONS,
+    ANIMATION_FORMAT_OPTIONS,
     CROPPING_METHOD_OPTIONS,
     FILENAME_FORMAT_OPTIONS,
-    populate_combobox,
+    FRAME_FORMAT_OPTIONS,
+    FRAME_SELECTION_OPTIONS,
+    get_display_texts,
+    get_index_by_display,
     get_internal_by_index,
+    populate_combobox,
+)
+from utils.ui_constants import (
+    Labels,
+    GroupTitles,
+    SpinBoxConfig,
+    ButtonLabels,
+    DialogTitles,
+    FileDialogTitles,
+    Placeholders,
+    MenuActions,
+    TabTitles,
+    configure_spinbox,
 )
 
 from gui.extractor.enhanced_list_widget import EnhancedListWidget
@@ -383,32 +399,33 @@ class ExtractTabWidget(BaseTabWidget):
 
     def create_animation_export_group(self):
         """Create the animation export group box."""
-        group = QGroupBox(self.tr("Animation export"))
+        group = QGroupBox(self.tr(GroupTitles.ANIMATION_EXPORT))
         group.setFixedSize(191, 331)
         group.setAlignment(Qt.AlignmentFlag.AlignCenter)
         group.setCheckable(True)
         group.setChecked(True)
 
-        format_label = QLabel(self.tr("Format"))
+        format_label = QLabel(self.tr(Labels.FORMAT))
         format_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         format_label.setGeometry(40, 30, 111, 16)
         format_label.setParent(group)
 
         self.animation_format_combobox = QComboBox(group)
         self.animation_format_combobox.setGeometry(10, 50, 171, 24)
-        self.animation_format_combobox.addItems(["GIF", "WebP", "APNG"])
+        self.animation_format_combobox.addItems(
+            get_display_texts(ANIMATION_FORMAT_OPTIONS)
+        )
 
-        self.frame_rate_label = QLabel(self.tr("Frame rate"))
+        self.frame_rate_label = QLabel(self.tr(Labels.FRAME_RATE))
         self.frame_rate_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.frame_rate_label.setGeometry(40, 80, 111, 16)
         self.frame_rate_label.setParent(group)
 
         self.frame_rate_entry = QSpinBox(group)
         self.frame_rate_entry.setGeometry(10, 100, 171, 24)
-        self.frame_rate_entry.setRange(1, 1000)
-        self.frame_rate_entry.setValue(24)
+        configure_spinbox(self.frame_rate_entry, SpinBoxConfig.FRAME_RATE)
 
-        loop_delay_label = QLabel(self.tr("Loop delay"))
+        loop_delay_label = QLabel(self.tr(Labels.LOOP_DELAY))
         loop_delay_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         loop_delay_label.setGeometry(40, 130, 111, 16)
         loop_delay_label.setParent(group)
@@ -418,7 +435,7 @@ class ExtractTabWidget(BaseTabWidget):
         self.loop_delay_entry.setRange(0, 10000)
         self.loop_delay_entry.setValue(250)
 
-        min_period_label = QLabel(self.tr("Min period"))
+        min_period_label = QLabel(self.tr(Labels.MIN_PERIOD))
         min_period_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         min_period_label.setGeometry(40, 180, 111, 16)
         min_period_label.setParent(group)
@@ -428,19 +445,16 @@ class ExtractTabWidget(BaseTabWidget):
         self.min_period_entry.setRange(0, 10000)
         self.min_period_entry.setValue(0)
 
-        scale_label = QLabel(self.tr("Scale"))
+        scale_label = QLabel(self.tr(Labels.SCALE))
         scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         scale_label.setGeometry(40, 230, 111, 16)
         scale_label.setParent(group)
 
         self.scale_entry = QDoubleSpinBox(group)
         self.scale_entry.setGeometry(10, 250, 171, 24)
-        self.scale_entry.setRange(0.01, 100.0)
-        self.scale_entry.setValue(1.0)
-        self.scale_entry.setDecimals(2)
-        self.scale_entry.setSingleStep(0.01)
+        configure_spinbox(self.scale_entry, SpinBoxConfig.SCALE)
 
-        threshold_label = QLabel(self.tr("Alpha threshold"))
+        threshold_label = QLabel(self.tr(Labels.ALPHA_THRESHOLD))
         threshold_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         threshold_label.setGeometry(40, 280, 111, 16)
         threshold_label.setParent(group)
@@ -454,24 +468,22 @@ class ExtractTabWidget(BaseTabWidget):
 
     def create_frame_export_group(self):
         """Create the frame export group box."""
-        group = QGroupBox(self.tr("Frame export"))
+        group = QGroupBox(self.tr(GroupTitles.FRAME_EXPORT))
         group.setFixedSize(191, 331)
         group.setAlignment(Qt.AlignmentFlag.AlignCenter)
         group.setCheckable(True)
         group.setChecked(True)
 
-        format_label = QLabel(self.tr("Format"))
+        format_label = QLabel(self.tr(Labels.FORMAT))
         format_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         format_label.setGeometry(40, 30, 111, 16)
         format_label.setParent(group)
 
         self.frame_format_combobox = QComboBox(group)
         self.frame_format_combobox.setGeometry(10, 50, 171, 24)
-        self.frame_format_combobox.addItems(
-            ["AVIF", "BMP", "DDS", "PNG", "TGA", "TIFF", "WebP"]
-        )
+        self.frame_format_combobox.addItems(get_display_texts(FRAME_FORMAT_OPTIONS))
 
-        selection_label = QLabel(self.tr("Frame Selection"))
+        selection_label = QLabel(self.tr(Labels.FRAME_SELECTION_TITLE))
         selection_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         selection_label.setGeometry(40, 80, 111, 16)
         selection_label.setParent(group)
@@ -482,19 +494,16 @@ class ExtractTabWidget(BaseTabWidget):
             self.frame_selection_combobox, FRAME_SELECTION_OPTIONS, self.tr
         )
 
-        scale_label = QLabel(self.tr("Frame scale"))
+        scale_label = QLabel(self.tr(Labels.FRAME_SCALE))
         scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         scale_label.setGeometry(40, 130, 111, 16)
         scale_label.setParent(group)
 
         self.frame_scale_entry = QDoubleSpinBox(group)
         self.frame_scale_entry.setGeometry(10, 150, 171, 24)
-        self.frame_scale_entry.setRange(0.01, 100.0)
-        self.frame_scale_entry.setValue(1.0)
-        self.frame_scale_entry.setDecimals(2)
-        self.frame_scale_entry.setSingleStep(0.01)
+        configure_spinbox(self.frame_scale_entry, SpinBoxConfig.FRAME_SCALE)
 
-        resampling_label = QLabel(self.tr("Resampling"))
+        resampling_label = QLabel(self.tr(Labels.RESAMPLING))
         resampling_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         resampling_label.setGeometry(40, 180, 111, 16)
         resampling_label.setParent(group)
@@ -505,7 +514,9 @@ class ExtractTabWidget(BaseTabWidget):
             ["Nearest", "Bilinear", "Bicubic", "Lanczos", "Box", "Hamming"]
         )
 
-        self.compression_settings_button = QPushButton(self.tr("Compression settings"))
+        self.compression_settings_button = QPushButton(
+            self.tr(ButtonLabels.COMPRESSION_SETTINGS)
+        )
         self.compression_settings_button.setGeometry(10, 240, 171, 24)
         self.compression_settings_button.setParent(group)
 
@@ -529,7 +540,7 @@ class ExtractTabWidget(BaseTabWidget):
         filename_widget = QWidget()
         layout = QHBoxLayout(filename_widget)
 
-        cropping_label = QLabel(self.tr("Cropping method"))
+        cropping_label = QLabel(self.tr(Labels.CROPPING_METHOD))
         cropping_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(cropping_label)
 
@@ -539,7 +550,7 @@ class ExtractTabWidget(BaseTabWidget):
         )
         layout.addWidget(self.cropping_method_combobox)
 
-        format_label = QLabel(self.tr("Filename format"))
+        format_label = QLabel(self.tr(Labels.FILENAME_FORMAT))
         layout.addWidget(format_label)
 
         self.filename_format_combobox = QComboBox()
@@ -548,13 +559,13 @@ class ExtractTabWidget(BaseTabWidget):
         )
         layout.addWidget(self.filename_format_combobox)
 
-        prefix_label = QLabel(self.tr("Prefix"))
+        prefix_label = QLabel(self.tr(Labels.PREFIX))
         layout.addWidget(prefix_label)
 
         self.filename_prefix_entry = QLineEdit()
         layout.addWidget(self.filename_prefix_entry)
 
-        suffix_label = QLabel(self.tr("Suffix"))
+        suffix_label = QLabel(self.tr(Labels.SUFFIX))
         layout.addWidget(suffix_label)
 
         self.filename_suffix_entry = QLineEdit()
@@ -587,7 +598,7 @@ class ExtractTabWidget(BaseTabWidget):
         )
         layout.addWidget(self.override_animation_settings_button)
 
-        self.reset_button = QPushButton(self.tr("Reset"))
+        self.reset_button = QPushButton(self.tr(ButtonLabels.RESET))
         layout.addWidget(self.reset_button)
 
         self.start_process_button = QPushButton(self.tr("Start process"))
@@ -785,7 +796,7 @@ class ExtractTabWidget(BaseTabWidget):
         }
         return method_map.get(method_name, 0)  # Default to Nearest
 
-    def get_animation_format_index(self, format_name):
+    def get_animation_format_index(self, format_name: str) -> int:
         """Map an animation format name to its combobox index.
 
         Args:
@@ -794,11 +805,9 @@ class ExtractTabWidget(BaseTabWidget):
         Returns:
             The zero-based index, or ``0`` if the name is unrecognized.
         """
+        return get_index_by_display(ANIMATION_FORMAT_OPTIONS, format_name)
 
-        format_map = {"GIF": 0, "WebP": 1, "APNG": 2}
-        return format_map.get(format_name, 0)
-
-    def get_frame_format_index(self, format_name):
+    def get_frame_format_index(self, format_name: str) -> int:
         """Map a frame format name to its combobox index.
 
         Args:
@@ -808,17 +817,7 @@ class ExtractTabWidget(BaseTabWidget):
         Returns:
             The zero-based index, or ``0`` if the name is unrecognized.
         """
-
-        format_map = {
-            "AVIF": 0,
-            "BMP": 1,
-            "DDS": 2,
-            "PNG": 3,
-            "TGA": 4,
-            "TIFF": 5,
-            "WebP": 6,
-        }
-        return format_map.get(format_name, 0)
+        return get_index_by_display(FRAME_FORMAT_OPTIONS, format_name)
 
     def select_directory(self):
         """Opens a directory selection dialog and populates the spritesheet list."""
@@ -829,7 +828,7 @@ class ExtractTabWidget(BaseTabWidget):
 
         directory = QFileDialog.getExistingDirectory(
             self,
-            self.tr("Select Input Directory"),
+            self.tr(FileDialogTitles.SELECT_INPUT_DIR),
             start_directory,
             QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks,
         )
@@ -851,7 +850,7 @@ class ExtractTabWidget(BaseTabWidget):
 
         directory = QFileDialog.getExistingDirectory(
             self,
-            self.tr("Select Output Directory"),
+            self.tr(FileDialogTitles.SELECT_OUTPUT_DIR),
             start_directory,
             QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks,
         )
@@ -871,7 +870,7 @@ class ExtractTabWidget(BaseTabWidget):
 
         dialog = SpritesheetFileDialog(
             self,
-            self.tr("Select Files"),
+            self.tr(FileDialogTitles.SELECT_FILES),
             start_directory,
             self.SPRITESHEET_METADATA_FILTERS,
             use_native_dialog,
@@ -1592,7 +1591,7 @@ class ExtractTabWidget(BaseTabWidget):
 
         menu = QMenu(self)
 
-        editor_action = QAction(self.tr("Add to Editor Tab"), self)
+        editor_action = QAction(self.tr(MenuActions.ADD_TO_EDITOR), self)
         editor_action.triggered.connect(
             lambda checked=False, entries=selected_items: self.open_spritesheets_in_editor(
                 entries
@@ -1601,13 +1600,13 @@ class ExtractTabWidget(BaseTabWidget):
         menu.addAction(editor_action)
         menu.addSeparator()
 
-        settings_action = QAction(self.tr("Override Settings"), self)
+        settings_action = QAction(self.tr(MenuActions.OVERRIDE_SETTINGS), self)
         settings_action.triggered.connect(self.override_spritesheet_settings)
         menu.addAction(settings_action)
 
         menu.addSeparator()
 
-        delete_action = QAction(self.tr("Delete"), self)
+        delete_action = QAction(self.tr(ButtonLabels.DELETE), self)
         delete_action.triggered.connect(self.delete_selected_spritesheet)
         menu.addAction(delete_action)
 
@@ -1645,9 +1644,9 @@ class ExtractTabWidget(BaseTabWidget):
 
         editor_action = QAction(
             (
-                self.tr("Focus in Editor Tab")
+                self.tr(MenuActions.FOCUS_IN_EDITOR)
                 if any_composite
-                else self.tr("Add to Editor Tab")
+                else self.tr(MenuActions.ADD_TO_EDITOR)
             ),
             self,
         )
@@ -1667,19 +1666,19 @@ class ExtractTabWidget(BaseTabWidget):
             ):
                 menu.addSeparator()
 
-                preview_action = QAction(self.tr("Preview Animation"), self)
+                preview_action = QAction(self.tr(MenuActions.PREVIEW_ANIMATION), self)
                 preview_action.triggered.connect(self.preview_selected_animation)
                 menu.addAction(preview_action)
 
                 menu.addSeparator()
 
-                settings_action = QAction(self.tr("Override Settings"), self)
+                settings_action = QAction(self.tr(MenuActions.OVERRIDE_SETTINGS), self)
                 settings_action.triggered.connect(self.override_animation_settings)
                 menu.addAction(settings_action)
 
         menu.addSeparator()
 
-        delete_action = QAction(self.tr("Remove from List"), self)
+        delete_action = QAction(self.tr(MenuActions.REMOVE_FROM_LIST), self)
         delete_action.triggered.connect(self.delete_selected_animations)
         menu.addAction(delete_action)
 
@@ -1698,7 +1697,9 @@ class ExtractTabWidget(BaseTabWidget):
         current_spritesheet_item = self.listbox_png.currentItem()
         if not current_spritesheet_item:
             QMessageBox.information(
-                self, self.tr("Error"), self.tr("Please select a spritesheet first.")
+                self,
+                self.tr(DialogTitles.ERROR),
+                self.tr("Please select a spritesheet first."),
             )
             return
 
@@ -1733,7 +1734,7 @@ class ExtractTabWidget(BaseTabWidget):
         except Exception as e:
             QMessageBox.warning(
                 self,
-                self.tr("Error"),
+                self.tr(DialogTitles.ERROR),
                 self.tr("Could not open animation settings: {error}").format(
                     error=str(e)
                 ),
@@ -1776,7 +1777,7 @@ class ExtractTabWidget(BaseTabWidget):
         except Exception as e:
             QMessageBox.warning(
                 self,
-                self.tr("Error"),
+                self.tr(DialogTitles.ERROR),
                 self.tr("Could not open spritesheet settings: {error}").format(
                     error=str(e)
                 ),
@@ -1790,7 +1791,9 @@ class ExtractTabWidget(BaseTabWidget):
         current_item = self.listbox_png.currentItem()
         if not current_item:
             QMessageBox.information(
-                self, self.tr("Error"), self.tr("Please select a spritesheet first.")
+                self,
+                self.tr(DialogTitles.ERROR),
+                self.tr("Please select a spritesheet first."),
             )
             return
 
@@ -1821,7 +1824,7 @@ class ExtractTabWidget(BaseTabWidget):
         except Exception as e:
             QMessageBox.warning(
                 self,
-                self.tr("Error"),
+                self.tr(DialogTitles.ERROR),
                 self.tr("Could not open spritesheet settings: {error}").format(
                     error=str(e)
                 ),
@@ -1844,7 +1847,7 @@ class ExtractTabWidget(BaseTabWidget):
         if self.listbox_data.count() == 0:
             QMessageBox.information(
                 self,
-                self.tr("Editor"),
+                self.tr(TabTitles.EDITOR),
                 self.tr(
                     "Load animations for this spritesheet before sending it to the editor."
                 ),
@@ -1865,7 +1868,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not eligible_items:
             QMessageBox.information(
                 self,
-                self.tr("Editor"),
+                self.tr(TabTitles.EDITOR),
                 self.tr("No animations were found for this spritesheet."),
             )
             return
@@ -1898,7 +1901,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not spritesheet_item:
             QMessageBox.information(
                 self,
-                self.tr("Editor"),
+                self.tr(TabTitles.EDITOR),
                 self.tr("Select a spritesheet first."),
             )
             return
@@ -1921,7 +1924,7 @@ class ExtractTabWidget(BaseTabWidget):
                 else:
                     QMessageBox.information(
                         self,
-                        self.tr("Editor"),
+                        self.tr(TabTitles.EDITOR),
                         self.tr(
                             "Unable to locate the exported composite in the editor."
                         ),
@@ -1938,7 +1941,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not spritesheet_item:
             QMessageBox.information(
                 self,
-                self.tr("Editor"),
+                self.tr(TabTitles.EDITOR),
                 self.tr("Select a spritesheet first."),
             )
             return
@@ -1964,7 +1967,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not spritesheet_path:
             QMessageBox.warning(
                 self,
-                self.tr("Editor"),
+                self.tr(TabTitles.EDITOR),
                 self.tr("The spritesheet path could not be determined."),
             )
             return
@@ -1983,7 +1986,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not metadata_path and not spritemap_info:
             QMessageBox.information(
                 self,
-                self.tr("Editor"),
+                self.tr(TabTitles.EDITOR),
                 self.tr("No metadata was located for this spritesheet."),
             )
             return
@@ -2043,14 +2046,18 @@ class ExtractTabWidget(BaseTabWidget):
         current_item = self.listbox_data.currentItem()
         if not current_item:
             QMessageBox.information(
-                self, self.tr("Error"), self.tr("Please select an animation first.")
+                self,
+                self.tr(DialogTitles.ERROR),
+                self.tr("Please select an animation first."),
             )
             return
 
         current_spritesheet_item = self.listbox_png.currentItem()
         if not current_spritesheet_item:
             QMessageBox.information(
-                self, self.tr("Error"), self.tr("Please select a spritesheet first.")
+                self,
+                self.tr(DialogTitles.ERROR),
+                self.tr("Please select a spritesheet first."),
             )
             return
 
@@ -2085,7 +2092,7 @@ class ExtractTabWidget(BaseTabWidget):
         except Exception as e:
             QMessageBox.warning(
                 self,
-                self.tr("Error"),
+                self.tr(DialogTitles.ERROR),
                 self.tr("Could not open animation settings: {error}").format(
                     error=str(e)
                 ),
@@ -2104,14 +2111,18 @@ class ExtractTabWidget(BaseTabWidget):
         current_item = self.listbox_data.currentItem()
         if not current_item:
             QMessageBox.information(
-                self, self.tr("Error"), self.tr("Please select an animation first.")
+                self,
+                self.tr(DialogTitles.ERROR),
+                self.tr("Please select an animation first."),
             )
             return
 
         current_spritesheet_item = self.listbox_png.currentItem()
         if not current_spritesheet_item:
             QMessageBox.information(
-                self, self.tr("Error"), self.tr("Please select a spritesheet first.")
+                self,
+                self.tr(DialogTitles.ERROR),
+                self.tr("Please select a spritesheet first."),
             )
             return
 
@@ -2123,7 +2134,7 @@ class ExtractTabWidget(BaseTabWidget):
             if not spritesheet_path:
                 QMessageBox.warning(
                     self,
-                    self.tr("Preview Error"),
+                    self.tr(DialogTitles.PREVIEW_ERROR),
                     self.tr("Could not find spritesheet file path."),
                 )
                 return
@@ -2230,8 +2241,6 @@ class ExtractTabWidget(BaseTabWidget):
         if not self.parent_app:
             return {}
 
-        animation_format_map = ["GIF", "WebP", "APNG"]
-        frame_format_map = ["AVIF", "BMP", "DDS", "PNG", "TGA", "TIFF", "WebP"]
         resampling_method_map = [
             "Nearest",
             "Bilinear",
@@ -2241,10 +2250,12 @@ class ExtractTabWidget(BaseTabWidget):
             "Hamming",
         ]
 
-        animation_format = animation_format_map[
-            self.animation_format_combobox.currentIndex()
-        ]
-        frame_format = frame_format_map[self.frame_format_combobox.currentIndex()]
+        animation_format = get_internal_by_index(
+            ANIMATION_FORMAT_OPTIONS, self.animation_format_combobox.currentIndex()
+        ).upper()
+        frame_format = get_internal_by_index(
+            FRAME_FORMAT_OPTIONS, self.frame_format_combobox.currentIndex()
+        ).upper()
         frame_selection = get_internal_by_index(
             FRAME_SELECTION_OPTIONS, self.frame_selection_combobox.currentIndex()
         )

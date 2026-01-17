@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels
 
 
 class FindReplaceWindow(QDialog):
@@ -110,11 +111,11 @@ class FindReplaceWindow(QDialog):
 
         button_layout = QHBoxLayout()
 
-        ok_btn = QPushButton(self.tr("OK"))
+        ok_btn = QPushButton(self.tr(ButtonLabels.OK))
         ok_btn.clicked.connect(self.accept_changes)
         ok_btn.setDefault(True)
 
-        cancel_btn = QPushButton(self.tr("Cancel"))
+        cancel_btn = QPushButton(self.tr(ButtonLabels.CANCEL))
         cancel_btn.clicked.connect(self.reject)
 
         button_layout.addStretch()
@@ -177,7 +178,7 @@ class FindReplaceWindow(QDialog):
         regex_checkbox = QCheckBox(self.tr("Regular Expression"))
         regex_checkbox.setChecked(rule_data.get("regex", False))
 
-        delete_btn = QPushButton(self.tr("Delete"))
+        delete_btn = QPushButton(self.tr(ButtonLabels.DELETE))
         delete_btn.clicked.connect(lambda: self.delete_rule(rule_frame))
         delete_btn.setMaximumWidth(80)
         delete_btn.setStyleSheet("QPushButton { color: #cc0000; }")

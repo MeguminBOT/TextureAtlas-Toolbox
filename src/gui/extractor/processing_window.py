@@ -26,6 +26,7 @@ from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QCloseEvent, QFont
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels
 
 
 class ProcessingWindow(QDialog):
@@ -194,13 +195,13 @@ class ProcessingWindow(QDialog):
 
         button_layout = QHBoxLayout()
 
-        self.cancel_button = QPushButton(self.tr("Cancel"))
+        self.cancel_button = QPushButton(self.tr(ButtonLabels.CANCEL))
         self.cancel_button.clicked.connect(self.cancel_processing)
         button_layout.addWidget(self.cancel_button)
 
         button_layout.addStretch()
 
-        self.close_button = QPushButton(self.tr("Close"))
+        self.close_button = QPushButton(self.tr(ButtonLabels.CLOSE))
         self.close_button.clicked.connect(self.accept)
         self.close_button.setEnabled(False)
         button_layout.addWidget(self.close_button)

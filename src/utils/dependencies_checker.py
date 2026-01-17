@@ -20,6 +20,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels
 
 from utils.utilities import Utilities
 
@@ -76,7 +77,7 @@ class ErrorDialogWithLinks(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        ok_button = QPushButton(self.tr("OK"))
+        ok_button = QPushButton(self.tr(ButtonLabels.OK))
         ok_button.clicked.connect(self.accept)
         ok_button.setFixedWidth(80)
         button_layout.addWidget(ok_button)

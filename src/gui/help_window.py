@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QT
 from PySide6.QtGui import QFont
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels
 
 
 class HelpWindow(QDialog):
@@ -40,7 +41,7 @@ class HelpWindow(QDialog):
         text_edit.setFont(QFont("Consolas", 10))
         layout.addWidget(text_edit)
 
-        close_btn = QPushButton(self.tr("Close"))
+        close_btn = QPushButton(self.tr(ButtonLabels.CLOSE))
         close_btn.clicked.connect(self.close)
         close_btn.setMaximumWidth(100)
 

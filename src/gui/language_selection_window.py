@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels
 
 # Optional: compiled Qt resources for icons (generated via pyside6-rcc).
 try:
@@ -173,11 +174,11 @@ class LanguageSelectionWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        self.cancel_button = QPushButton(self.tr("Cancel"))
+        self.cancel_button = QPushButton(self.tr(ButtonLabels.CANCEL))
         self.cancel_button.setMinimumWidth(80)
         button_layout.addWidget(self.cancel_button)
 
-        self.apply_button = QPushButton(self.tr("Apply"))
+        self.apply_button = QPushButton(self.tr(ButtonLabels.APPLY))
         self.apply_button.setMinimumWidth(80)
         self.apply_button.setDefault(True)
         button_layout.addWidget(self.apply_button)

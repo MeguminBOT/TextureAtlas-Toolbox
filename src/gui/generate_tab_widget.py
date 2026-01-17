@@ -30,6 +30,13 @@ from utils.utilities import Utilities
 # Import the new generator system
 from core.generator import AtlasGenerator, GeneratorOptions, get_available_algorithms
 from utils.translation_manager import tr as translate
+from utils.ui_constants import (
+    ButtonLabels,
+    Labels,
+    CheckBoxLabels,
+    FileDialogTitles,
+    FileFilters,
+)
 
 SUPPORTED_ROTATION_FORMATS = frozenset(
     {
@@ -256,7 +263,7 @@ class GenerateTabWidget(BaseTabWidget):
         """
         # Create the extensions string from the IMAGE_FORMATS constant
         extensions = " ".join(f"*{ext}" for ext in sorted(self.IMAGE_FORMATS.keys()))
-        image_filter = self.tr("Image files ({0})").format(extensions)
+        image_filter = self.tr(FileFilters.IMAGE_FILES).format(extensions)
         return f"{image_filter};;{self.ALL_FILES_FILTER}"
 
     def get_atlas_image_file_filter(self):
@@ -267,7 +274,7 @@ class GenerateTabWidget(BaseTabWidget):
         """
         # Create the extensions string from the IMAGE_FORMATS constant
         extensions = " ".join(f"*{ext}" for ext in sorted(self.IMAGE_FORMATS.keys()))
-        atlas_filter = self.tr("Atlas image files ({0})").format(extensions)
+        atlas_filter = self.tr(FileFilters.ATLAS_IMAGE_FILES).format(extensions)
         return f"{atlas_filter};;{self.ALL_FILES_FILTER}"
 
     def get_data_file_filter(self):
@@ -277,7 +284,7 @@ class GenerateTabWidget(BaseTabWidget):
             Filter string suitable for QFileDialog.
         """
         extensions = " ".join(f"*{ext}" for ext in sorted(self.DATA_FORMATS))
-        data_filter = self.tr("Spritesheet data files ({0})").format(extensions)
+        data_filter = self.tr(FileFilters.SPRITESHEET_DATA_FILES).format(extensions)
         return f"{data_filter};;{self.ALL_FILES_FILTER}"
 
     def get_xml_file_filter(self):
@@ -432,7 +439,7 @@ class GenerateTabWidget(BaseTabWidget):
         """Add individual files to a new animation group."""
         files, _ = QFileDialog.getOpenFileNames(
             self,
-            self.tr("Select frames"),
+            self.tr(FileDialogTitles.SELECT_FRAMES),
             "",
             self.get_image_file_filter(),
         )
@@ -443,7 +450,7 @@ class GenerateTabWidget(BaseTabWidget):
     def add_directory(self):
         """Add all images from a directory to the frame list."""
         directory = QFileDialog.getExistingDirectory(
-            self, self.tr("Select directory with frame images"), ""
+            self, self.tr(FileDialogTitles.SELECT_FRAME_DIR), ""
         )
 
         if directory:
@@ -518,7 +525,7 @@ class GenerateTabWidget(BaseTabWidget):
         # First select the atlas image file (any supported format)
         atlas_file, _ = QFileDialog.getOpenFileName(
             self,
-            self.tr("Select Atlas Image File"),
+            self.tr(FileDialogTitles.SELECT_ATLAS_IMAGE),
             "",
             self.get_atlas_image_file_filter(),
         )
@@ -544,7 +551,7 @@ class GenerateTabWidget(BaseTabWidget):
         if not data_file:
             data_file, _ = QFileDialog.getOpenFileName(
                 self,
-                self.tr("Select Atlas Data File"),
+                self.tr(FileDialogTitles.SELECT_ATLAS_DATA),
                 str(atlas_directory),
                 self.get_data_file_filter(),
             )
@@ -849,12 +856,14 @@ class GenerateTabWidget(BaseTabWidget):
     def _setup_heuristic_combo(self):
         """Create and insert the heuristic combo box and compression button."""
         # Create label and combo box for heuristic selection
-        self.heuristic_label = QLabel(self.tr("Heuristic"))
+        self.heuristic_label = QLabel(self.tr(Labels.HEURISTIC))
         self.heuristic_combobox = QComboBox()
         self.heuristic_combobox.setMinimumWidth(140)
 
         # Create compression settings button
-        self.compression_settings_button = QPushButton(self.tr("Compression settings"))
+        self.compression_settings_button = QPushButton(
+            self.tr(ButtonLabels.COMPRESSION_SETTINGS)
+        )
         self.compression_settings_button.setToolTip(
             self.tr(
                 "Configure format-specific compression options for the output image"
@@ -1009,7 +1018,7 @@ class GenerateTabWidget(BaseTabWidget):
 
     def _setup_trim_checkbox(self):
         """Create and insert the trim sprites checkbox."""
-        self.trim_sprites_check = QCheckBox(self.tr("Trim Sprites"))
+        self.trim_sprites_check = QCheckBox(self.tr(CheckBoxLabels.TRIM_SPRITES))
         self.trim_sprites_check.setChecked(False)
         self.trim_sprites_check.setToolTip(
             self.tr(
@@ -1284,7 +1293,10 @@ class GenerateTabWidget(BaseTabWidget):
 
         # Open save dialog to select output path
         file_path, _ = QFileDialog.getSaveFileName(
-            self, self.tr("Save Atlas As"), "", self.get_output_file_filter()
+            self,
+            self.tr(FileDialogTitles.SAVE_ATLAS_AS),
+            "",
+            self.get_output_file_filter(),
         )
 
         if not file_path:

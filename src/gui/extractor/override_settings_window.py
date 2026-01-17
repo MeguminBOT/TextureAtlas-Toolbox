@@ -27,6 +27,20 @@ from PySide6.QtGui import QFont
 
 from utils.utilities import Utilities
 from utils.translation_manager import tr as translate
+from utils.combo_options import (
+    ANIMATION_FORMAT_OPTIONS_WITH_NONE,
+    FRAME_FORMAT_OPTIONS,
+    get_display_texts,
+)
+from utils.ui_constants import (
+    Labels,
+    GroupTitles,
+    Placeholders,
+    SpinBoxConfig,
+    Tooltips,
+    ButtonLabels,
+    configure_spinbox,
+)
 from utils.duration_utils import (
     DURATION_FPS,
     DURATION_NATIVE,
@@ -185,9 +199,9 @@ class OverrideSettingsWindow(QDialog):
         content_layout.setSpacing(15)
 
         mode_text = (
-            "Animation Settings Override"
+            self.tr("Animation Settings Override")
             if self.settings_type == "animation"
-            else "Spritesheet Settings Override"
+            else self.tr("Spritesheet Settings Override")
         )
         title_label = QLabel(mode_text)
         title_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
@@ -210,19 +224,19 @@ class OverrideSettingsWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        ok_btn = QPushButton("OK")
+        ok_btn = QPushButton(self.tr(ButtonLabels.OK))
         ok_btn.clicked.connect(self.store_input)
         ok_btn.setMinimumWidth(100)
         ok_btn.setDefault(True)
         button_layout.addWidget(ok_btn)
 
         if self.settings_type == "animation":
-            preview_btn = QPushButton(self.tr("Preview animation"))
+            preview_btn = QPushButton(self.tr(ButtonLabels.PREVIEW_ANIMATION))
             preview_btn.clicked.connect(self.handle_preview_click)
             preview_btn.setMinimumWidth(130)
             button_layout.addWidget(preview_btn)
 
-        cancel_btn = QPushButton(self.tr("Cancel"))
+        cancel_btn = QPushButton(self.tr(ButtonLabels.CANCEL))
         cancel_btn.clicked.connect(self.reject)
         cancel_btn.setMinimumWidth(100)
         button_layout.addWidget(cancel_btn)
@@ -235,7 +249,7 @@ class OverrideSettingsWindow(QDialog):
         Returns:
             QGroupBox containing name display and optional filename input.
         """
-        group = QGroupBox("General export settings")
+        group = QGroupBox(self.tr(GroupTitles.GENERAL_EXPORT_SETTINGS))
         layout = QGridLayout(group)
 
         row = 0
@@ -259,7 +273,7 @@ class OverrideSettingsWindow(QDialog):
             layout.addWidget(QLabel(self.tr("Filename:")), row, 0)
             self.filename_edit = QLineEdit()
             self.filename_edit.setPlaceholderText(
-                "Leave empty for auto-generated filename"
+                self.tr("Leave empty for auto-generated filename")
             )
             layout.addWidget(self.filename_edit, row, 1)
             row += 1
@@ -272,14 +286,16 @@ class OverrideSettingsWindow(QDialog):
         Returns:
             QGroupBox containing format, FPS, delay, scale, and related controls.
         """
-        group = QGroupBox("Animation export settings")
+        group = QGroupBox(self.tr(GroupTitles.ANIMATION_EXPORT_SETTINGS))
         layout = QGridLayout(group)
 
         row = 0
 
-        layout.addWidget(QLabel(self.tr("Animation format")), row, 0)
+        layout.addWidget(QLabel(self.tr(Labels.ANIMATION_FORMAT)), row, 0)
         self.animation_format_combo = QComboBox()
-        self.animation_format_combo.addItems(["None", "GIF", "WebP", "APNG"])
+        self.animation_format_combo.addItems(
+            get_display_texts(ANIMATION_FORMAT_OPTIONS_WITH_NONE)
+        )
         self.animation_format_combo.currentTextChanged.connect(
             self.on_animation_format_change
         )
@@ -293,21 +309,21 @@ class OverrideSettingsWindow(QDialog):
         layout.addWidget(self.fps_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr("Loop delay")), row, 0)
+        layout.addWidget(QLabel(self.tr(Labels.LOOP_DELAY)), row, 0)
         self.delay_spinbox = QSpinBox()
         self.delay_spinbox.setRange(0, 10000)
         self.delay_spinbox.setSuffix(" ms")
         layout.addWidget(self.delay_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr("Minimum period")), row, 0)
+        layout.addWidget(QLabel(self.tr(Labels.MINIMUM_PERIOD)), row, 0)
         self.period_spinbox = QSpinBox()
         self.period_spinbox.setRange(0, 10000)
         self.period_spinbox.setSuffix(" ms")
         layout.addWidget(self.period_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr("Scale")), row, 0)
+        layout.addWidget(QLabel(self.tr(Labels.SCALE)), row, 0)
         self.scale_spinbox = QDoubleSpinBox()
         self.scale_spinbox.setRange(-10.0, 10.0)
         self.scale_spinbox.setSingleStep(0.1)
@@ -315,16 +331,14 @@ class OverrideSettingsWindow(QDialog):
         layout.addWidget(self.scale_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr("Resampling")), row, 0)
+        layout.addWidget(QLabel(self.tr(Labels.RESAMPLING)), row, 0)
         self.resampling_combo = QComboBox()
         self.resampling_combo.addItems(RESAMPLING_DISPLAY_NAMES)
-        self.resampling_combo.setToolTip(
-            self.tr("Resampling filter used when scaling the animation")
-        )
+        self.resampling_combo.setToolTip(self.tr(Tooltips.RESAMPLING_ANIMATION))
         layout.addWidget(self.resampling_combo, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr("Alpha threshold")), row, 0)
+        layout.addWidget(QLabel(self.tr(Labels.ALPHA_THRESHOLD)), row, 0)
         self.threshold_spinbox = QSpinBox()
         self.threshold_spinbox.setRange(0, 100)
         self.threshold_spinbox.setSingleStep(1)
@@ -340,7 +354,7 @@ class OverrideSettingsWindow(QDialog):
         layout.addWidget(self.indices_edit, row, 1)
         row += 1
 
-        self.var_delay_check = QCheckBox(self.tr("Variable delay"))
+        self.var_delay_check = QCheckBox(self.tr(Labels.VARIABLE_DELAY))
         layout.addWidget(self.var_delay_check, row, 0, 1, 2)
         row += 1
 
@@ -352,30 +366,30 @@ class OverrideSettingsWindow(QDialog):
         Returns:
             QGroupBox containing frame format, scale, and selection controls.
         """
-        group = QGroupBox(self.tr("Frame export settings"))
+        group = QGroupBox(self.tr(GroupTitles.FRAME_EXPORT_SETTINGS))
         layout = QGridLayout(group)
 
         row = 0
 
-        layout.addWidget(QLabel(self.tr("Frame selection")), row, 0)
+        layout.addWidget(QLabel(self.tr(Labels.FRAME_SELECTION)), row, 0)
         self.frames_edit = QLineEdit()
-        self.frames_edit.setPlaceholderText(
-            self.tr("e.g., 0,1,2,3 or leave empty for all")
-        )
+        self.frames_edit.setPlaceholderText(self.tr(Placeholders.INDICES_HINT))
         layout.addWidget(self.frames_edit, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr("Frame format")), row, 0)
+        layout.addWidget(QLabel(self.tr(Labels.FRAME_FORMAT)), row, 0)
         self.frame_format_combo = QComboBox()
-        self.frame_format_combo.addItems(["PNG", "JPG", "JPEG", "BMP", "TIFF"])
+        self.frame_format_combo.addItems(get_display_texts(FRAME_FORMAT_OPTIONS))
         layout.addWidget(self.frame_format_combo, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr("Frame scale")), row, 0)
+        layout.addWidget(QLabel(self.tr(Labels.FRAME_SCALE)), row, 0)
         self.frame_scale_spinbox = QDoubleSpinBox()
-        self.frame_scale_spinbox.setRange(-10.0, 10.0)
-        self.frame_scale_spinbox.setSingleStep(0.1)
-        self.frame_scale_spinbox.setDecimals(2)
+        configure_spinbox(
+            self.frame_scale_spinbox,
+            SpinBoxConfig.FRAME_SCALE_OVERRIDE,
+            set_default=False,
+        )
         layout.addWidget(self.frame_scale_spinbox, row, 1)
         row += 1
 
@@ -510,7 +524,8 @@ class OverrideSettingsWindow(QDialog):
             self.filename_edit.setText(self.local_settings.get("filename", ""))
 
         anim_format = self.local_settings.get("animation_format", "")
-        if anim_format and anim_format in ["None", "GIF", "WebP", "APNG"]:
+        valid_formats = get_display_texts(ANIMATION_FORMAT_OPTIONS_WITH_NONE)
+        if anim_format and anim_format in valid_formats:
             self.animation_format_combo.setCurrentText(anim_format)
         else:
             self.animation_format_combo.setCurrentText(

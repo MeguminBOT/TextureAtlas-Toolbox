@@ -11,6 +11,11 @@ Usage:
         FRAME_SELECTION_OPTIONS,
         CROPPING_METHOD_OPTIONS,
         FILENAME_FORMAT_OPTIONS,
+        ANIMATION_FORMAT_OPTIONS,
+        ANIMATION_FORMAT_OPTIONS_WITH_NONE,
+        FRAME_FORMAT_OPTIONS,
+        GENERATOR_IMAGE_FORMAT_OPTIONS,
+        TIFF_COMPRESSION_OPTIONS,
         get_display_text,
         get_internal_value,
         populate_combobox,
@@ -59,6 +64,7 @@ _FILENAME_FORMAT_STRINGS = (
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "No spaces"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "No special characters"),
 )
+# Note: Animation/frame formats use technical names that typically stay in English
 # fmt: on
 
 
@@ -97,6 +103,61 @@ FILENAME_FORMAT_OPTIONS: Tuple[ComboOption, ...] = (
     ComboOption("standardized", "Standardized"),
     ComboOption("no_spaces", "No spaces"),
     ComboOption("no_special", "No special characters"),
+)
+
+# =============================================================================
+# Animation & Frame Format Options
+# =============================================================================
+# Note: Format names (GIF, WebP, PNG, etc.) are technical terms that typically
+# remain in English across all languages. They use the format extension as
+# their internal value for direct file extension mapping.
+
+# Animation format options - used in extract tab, app config, etc.
+ANIMATION_FORMAT_OPTIONS: Tuple[ComboOption, ...] = (
+    ComboOption("gif", "GIF"),
+    ComboOption("webp", "WebP"),
+    ComboOption("apng", "APNG"),
+)
+
+# Animation format options WITH "None" - used in override settings
+# where "None" means "use default/don't override"
+ANIMATION_FORMAT_OPTIONS_WITH_NONE: Tuple[ComboOption, ...] = (
+    ComboOption("none", "None"),
+    ComboOption("gif", "GIF"),
+    ComboOption("webp", "WebP"),
+    ComboOption("apng", "APNG"),
+)
+
+# Frame/image format options - used in extract tab, app config, override settings, etc.
+# Alphabetically ordered for consistent UI presentation
+FRAME_FORMAT_OPTIONS: Tuple[ComboOption, ...] = (
+    ComboOption("avif", "AVIF"),
+    ComboOption("bmp", "BMP"),
+    ComboOption("dds", "DDS"),
+    ComboOption("png", "PNG"),
+    ComboOption("tga", "TGA"),
+    ComboOption("tiff", "TIFF"),
+    ComboOption("webp", "WebP"),
+)
+
+# Generator image format options - used in texture atlas generator
+# Different from frame formats: includes JPEG, excludes AVIF/DDS
+GENERATOR_IMAGE_FORMAT_OPTIONS: Tuple[ComboOption, ...] = (
+    ComboOption("bmp", "BMP"),
+    ComboOption("jpeg", "JPEG"),
+    ComboOption("png", "PNG"),
+    ComboOption("tga", "TGA"),
+    ComboOption("tiff", "TIFF"),
+    ComboOption("webp", "WebP"),
+)
+
+# TIFF compression options - used across compression settings
+TIFF_COMPRESSION_OPTIONS: Tuple[ComboOption, ...] = (
+    ComboOption("none", "None"),
+    ComboOption("lzw", "LZW"),
+    ComboOption("deflate", "Deflate"),
+    ComboOption("packbits", "PackBits"),
+    ComboOption("jpeg", "JPEG"),
 )
 
 
@@ -197,6 +258,31 @@ def get_index_by_internal(
     """
     for i, opt in enumerate(options):
         if opt.internal == internal_value:
+            return i
+    return 0
+
+
+def get_index_by_display(
+    options: Tuple[ComboOption, ...],
+    display_text: str,
+    tr_func: Optional[Callable[[str], str]] = None,
+) -> int:
+    """Get the index for a given display text.
+
+    Matches against both the English display_key and translated text.
+
+    Args:
+        options: Tuple of ComboOption definitions.
+        display_text: The display text to look up.
+        tr_func: Optional translation function for matching translated text.
+
+    Returns:
+        The zero-based index, or 0 if not found.
+    """
+    for i, opt in enumerate(options):
+        if opt.display_key == display_text:
+            return i
+        if tr_func and tr_func(opt.display_key) == display_text:
             return i
     return 0
 

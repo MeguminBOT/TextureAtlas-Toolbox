@@ -41,6 +41,11 @@ from gui.machine_translation_disclaimer_dialog import (  # noqa: E402
     MachineTranslationDisclaimerDialog,
 )
 from gui.first_start_dialog import show_first_start_dialog  # noqa: E402
+from utils.combo_options import (  # noqa: E402
+    ANIMATION_FORMAT_OPTIONS,
+    FRAME_FORMAT_OPTIONS,
+    get_index_by_display,
+)
 
 
 class ExtractorWorker(QThread):
@@ -332,19 +337,15 @@ class TextureAtlasExtractorApp(QMainWindow):
 
         # Set default selections using index mapping to avoid translation issues
         if "animation_format" in defaults:
-            animation_format_map = ["GIF", "WebP", "APNG"]
-            try:
-                format_index = animation_format_map.index(defaults["animation_format"])
-            except ValueError:
-                format_index = 0  # Default to GIF
+            format_index = get_index_by_display(
+                ANIMATION_FORMAT_OPTIONS, defaults["animation_format"]
+            )
             self.ui.animation_format_combobox.setCurrentIndex(format_index)
 
         if "frame_format" in defaults:
-            frame_format_map = ["AVIF", "BMP", "DDS", "PNG", "TGA", "TIFF", "WebP"]
-            try:
-                format_index = frame_format_map.index(defaults["frame_format"])
-            except ValueError:
-                format_index = 3  # Default to PNG
+            format_index = get_index_by_display(
+                FRAME_FORMAT_OPTIONS, defaults["frame_format"]
+            )
             self.ui.frame_format_combobox.setCurrentIndex(format_index)
 
     def _on_tools_tab_changed(self, index: int):

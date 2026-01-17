@@ -148,7 +148,7 @@ class BackgroundHandlerWindow(QDialog):
         options_label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
         options_layout.addWidget(options_label)
 
-        option_text = (
+        option_text = self.tr(
             "• Checked: Remove background colors (apply color keying)\n"
             "• Unchecked: Keep background colors but exclude them during sprite detection"
         )

@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QSettings
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels
 
 
 class MachineTranslationDisclaimerDialog(QDialog):
@@ -103,7 +104,7 @@ class MachineTranslationDisclaimerDialog(QDialog):
         github_button.clicked.connect(self.open_github)
         button_layout.addWidget(github_button)
 
-        ok_button = QPushButton(self.tr("OK"))
+        ok_button = QPushButton(self.tr(ButtonLabels.OK))
         ok_button.setDefault(True)
         ok_button.clicked.connect(self.accept)
         button_layout.addWidget(ok_button)

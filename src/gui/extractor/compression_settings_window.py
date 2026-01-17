@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels, Labels, WindowTitles, CheckBoxLabels
 
 
 class CompressionSettingsWindow(QDialog):
@@ -59,7 +60,7 @@ class CompressionSettingsWindow(QDialog):
         self.original_values = {}
         self.compression_widgets = {}
 
-        self.setWindowTitle(self.tr("Compression settings"))
+        self.setWindowTitle(self.tr(WindowTitles.COMPRESSION_SETTINGS))
         self.setModal(True)
         self.resize(400, 500)
 
@@ -112,11 +113,11 @@ class CompressionSettingsWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        cancel_button = QPushButton(self.tr("Cancel"))
+        cancel_button = QPushButton(self.tr(ButtonLabels.CANCEL))
         cancel_button.clicked.connect(self.reject)
         button_layout.addWidget(cancel_button)
 
-        ok_button = QPushButton(self.tr("OK"))
+        ok_button = QPushButton(self.tr(ButtonLabels.OK))
         ok_button.clicked.connect(self.accept_changes)
         ok_button.setDefault(True)
         button_layout.addWidget(ok_button)
@@ -132,27 +133,31 @@ class CompressionSettingsWindow(QDialog):
         group = QGroupBox(self.tr("PNG Compression Settings"))
         grid = QGridLayout(group)
 
-        grid.addWidget(QLabel(self.tr("Compress Level (0-9):")), 0, 0)
+        grid.addWidget(QLabel(self.tr(Labels.COMPRESS_LEVEL_0_9)), 0, 0)
         compress_level = QSpinBox()
         compress_level.setRange(0, 9)
         compress_level.setValue(9)
         compress_level.setToolTip(
-            "PNG compression level (0-9):\n"
-            "• 0: No compression (fastest, largest file)\n"
-            "• 1-3: Low compression\n"
-            "• 4-6: Medium compression\n"
-            "• 7-9: High compression (slowest, smallest file)\n"
-            "This doesn't affect the quality of the image, only the file size"
+            self.tr(
+                "PNG compression level (0-9):\n"
+                "• 0: No compression (fastest, largest file)\n"
+                "• 1-3: Low compression\n"
+                "• 4-6: Medium compression\n"
+                "• 7-9: High compression (slowest, smallest file)\n"
+                "This doesn't affect the quality of the image, only the file size"
+            )
         )
         grid.addWidget(compress_level, 0, 1)
 
-        optimize = QCheckBox(self.tr("Optimize PNG"))
+        optimize = QCheckBox(self.tr(CheckBoxLabels.OPTIMIZE_PNG))
         optimize.setToolTip(
-            "PNG optimize:\n"
-            "• Enabled: Uses additional compression techniques for smaller files\n"
-            "When enabled, compression level is automatically set to 9\n"
-            "Results in slower processing but better compression\n\n"
-            "This doesn't affect the quality of the image, only the file size"
+            self.tr(
+                "PNG optimize:\n"
+                "• Enabled: Uses additional compression techniques for smaller files\n"
+                "When enabled, compression level is automatically set to 9\n"
+                "Results in slower processing but better compression\n\n"
+                "This doesn't affect the quality of the image, only the file size"
+            )
         )
         optimize.toggled.connect(
             lambda checked: self.on_png_optimize_changed(checked, compress_level)
@@ -175,60 +180,70 @@ class CompressionSettingsWindow(QDialog):
         group = QGroupBox(self.tr("WebP Compression Settings"))
         grid = QGridLayout(group)
 
-        lossless = QCheckBox(self.tr("Lossless WebP"))
+        lossless = QCheckBox(self.tr(CheckBoxLabels.LOSSLESS_WEBP))
         lossless.setToolTip(
-            "WebP lossless mode:\n"
-            "• Enabled: Perfect quality preservation, larger file size\n"
-            "• Disabled: Lossy compression with adjustable quality\n"
-            "When enabled, quality sliders are disabled"
+            self.tr(
+                "WebP lossless mode:\n"
+                "• Enabled: Perfect quality preservation, larger file size\n"
+                "• Disabled: Lossy compression with adjustable quality\n"
+                "When enabled, quality sliders are disabled"
+            )
         )
         grid.addWidget(lossless, 0, 0, 1, 2)
 
-        grid.addWidget(QLabel(self.tr("Quality (0-100):")), 1, 0)
+        grid.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), 1, 0)
         quality = QSpinBox()
         quality.setRange(0, 100)
         quality.setValue(100)
         quality.setToolTip(
-            "WebP quality (0-100):\n"
-            "• 0: Lowest quality, smallest file\n"
-            "• 75: Balanced quality/size\n"
-            "• 100: Highest quality, largest file\n"
-            "Only used in lossy mode"
+            self.tr(
+                "WebP quality (0-100):\n"
+                "• 0: Lowest quality, smallest file\n"
+                "• 75: Balanced quality/size\n"
+                "• 100: Highest quality, largest file\n"
+                "Only used in lossy mode"
+            )
         )
         grid.addWidget(quality, 1, 1)
 
-        grid.addWidget(QLabel(self.tr("Method (0-6):")), 2, 0)
+        grid.addWidget(QLabel(self.tr(Labels.METHOD_0_6)), 2, 0)
         method = QSpinBox()
         method.setRange(0, 6)
         method.setValue(6)
         method.setToolTip(
-            "WebP compression method (0-6):\n"
-            "• 0: Fastest encoding, larger file\n"
-            "• 3: Balanced speed/compression\n"
-            "• 6: Slowest encoding, best compression\n"
-            "Higher values take more time but produce smaller files"
+            self.tr(
+                "WebP compression method (0-6):\n"
+                "• 0: Fastest encoding, larger file\n"
+                "• 3: Balanced speed/compression\n"
+                "• 6: Slowest encoding, best compression\n"
+                "Higher values take more time but produce smaller files"
+            )
         )
         grid.addWidget(method, 2, 1)
 
-        grid.addWidget(QLabel(self.tr("Alpha Quality (0-100):")), 3, 0)
+        grid.addWidget(QLabel(self.tr(Labels.ALPHA_QUALITY_0_100)), 3, 0)
         alpha_quality = QSpinBox()
         alpha_quality.setRange(0, 100)
         alpha_quality.setValue(100)
         alpha_quality.setToolTip(
-            "WebP alpha channel quality (0-100):\n"
-            "Controls transparency compression quality\n"
-            "• 0: Maximum alpha compression\n"
-            "• 100: Best alpha quality\n"
-            "Only used in lossy mode"
+            self.tr(
+                "WebP alpha channel quality (0-100):\n"
+                "Controls transparency compression quality\n"
+                "• 0: Maximum alpha compression\n"
+                "• 100: Best alpha quality\n"
+                "Only used in lossy mode"
+            )
         )
         grid.addWidget(alpha_quality, 3, 1)
 
-        exact = QCheckBox(self.tr("Exact WebP"))
+        exact = QCheckBox(self.tr(CheckBoxLabels.EXACT_WEBP))
         exact.setToolTip(
-            "WebP exact mode:\n"
-            "• Enabled: Preserves RGB values in transparent areas\n"
-            "• Disabled: Allows optimization of transparent pixels\n"
-            "Enable for better quality when transparency matters"
+            self.tr(
+                "WebP exact mode:\n"
+                "• Enabled: Preserves RGB values in transparent areas\n"
+                "• Disabled: Allows optimization of transparent pixels\n"
+                "Enable for better quality when transparency matters"
+            )
         )
         grid.addWidget(exact, 4, 0, 1, 2)
 
@@ -257,38 +272,44 @@ class CompressionSettingsWindow(QDialog):
         group = QGroupBox(self.tr("AVIF Compression Settings"))
         grid = QGridLayout(group)
 
-        lossless = QCheckBox(self.tr("Lossless AVIF"))
+        lossless = QCheckBox(self.tr(CheckBoxLabels.LOSSLESS_AVIF))
         lossless.setToolTip(
-            "AVIF lossless mode:\n"
-            "• Enabled: Perfect quality preservation, larger file size\n"
-            "• Disabled: Lossy compression with adjustable quality\n"
-            "When enabled, quality slider is disabled"
+            self.tr(
+                "AVIF lossless mode:\n"
+                "• Enabled: Perfect quality preservation, larger file size\n"
+                "• Disabled: Lossy compression with adjustable quality\n"
+                "When enabled, quality slider is disabled"
+            )
         )
         grid.addWidget(lossless, 0, 0, 1, 2)
 
-        grid.addWidget(QLabel(self.tr("Quality (0-100):")), 1, 0)
+        grid.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), 1, 0)
         quality = QSpinBox()
         quality.setRange(0, 100)
         quality.setValue(100)
         quality.setToolTip(
-            "AVIF quality (0-100):\n"
-            "• 0: Lowest quality, smallest file\n"
-            "• 100: Highest quality, largest file\n"
-            "Only used in lossy mode"
+            self.tr(
+                "AVIF quality (0-100):\n"
+                "• 0: Lowest quality, smallest file\n"
+                "• 100: Highest quality, largest file\n"
+                "Only used in lossy mode"
+            )
         )
         grid.addWidget(quality, 1, 1)
 
-        grid.addWidget(QLabel(self.tr("Speed (0-10):")), 2, 0)
+        grid.addWidget(QLabel(self.tr(Labels.SPEED_0_10)), 2, 0)
         speed = QSpinBox()
         speed.setRange(0, 10)
         speed.setValue(5)
         speed.setToolTip(
-            "AVIF encoding speed (0-10):\n"
-            "• 0: Slowest encoding, best compression\n"
-            "• 5: Balanced speed/compression\n"
-            "• 10: Fastest encoding, larger file\n"
-            "Higher values encode faster but produce larger files.\n"
-            "AVIF may take much longer to encode than other formats."
+            self.tr(
+                "AVIF encoding speed (0-10):\n"
+                "• 0: Slowest encoding, best compression\n"
+                "• 5: Balanced speed/compression\n"
+                "• 10: Fastest encoding, larger file\n"
+                "Higher values encode faster but produce larger files.\n"
+                "AVIF may take much longer to encode than other formats."
+            )
         )
         grid.addWidget(speed, 2, 1)
 
@@ -313,36 +334,42 @@ class CompressionSettingsWindow(QDialog):
         group = QGroupBox(self.tr("TIFF Compression Settings"))
         grid = QGridLayout(group)
 
-        grid.addWidget(QLabel(self.tr("Compression Type:")), 0, 0)
+        grid.addWidget(QLabel(self.tr(Labels.COMPRESSION_TYPE)), 0, 0)
         compression_type = QComboBox()
         compression_type.addItems(["none", "lzw", "zip", "jpeg"])
         compression_type.setCurrentText("lzw")
         compression_type.setToolTip(
-            "TIFF compression type:\n"
-            "• None: No compression (largest files, fastest)\n"
-            "• LZW: Lossless compression (good for graphics)\n"
-            "• ZIP: Lossless compression (good for photos)\n"
-            "• JPEG: Lossy compression (smallest files, adjustable quality)"
+            self.tr(
+                "TIFF compression type:\n"
+                "• None: No compression (largest files, fastest)\n"
+                "• LZW: Lossless compression (good for graphics)\n"
+                "• ZIP: Lossless compression (good for photos)\n"
+                "• JPEG: Lossy compression (smallest files, adjustable quality)"
+            )
         )
         grid.addWidget(compression_type, 0, 1)
 
-        grid.addWidget(QLabel(self.tr("Quality (0-100):")), 1, 0)
+        grid.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), 1, 0)
         quality = QSpinBox()
         quality.setRange(0, 100)
         quality.setValue(100)
         quality.setToolTip(
-            "TIFF JPEG quality (0-100):\n"
-            "Only used when compression type is JPEG\n"
-            "• 100: Highest quality, largest file"
+            self.tr(
+                "TIFF JPEG quality (0-100):\n"
+                "Only used when compression type is JPEG\n"
+                "• 100: Highest quality, largest file"
+            )
         )
         grid.addWidget(quality, 1, 1)
 
-        optimize = QCheckBox(self.tr("Optimize TIFF"))
+        optimize = QCheckBox(self.tr(CheckBoxLabels.OPTIMIZE_TIFF))
         optimize.setToolTip(
-            "TIFF optimize:\n"
-            "• Enabled: Use additional optimization techniques\n"
-            "Results in better compression but slower processing\n"
-            "Not available when compression type is 'None'"
+            self.tr(
+                "TIFF optimize:\n"
+                "• Enabled: Use additional optimization techniques\n"
+                "Results in better compression but slower processing\n"
+                "Not available when compression type is 'None'"
+            )
         )
         grid.addWidget(optimize, 2, 0, 1, 2)
 
