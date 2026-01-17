@@ -1,19 +1,19 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
 <qresource prefix="/translations">
+    <file>app_da_dk.qm</file>
     <file>app_de.qm</file>
     <file>app_de_de.qm</file>
     <file>app_en.qm</file>
     <file>app_es.qm</file>
     <file>app_es_es.qm</file>
-    <file>app_fr.qm</file>
     <file>app_fr_fr.qm</file>
     <file>app_it_it.qm</file>
     <file>app_ko_kr.qm</file>
     <file>app_nl_nl.qm</file>
     <file>app_pl_pl.qm</file>
     <file>app_pt_br.qm</file>
-    <file>app_sv.qm</file>
+    <file>app_sv_se.qm</file>
     <file>app_zh.qm</file>
     <file>app_zh_cn.qm</file>
 </qresource>
