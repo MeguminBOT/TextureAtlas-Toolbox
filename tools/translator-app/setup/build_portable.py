@@ -364,7 +364,10 @@ import site
 
         # DLLs to remove (Qt modules we don't use)
         # Keep: Qt6Core, Qt6Gui, Qt6Widgets and their dependencies
+        # Keep: Qt6Network (internal dependency for QtWidgets/QtGui)
+        # Keep: Qt6Svg (used for SVG icon rendering)
         # Keep: Qt6Xml (needed by lrelease/lupdate for parsing .ts XML files)
+        # Keep: Qt6Qml, Qt6QmlCore, Qt6QmlMeta, Qt6QmlModels (required by lupdate.exe)
         remove_dll_patterns = [
             "Qt63D",
             "Qt6Bluetooth",
@@ -377,12 +380,12 @@ import site
             "Qt6Labs",
             "Qt6Location",
             "Qt6Multimedia",
-            "Qt6Network",
+            # Qt6Network - KEEP: Internal dependency for QtWidgets
             "Qt6Nfc",
             "Qt6OpenGL",
             "Qt6Pdf",
             "Qt6Positioning",
-            "Qt6Qml",
+            # Qt6Qml - KEEP: Required by lupdate.exe
             "Qt6Quick",
             "Qt6RemoteObjects",
             "Qt6Scxml",
@@ -393,7 +396,7 @@ import site
             "Qt6SpatialAudio",
             "Qt6Sql",
             "Qt6StateMachine",
-            "Qt6Svg",  # Not needed for Translation Editor
+            # Qt6Svg - KEEP: Used for SVG icon rendering
             "Qt6Test",
             "Qt6TextToSpeech",
             "Qt6VirtualKeyboard",
@@ -404,6 +407,11 @@ import site
         ]
 
         # Python bindings to remove (.pyd and .pyi files)
+        # Keep: QtCore, QtGui, QtWidgets (main app)
+        # Keep: QtNetwork (internal dependency for QtWidgets)
+        # Keep: QtSvg, QtSvgWidgets (SVG icon support)
+        # Keep: QtPrintSupport (QtWidgets print dialog dependency)
+        # Keep: QtXml (lrelease/lupdate dependency)
         remove_binding_patterns = [
             "Qt3D",
             "QtBluetooth",
@@ -417,12 +425,12 @@ import site
             "QtHttpServer",
             "QtLocation",
             "QtMultimedia",
-            "QtNetwork",
+            # QtNetwork - KEEP: Internal dependency
             "QtNfc",
             "QtOpenGL",
             "QtPdf",
             "QtPositioning",
-            "QtPrintSupport",
+            # QtPrintSupport - KEEP: QtWidgets dependency
             "QtQml",
             "QtQuick",
             "QtRemoteObjects",
@@ -433,8 +441,8 @@ import site
             "QtSpatialAudio",
             "QtSql",
             "QtStateMachine",
-            "QtSvg",
-            "QtSvgWidgets",
+            # QtSvg - KEEP: SVG icon support
+            # QtSvgWidgets - KEEP: SVG icon support
             "QtTest",
             "QtTextToSpeech",
             "QtUiTools",
@@ -442,7 +450,7 @@ import site
             "QtWebEngine",
             "QtWebSockets",
             "QtWebView",
-            "QtXml",
+            # QtXml - KEEP: lrelease/lupdate dependency
             "QtAxContainer",
         ]
 
@@ -532,6 +540,9 @@ import site
             "PySide6.QtCore",
             "PySide6.QtGui",
             "PySide6.QtWidgets",
+            "PySide6.QtNetwork",  # Internal dependency for QtWidgets
+            "PySide6.QtSvg",  # SVG icon support
+            "PySide6.QtXml",  # Required by lupdate/lrelease for .ts parsing
             "requests",
             "urllib3",
             "certifi",
