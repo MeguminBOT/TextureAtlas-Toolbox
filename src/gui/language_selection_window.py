@@ -36,7 +36,7 @@ class LanguageSelectionWindow(QDialog):
 
     tr = translate
 
-    def __init__(self, parent=None, current_language="en"):
+    def __init__(self, parent=None, current_language="en_us"):
         """Initialize the language selection dialog.
 
         Args:
@@ -243,7 +243,7 @@ class LanguageSelectionWindow(QDialog):
             if isinstance(lang_info, dict):
                 if translation_manager:
                     display_name = translation_manager.get_display_name(
-                        lang_code, show_english=True
+                        lang_code, show_english=True, show_completeness=True
                     )
                     quality = translation_manager.get_quality_level(lang_code)
                 else:
@@ -336,7 +336,7 @@ def show_language_selection(parent=None):
         True if the user accepted a language change, False otherwise.
     """
     try:
-        current_language = "en"
+        current_language = "en_us"
         if parent and hasattr(parent, "app_config"):
             current_language = parent.app_config.get_language()
 

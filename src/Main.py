@@ -40,7 +40,10 @@ from gui.extractor.compression_settings_window import (  # noqa: E402
 from gui.machine_translation_disclaimer_dialog import (  # noqa: E402
     MachineTranslationDisclaimerDialog,
 )
-from gui.first_start_dialog import show_first_start_dialog  # noqa: E402
+from gui.first_start_dialog import (  # noqa: E402
+    show_first_start_dialog,
+    restart_application,
+)
 from utils.combo_options import (  # noqa: E402
     ANIMATION_FORMAT_OPTIONS,
     FRAME_FORMAT_OPTIONS,
@@ -168,7 +171,11 @@ class TextureAtlasExtractorApp(QMainWindow):
         self._on_tools_tab_changed(self.ui.tools_tab.currentIndex())
 
         # Show first-start dialog for new users
-        show_first_start_dialog(self, self.translation_manager, self.app_config)
+        dialog_shown, restart_needed = show_first_start_dialog(
+            self, self.translation_manager, self.app_config
+        )
+        if restart_needed:
+            restart_application()
 
         QTimer.singleShot(250, self.check_version)
 

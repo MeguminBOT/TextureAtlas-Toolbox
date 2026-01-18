@@ -6,6 +6,10 @@ Displays on first application launch to welcome users, inform them about
 detected language settings, and configure initial preferences.
 """
 
+import os
+import subprocess
+import sys
+
 from PySide6.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -61,7 +65,7 @@ class FirstStartDialog(QDialog):
         self,
         parent=None,
         translation_manager=None,
-        detected_language: str = "en",
+        detected_language: str = "en_us",
     ):
         """Initialize the first-start dialog.
 
@@ -229,7 +233,7 @@ class FirstStartDialog(QDialog):
 
         for lang_code in sorted(available):
             display_name = self.translation_manager.get_display_name(
-                lang_code, show_english=True
+                lang_code, show_english=True, show_completeness=True
             )
             quality = self.translation_manager.get_quality_level(lang_code)
             icon = self._get_quality_icon(quality)
@@ -456,7 +460,7 @@ class FirstStartDialog(QDialog):
         return self.language_changed
 
 
-def show_first_start_dialog(parent, translation_manager, app_config) -> bool:
+def show_first_start_dialog(parent, translation_manager, app_config) -> tuple[bool, bool]:
     """Show the first-start dialog if this is the first launch.
 
     Args:
@@ -465,11 +469,13 @@ def show_first_start_dialog(parent, translation_manager, app_config) -> bool:
         app_config: AppConfig instance to check/set first_run flag.
 
     Returns:
-        True if the dialog was shown and accepted, False otherwise.
+        A tuple of (dialog_shown, restart_needed). dialog_shown is True if the
+        dialog was shown and accepted. restart_needed is True if the user
+        changed the language and the app should restart.
     """
     # Check if first run
     if app_config.get("first_run_completed", False):
-        return False
+        return False, False
 
     # Get detected language info
     system_locale = translation_manager.get_system_locale()
@@ -507,6 +513,26 @@ def show_first_start_dialog(parent, translation_manager, app_config) -> bool:
         app_config.settings["first_run_completed"] = True
         app_config.save()
 
-        return True
+        # Check if language was changed and restart is needed
+        restart_needed = dialog.was_language_changed()
+        return True, restart_needed
 
-    return False
+    return False, False
+
+
+def restart_application():
+    """Restart the application by launching a new process and exiting."""
+    # Find Main.py relative to this file
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    src_dir = os.path.dirname(current_dir)
+    main_py = os.path.join(src_dir, "Main.py")
+
+    if os.path.exists(main_py):
+        try:
+            subprocess.Popen(
+                [sys.executable, main_py],
+                cwd=src_dir,
+            )
+        except Exception:
+            pass
+    sys.exit(0)

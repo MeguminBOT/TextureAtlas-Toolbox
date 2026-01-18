@@ -12,24 +12,28 @@ Quality levels:
     machine: Auto-generated machine translation.
     unknown: Fallback when quality is not specified.
 
-To add a new language, add its metadata to the ``LANGUAGE_METADATA`` dict
-at module level and create the corresponding translation files.
+Languages are auto-discovered from translation files. To customize display
+names or quality levels, add entries to ``LANGUAGE_METADATA``.
 """
 
+import xml.etree.ElementTree as ET
 from pathlib import Path
+
 from PySide6.QtCore import QTranslator, QLocale, QCoreApplication
 from PySide6.QtWidgets import QApplication
 
 
-# Single source of truth for all known language metadata.
-# Languages are included in get_available_languages() if their .ts/.qm file exists.
-# English is always available (no file required).
+# Optional metadata for known languages (display names and quality).
+# Languages without entries here will use auto-generated names from QLocale.
+# English (en_us) is always available as the base language.
 LANGUAGE_METADATA: dict[str, dict[str, str]] = {
-    "en": {"name": "English", "english_name": "English", "quality": "native"},
+    "en_us": {"name": "English", "english_name": "English", "quality": "native"},
+    "da_dk": {"name": "Dansk", "english_name": "Danish", "quality": "machine"},
     "de_de": {"name": "Deutsch", "english_name": "German", "quality": "machine"},
     "es_es": {"name": "Español", "english_name": "Spanish", "quality": "machine"},
-    "fr_fr": {"name": "Français", "english_name": "French", "quality": "machine"},
-    "it_it": {"name": "Italiano", "english_name": "Italian", "quality": "machine"},
+    "fr_fr": {"name": "Français", "english_name": "French", "quality": "reviewed"},
+    "it_it": {"name": "Italiano", "english_name": "Italian", "quality": "unreviewed"},
+    "ja_jp": {"name": "日本語", "english_name": "Japanese", "quality": "machine"},
     "ko_kr": {"name": "한국어", "english_name": "Korean", "quality": "machine"},
     "nl_nl": {"name": "Nederlands", "english_name": "Dutch", "quality": "machine"},
     "pl_pl": {"name": "Polski", "english_name": "Polish", "quality": "machine"},
@@ -38,31 +42,17 @@ LANGUAGE_METADATA: dict[str, dict[str, str]] = {
         "english_name": "Portuguese (Brazil)",
         "quality": "unknown",
     },
-    "sv": {"name": "Svenska", "english_name": "Swedish", "quality": "machine"},
+    "sv_se": {"name": "Svenska", "english_name": "Swedish", "quality": "machine"},
     "zh_cn": {
         "name": "简体中文",
         "english_name": "Chinese (Simplified)",
         "quality": "machine",
     },
-    # Uncomment to enable when translation files are added:
-    # "ar": {"name": "العربية", "english_name": "Arabic", "quality": "machine"},
-    # "bg": {"name": "Български", "english_name": "Bulgarian", "quality": "machine"},
-    # "cs": {"name": "Čeština", "english_name": "Czech", "quality": "machine"},
-    # "da": {"name": "Dansk", "english_name": "Danish", "quality": "machine"},
-    # "el": {"name": "Ελληνικά", "english_name": "Greek", "quality": "machine"},
-    # "fi": {"name": "Suomi", "english_name": "Finnish", "quality": "machine"},
-    # "he": {"name": "עברית", "english_name": "Hebrew", "quality": "machine"},
-    # "hi": {"name": "हिन्दी", "english_name": "Hindi", "quality": "machine"},
-    # "hu": {"name": "Magyar", "english_name": "Hungarian", "quality": "machine"},
-    # "ja": {"name": "日本語", "english_name": "Japanese", "quality": "machine"},
-    # "pt": {"name": "Português", "english_name": "Portuguese", "quality": "machine"},
-    # "ro": {"name": "Română", "english_name": "Romanian", "quality": "machine"},
-    # "ru": {"name": "Русский", "english_name": "Russian", "quality": "machine"},
-    # "th": {"name": "ไทย", "english_name": "Thai", "quality": "machine"},
-    # "tr": {"name": "Türkçe", "english_name": "Turkish", "quality": "machine"},
-    # "uk": {"name": "Українська", "english_name": "Ukrainian", "quality": "machine"},
-    # "vi": {"name": "Tiếng Việt", "english_name": "Vietnamese", "quality": "machine"},
-    # "zh_tw": {"name": "繁體中文", "english_name": "Chinese (Traditional)", "quality": "machine"},
+    "zh_tw": {
+        "name": "繁體中文",
+        "english_name": "Chinese (Traditional)",
+        "quality": "machine",
+    },
 }
 
 
@@ -92,14 +82,138 @@ class TranslationManager:
         self.translations_dir = Path(__file__).parent.parent / "translations"
         self._available_languages_cache: dict[str, dict] | None = None
 
+    def _discover_translation_files(self) -> set[str]:
+        """Scan the translations directory for available language codes.
+
+        Looks for files matching ``app_*.ts`` or ``app_*.qm`` and extracts
+        the language code from the filename.
+
+        Returns:
+            Set of discovered language codes (e.g., ``{"de_de", "fr_fr"}``).
+        """
+        if not self.translations_dir.exists():
+            return set()
+
+        lang_codes: set[str] = set()
+        for pattern in ("app_*.ts", "app_*.qm"):
+            for path in self.translations_dir.glob(pattern):
+                # Extract language code from "app_{lang_code}.ts/.qm"
+                stem = path.stem  # e.g., "app_de_de"
+                if stem.startswith("app_"):
+                    lang_code = stem[4:]  # Remove "app_" prefix
+                    if lang_code:
+                        lang_codes.add(lang_code)
+        return lang_codes
+
+    def _get_language_info_from_locale(self, lang_code: str) -> dict[str, str]:
+        """Generate language info from QLocale for unknown language codes.
+
+        Args:
+            lang_code: Language code (e.g., ``de_de``, ``fr``).
+
+        Returns:
+            Dictionary with ``name``, ``english_name``, and ``quality`` keys.
+        """
+        # Convert underscore format to Qt format (e.g., de_de -> de_DE)
+        qt_locale_name = lang_code
+        if "_" in lang_code:
+            parts = lang_code.split("_", 1)
+            qt_locale_name = f"{parts[0]}_{parts[1].upper()}"
+
+        locale = QLocale(qt_locale_name)
+
+        # Get native language name (in its own script)
+        native_name = locale.nativeLanguageName()
+        if not native_name:
+            native_name = lang_code.upper()
+
+        # Get English name
+        english_name = QLocale.languageToString(locale.language())
+        if not english_name or english_name == "C":
+            english_name = lang_code.upper()
+
+        # Add territory for regional variants
+        territory = locale.territory()
+        if territory != QLocale.Territory.AnyTerritory:
+            territory_name = QLocale.territoryToString(territory)
+            if territory_name and territory_name not in english_name:
+                english_name = f"{english_name} ({territory_name})"
+
+        return {
+            "name": native_name,
+            "english_name": english_name,
+            "quality": "unknown",
+        }
+
     def _has_translation_file(self, lang_code: str) -> bool:
         """Check if a translation file exists for the given language code."""
         ts_file = self.translations_dir / f"app_{lang_code}.ts"
         qm_file = self.translations_dir / f"app_{lang_code}.qm"
         return ts_file.exists() or qm_file.exists()
 
+    def _calculate_completeness(self, lang_code: str) -> int:
+        """Calculate translation completeness percentage for a language.
+
+        Parses the ``.ts`` file and counts translated vs total messages.
+        A message is considered translated if it has non-empty translation
+        text and is not marked as ``type="unfinished"`` or ``type="vanished"``.
+
+        Args:
+            lang_code: Language code to check.
+
+        Returns:
+            Completeness percentage (0-100), or 100 for English, or 0 if
+            the file cannot be parsed.
+        """
+        if lang_code in ("en", "en_us"):
+            return 100
+
+        ts_file = self.translations_dir / f"app_{lang_code}.ts"
+        if not ts_file.exists():
+            return 0
+
+        try:
+            tree = ET.parse(ts_file)
+            root = tree.getroot()
+
+            total = 0
+            translated = 0
+
+            for message in root.iter("message"):
+                source = message.find("source")
+                translation = message.find("translation")
+
+                # Skip messages without source text
+                if source is None or not source.text:
+                    continue
+
+                total += 1
+
+                if translation is not None:
+                    # Check for unfinished/vanished/obsolete markers
+                    trans_type = translation.get("type", "")
+                    if trans_type in ("unfinished", "vanished", "obsolete"):
+                        continue
+                    # Check if translation has actual content
+                    if translation.text and translation.text.strip():
+                        translated += 1
+
+            if total == 0:
+                return 100  # No strings to translate
+
+            return round((translated / total) * 100)
+
+        except (ET.ParseError, OSError):
+            return 0
+
     def get_available_languages(self) -> dict[str, dict]:
         """Return languages that have translation files available.
+
+        Uses a two-pass approach:
+        1. First, include all languages from ``LANGUAGE_METADATA`` that have
+           corresponding translation files (ensures consistent metadata).
+        2. Then, auto-discover any additional languages from translation files
+           not listed in metadata (generates display names from QLocale).
 
         Results are cached since translation files don't change at runtime.
 
@@ -111,10 +225,28 @@ class TranslationManager:
             return self._available_languages_cache
 
         available: dict[str, dict] = {}
+
+        # Pass 1: Add all languages from LANGUAGE_METADATA that have files
         for lang_code, info in LANGUAGE_METADATA.items():
-            # English is always available; others need a translation file.
-            if lang_code == "en" or self._has_translation_file(lang_code):
-                available[lang_code] = info
+            # English (en_us) is always available; others need a translation file
+            # Skip 'en' since 'en_us' is the canonical English entry
+            if lang_code == "en":
+                continue
+            if lang_code == "en_us" or self._has_translation_file(lang_code):
+                lang_info = dict(info)  # Copy to avoid mutating original
+                lang_info["completeness"] = self._calculate_completeness(lang_code)
+                available[lang_code] = lang_info
+
+        # Pass 2: Auto-discover languages not in LANGUAGE_METADATA
+        discovered_codes = self._discover_translation_files()
+        for lang_code in discovered_codes:
+            # Skip if already added from metadata or is an "en" variant
+            if lang_code in available or lang_code in ("en", "en_us"):
+                continue
+            # Generate metadata from QLocale for unknown languages
+            lang_info = self._get_language_info_from_locale(lang_code)
+            lang_info["completeness"] = self._calculate_completeness(lang_code)
+            available[lang_code] = lang_info
 
         self._available_languages_cache = available
         return available
@@ -135,16 +267,16 @@ class TranslationManager:
         """
 
         system_locale = QLocale.system()
-        language_code = system_locale.name()
+        language_code = system_locale.name().lower()
 
         if "_" in language_code:
-            base_lang = language_code.split("_")[0]
+            base_lang, region = language_code.split("_", 1)
             if base_lang == "zh":
-                if "CN" in language_code or "Hans" in language_code:
-                    return "zh_CN"
-                elif "TW" in language_code or "Hant" in language_code:
-                    return "zh_TW"
-            return base_lang
+                if "cn" in region or "hans" in region:
+                    return "zh_cn"
+                elif "tw" in region or "hant" in region:
+                    return "zh_tw"
+            return f"{base_lang}_{region}"
 
         return language_code
 
@@ -172,10 +304,10 @@ class TranslationManager:
             if detected_language in available_languages:
                 language_code = detected_language
             else:
-                language_code = "en"
+                language_code = "en_us"
 
-        if language_code == "en":
-            self.current_locale = "en"
+        if language_code == "en_us":
+            self.current_locale = "en_us"
             return True
 
         translator = QTranslator()
@@ -200,9 +332,9 @@ class TranslationManager:
         return False
 
     def get_current_language(self) -> str:
-        """Return the currently active language code, defaulting to ``en``."""
+        """Return the currently active language code, defaulting to ``en_us``."""
 
-        return self.current_locale or "en"
+        return self.current_locale or "en_us"
 
     def refresh_ui(self, main_window) -> None:
         """Refresh the UI to apply the current translation.
@@ -249,6 +381,18 @@ class TranslationManager:
         info = self._get_lang_info(language_code)
         return info.get("quality", "unknown") if info else "unknown"
 
+    def get_completeness(self, language_code: str) -> int:
+        """Get the translation completeness percentage.
+
+        Args:
+            language_code: The language code to check.
+
+        Returns:
+            Completeness percentage (0-100).
+        """
+        info = self._get_lang_info(language_code)
+        return info.get("completeness", 0) if info else 0
+
     def get_english_name(self, language_code: str) -> str:
         """Get the English name of a language.
 
@@ -261,26 +405,40 @@ class TranslationManager:
         info = self._get_lang_info(language_code)
         return info.get("english_name", "Unknown") if info else "Unknown"
 
-    def get_display_name(self, language_code: str, show_english: bool = False) -> str:
+    def get_display_name(
+        self, language_code: str, show_english: bool = False, show_completeness: bool = False
+    ) -> str:
         """Get the display name for a language.
 
         Args:
             language_code: The language code to look up.
             show_english: If True, append the English name (e.g.,
                 ``Deutsch / German``).
+            show_completeness: If True, append completeness percentage
+                (e.g., ``Deutsch (85%)``).
 
         Returns:
-            Display name in the native script, optionally with English.
+            Display name in the native script, optionally with English
+            and/or completeness percentage.
         """
         info = self._get_lang_info(language_code)
         if not info:
             return "Unknown"
 
         native_name = info.get("name", "Unknown")
-        if show_english and language_code != "en":
+        if show_english and language_code != "en_us":
             english_name = info.get("english_name", "Unknown")
-            return self._format_language_display_name(native_name, english_name)
-        return native_name
+            display = self._format_language_display_name(native_name, english_name)
+        else:
+            display = native_name
+
+        if show_completeness:
+            completeness = info.get("completeness", 100)
+            # Only show percentage for non-100% to reduce clutter
+            if completeness < 100:
+                display = f"{display} ({completeness}%)"
+
+        return display
 
     def _format_language_display_name(self, native_name: str, english_name: str) -> str:
         """Format a bilingual language display name.

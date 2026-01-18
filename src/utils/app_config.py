@@ -483,7 +483,7 @@ class AppConfig:
         """Set the application language and persist to disk.
 
         Args:
-            language_code: Language code (e.g. 'en', 'es') or 'auto'.
+            language_code: Language code (e.g. 'en_us', 'es_es') or 'auto'.
         """
         self.settings["language"] = language_code
         self.save()
