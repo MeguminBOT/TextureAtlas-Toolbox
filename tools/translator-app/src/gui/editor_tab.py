@@ -11,7 +11,13 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from PySide6.QtCore import Qt, QModelIndex
-from PySide6.QtGui import QFont, QKeySequence, QShortcut, QStandardItemModel, QStandardItem
+from PySide6.QtGui import (
+    QFont,
+    QKeySequence,
+    QShortcut,
+    QStandardItemModel,
+    QStandardItem,
+)
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -421,7 +427,9 @@ class EditorTab(QWidget):
 
         self._filter_proxy.set_filter_text(text)
 
-    def _on_selection_changed(self, current: QModelIndex, previous: QModelIndex) -> None:
+    def _on_selection_changed(
+        self, current: QModelIndex, previous: QModelIndex
+    ) -> None:
         """Handle selection changes in the translation list view.
 
         Args:
@@ -471,11 +479,17 @@ class EditorTab(QWidget):
         list_item.setData(item.source.lower(), TranslationRoles.SourceRole)
         list_item.setData(item.translation.lower(), TranslationRoles.TranslationRole)
         list_item.setData(item.has_placeholders(), TranslationRoles.HasPlaceholdersRole)
-        list_item.setData(item.is_machine_translated, TranslationRoles.IsMachineTranslatedRole)
+        list_item.setData(
+            item.is_machine_translated, TranslationRoles.IsMachineTranslatedRole
+        )
         list_item.setData(item.is_translated, TranslationRoles.IsTranslatedRole)
         list_item.setData(item.marker, TranslationRoles.MarkerRole)
-        list_item.setData(getattr(item, "is_vanished", False), TranslationRoles.IsVanishedRole)
-        list_item.setData([ctx.lower() for ctx in item.contexts], TranslationRoles.ContextsRole)
+        list_item.setData(
+            getattr(item, "is_vanished", False), TranslationRoles.IsVanishedRole
+        )
+        list_item.setData(
+            [ctx.lower() for ctx in item.contexts], TranslationRoles.ContextsRole
+        )
 
         return list_item
 
@@ -945,7 +959,9 @@ class EditorTab(QWidget):
                         self.translation_list.setCurrentIndex(proxy_index)
                         self.current_item = saved_item
                         self.translation_text.blockSignals(True)
-                        self.translation_text.setPlainText(self.current_item.translation)
+                        self.translation_text.setPlainText(
+                            self.current_item.translation
+                        )
                         self.translation_text.blockSignals(False)
                         break
                 else:
@@ -1029,10 +1045,19 @@ class EditorTab(QWidget):
         model_item = self._list_model.itemFromIndex(source_index)
         if model_item:
             icon_provider = IconProvider.instance()
-            self._update_model_item_display(model_item, self.current_item, icon_provider)
-            model_item.setData(self.current_item.translation.lower(), TranslationRoles.TranslationRole)
-            model_item.setData(self.current_item.is_translated, TranslationRoles.IsTranslatedRole)
-            model_item.setData(self.current_item.is_machine_translated, TranslationRoles.IsMachineTranslatedRole)
+            self._update_model_item_display(
+                model_item, self.current_item, icon_provider
+            )
+            model_item.setData(
+                self.current_item.translation.lower(), TranslationRoles.TranslationRole
+            )
+            model_item.setData(
+                self.current_item.is_translated, TranslationRoles.IsTranslatedRole
+            )
+            model_item.setData(
+                self.current_item.is_machine_translated,
+                TranslationRoles.IsMachineTranslatedRole,
+            )
             model_item.setData(self.current_item.marker, TranslationRoles.MarkerRole)
 
     def _on_marker_changed(self) -> None:

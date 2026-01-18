@@ -37,6 +37,13 @@ from PySide6.QtWidgets import (
 from .add_language_dialog import AddLanguageDialog
 from .batch_unused_dialog import BatchUnusedStringsDialog
 from .icon_provider import IconProvider, IconStyle, IconType
+from .string_matching_dialog import (
+    StringMatchingDialog,
+    apply_matches_to_file,
+    extract_new_unfinished_strings,
+    find_potential_matches,
+    recover_duplicate_translations,
+)
 from localization import (
     LANGUAGE_REGISTRY,
     LocalizationOperations,
@@ -1159,40 +1166,147 @@ class ManageTab(QWidget):
             QApplication.processEvents()
 
     def _check_for_unused_strings(self, languages: List[str]) -> None:
-        """Check extracted .ts files for vanished (obsolete) strings and prompt for cleanup.
+        """Check extracted .ts files for vanished strings and prompt for cleanup.
 
         Qt's lupdate marks strings that no longer exist in source code with
-        type="vanished". This method finds those strings and offers to remove them.
+        type="vanished". This method:
+        1. Recovers translations from vanished duplicates (same source, different context)
+        2. Finds remaining vanished strings that have existing translations
+        3. Attempts to match them with new unfinished strings (renamed/modified)
+        4. Allows transferring translations from vanished to matching new strings
+        5. Shows remaining unmatched vanished strings for optional removal
 
         Args:
             languages: List of language codes that were just extracted.
         """
         translations_dir = self.localization_ops.paths.translations_dir
-        unused_by_file: Dict[Path, List[Tuple[str, str]]] = {}
+        total_transferred = 0
+        total_files_with_matches = 0
+        total_recovered = 0
+
+        # Process each file: recover duplicates, try matching, collect remaining
+        remaining_unused_by_file: Dict[Path, List[Tuple[str, str]]] = {}
 
         for lang in languages:
             ts_file = translations_dir / f"app_{lang}.ts"
             if not ts_file.exists():
                 continue
 
-            vanished = self._extract_vanished_strings(ts_file)
-            if vanished:
-                unused_by_file[ts_file] = vanished
+            # First, recover translations from vanished duplicates
+            # (where the same source exists as both vanished and active unfinished)
+            try:
+                recovered_count, recovered_sources = recover_duplicate_translations(
+                    ts_file
+                )
+                if recovered_count > 0:
+                    total_recovered += recovered_count
+                    if self.manage_log_view:
+                        self.manage_log_view.appendPlainText(
+                            f"[RECOVER] Auto-recovered {recovered_count} translation(s) "
+                            f"from duplicate vanished strings in {ts_file.name}\n"
+                        )
+            except Exception as e:
+                if self.manage_log_view:
+                    self.manage_log_view.appendPlainText(
+                        f"[WARN] Could not recover duplicates in {ts_file.name}: {e}\n"
+                    )
 
-        if not unused_by_file:
+            vanished = self._extract_vanished_strings(ts_file)
+            if not vanished:
+                continue
+
+            # Get new unfinished strings for potential matching
+            new_unfinished = extract_new_unfinished_strings(ts_file)
+
+            # Find potential matches between vanished (with translations) and new strings
+            matches = find_potential_matches(
+                vanished, new_unfinished, min_similarity=0.6
+            )
+
+            # Collect vanished strings that weren't matched
+            matched_vanished = {m.vanished_source for m in matches}
+            remaining_vanished = [
+                (src, trans) for src, trans in vanished if src not in matched_vanished
+            ]
+
+            # If we have potential matches, show the matching dialog
+            if matches:
+                dialog = StringMatchingDialog(
+                    self,
+                    matches,
+                    remaining_vanished,
+                    ts_file,
+                )
+                result = dialog.exec()
+
+                if result == QDialog.Accepted and dialog.accepted_matches:
+                    # Apply the accepted matches
+                    transferred = apply_matches_to_file(
+                        ts_file, dialog.accepted_matches
+                    )
+                    if transferred > 0:
+                        total_transferred += transferred
+                        total_files_with_matches += 1
+                        if self.manage_log_view:
+                            self.manage_log_view.appendPlainText(
+                                f"[MATCH] Transferred {transferred} translation(s) "
+                                f"in {ts_file.name}\n"
+                            )
+
+                    # Update remaining vanished (exclude those that were matched and transferred)
+                    transferred_vanished = {
+                        m.vanished_source for m in dialog.accepted_matches
+                    }
+                    remaining_vanished = [
+                        (src, trans)
+                        for src, trans in remaining_vanished
+                        if src not in transferred_vanished
+                    ]
+                    # Also remove matched ones from original vanished list
+                    remaining_vanished = [
+                        (src, trans)
+                        for src, trans in vanished
+                        if src not in matched_vanished
+                        and src not in transferred_vanished
+                    ]
+
+            # Collect remaining vanished strings for batch cleanup
+            if remaining_vanished:
+                remaining_unused_by_file[ts_file] = remaining_vanished
+
+        # Show transfer summary if any
+        if total_recovered > 0 or total_transferred > 0:
+            parts = []
+            if total_recovered > 0:
+                parts.append(
+                    f"Auto-recovered {total_recovered} duplicate translation(s)"
+                )
+            if total_transferred > 0:
+                parts.append(
+                    f"Transferred {total_transferred} from vanished "
+                    f"to new strings in {total_files_with_matches} file(s)"
+                )
+            msg = ", ".join(parts)
+            if self.status_bar:
+                self.status_bar.showMessage(msg, 5000)
+
+        # If there are remaining unmatched vanished strings, show cleanup dialog
+        if not remaining_unused_by_file:
             return
 
-        # Show batch cleanup dialog
+        # Show batch cleanup dialog for remaining unmatched strings
         dialog = BatchUnusedStringsDialog(
             self,
-            unused_by_file,
+            remaining_unused_by_file,
             translations_dir,
         )
         result = dialog.exec()
 
         if result == QDialog.Accepted:
             cleaned_count = len(dialog.files_cleaned)
-            total_removed = sum(len(strings) for strings in unused_by_file.values())
+            total_removed = sum(
+                len(strings) for strings in remaining_unused_by_file.values()
+            )
             msg = f"Removed {total_removed} vanished string(s) from {cleaned_count} file(s)"
             if dialog.save_requested and dialog.saved_path:
                 msg += f" (saved to {Path(dialog.saved_path).name})"

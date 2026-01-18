@@ -191,6 +191,7 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
         if self._require_unsure:
             # Import here to avoid circular imports
             from core import TranslationMarker
+
             marker = index.data(TranslationRoles.MarkerRole)
             if marker != TranslationMarker.UNSURE:
                 return False
@@ -203,8 +204,7 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
         if self._context_terms:
             contexts = index.data(TranslationRoles.ContextsRole) or []
             if not any(
-                any(term in ctx for term in self._context_terms)
-                for ctx in contexts
+                any(term in ctx for term in self._context_terms) for ctx in contexts
             ):
                 return False
 
@@ -212,7 +212,10 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
         if self._search_text:
             source_text = index.data(TranslationRoles.SourceRole) or ""
             translation_text = index.data(TranslationRoles.TranslationRole) or ""
-            if self._search_text not in source_text and self._search_text not in translation_text:
+            if (
+                self._search_text not in source_text
+                and self._search_text not in translation_text
+            ):
                 return False
 
         return True

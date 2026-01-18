@@ -49,6 +49,13 @@ from gui.editor_tab import EditorTab
 from gui.icon_provider import IconProvider, IconStyle
 from gui.manage_tab import ManageTab
 from gui.shortcuts_dialog import ShortcutsDialog
+from gui.string_matching_dialog import (
+    StringMatchingDialog,
+    apply_matches_to_file,
+    extract_new_unfinished_strings,
+    find_potential_matches,
+    recover_duplicate_translations,
+)
 from gui.theme_options_dialog import ThemeOptionsDialog
 from gui.unused_strings_dialog import UnusedStringsDialog
 from localization import LocalizationOperations
@@ -474,29 +481,133 @@ class TranslationEditor(QMainWindow):
                             )
 
             # Detect vanished (obsolete) strings marked by lupdate
+            # First, try to recover translations from vanished duplicates
+            # (where the same source exists as both vanished and active unfinished)
+            file_path_obj = Path(file_path)
+            try:
+                recovered_count, recovered_sources = recover_duplicate_translations(
+                    file_path_obj
+                )
+                if recovered_count > 0:
+                    if self.status_bar:
+                        self.status_bar.showMessage(
+                            f"Auto-recovered {recovered_count} translation(s) "
+                            "from duplicate vanished strings",
+                            5000,
+                        )
+                    # Re-parse the file since we modified it
+                    tree = ET.parse(file_path)
+                    root = tree.getroot()
+
+                    # Update translation_groups with recovered translations
+                    for source in recovered_sources:
+                        if source in translation_groups:
+                            item = translation_groups[source]
+                            # Reload the translation from file
+                            for context in root.findall("context"):
+                                context_name = context.find("name")
+                                if context_name is not None:
+                                    ctx_name = context_name.text
+                                else:
+                                    ctx_name = ""
+                                if ctx_name == item.context:
+                                    for message in context.findall("message"):
+                                        source_elem = message.find("source")
+                                        if (
+                                            source_elem is not None
+                                            and source_elem.text == source
+                                        ):
+                                            trans_elem = message.find("translation")
+                                            if trans_elem is not None:
+                                                item.translation = trans_elem.text or ""
+                                                item.marker = None
+                                                break
+            except Exception as e:
+                # If recovery fails, continue without it
+                print(f"Warning: Could not recover duplicate translations: {e}")
+
             unused_strings = self._extract_vanished_strings(root)
 
-            # If unused strings found, prompt user
+            # If unused strings found, try matching then prompt user
             if unused_strings:
-                dialog = UnusedStringsDialog(
-                    self,
-                    unused_strings,
-                    Path(file_path).name,
+                # Get new unfinished strings for potential matching
+                new_unfinished = extract_new_unfinished_strings(file_path_obj)
+
+                # Find potential matches between vanished and new strings
+                matches = find_potential_matches(
+                    unused_strings, new_unfinished, min_similarity=0.6
                 )
-                result = dialog.exec()
 
-                if result == QDialog.Accepted:
-                    # Remove unused strings from translation_groups
-                    for source, _ in unused_strings:
-                        translation_groups.pop(source, None)
+                # Track which vanished strings were matched
+                matched_vanished = {m.vanished_source for m in matches}
+                remaining_unused = [
+                    (src, trans)
+                    for src, trans in unused_strings
+                    if src not in matched_vanished
+                ]
 
-                    # Show status message
-                    msg = f"Removed {len(unused_strings)} unused string(s)"
-                    if dialog.save_requested and dialog.saved_path:
-                        msg += f" (saved to {Path(dialog.saved_path).name})"
-                    if self.status_bar:
-                        self.status_bar.showMessage(msg, 5000)
-                # If cancelled (rejected), keep all strings as-is
+                # If we have potential matches, show the matching dialog
+                if matches:
+                    match_dialog = StringMatchingDialog(
+                        self,
+                        matches,
+                        remaining_unused,
+                        file_path_obj,
+                    )
+                    match_result = match_dialog.exec()
+
+                    if (
+                        match_result == QDialog.Accepted
+                        and match_dialog.accepted_matches
+                    ):
+                        # Apply the accepted matches to the file
+                        transferred = apply_matches_to_file(
+                            file_path_obj, match_dialog.accepted_matches
+                        )
+                        if transferred > 0:
+                            if self.status_bar:
+                                self.status_bar.showMessage(
+                                    f"Transferred {transferred} translation(s) "
+                                    "from vanished to new strings",
+                                    5000,
+                                )
+
+                        # Update remaining unused list
+                        transferred_sources = {
+                            m.vanished_source for m in match_dialog.accepted_matches
+                        }
+                        remaining_unused = [
+                            (src, trans)
+                            for src, trans in unused_strings
+                            if src not in matched_vanished
+                            and src not in transferred_sources
+                        ]
+
+                        # Re-parse the file since we modified it
+                        tree = ET.parse(file_path)
+                        root = tree.getroot()
+
+                # Show dialog for remaining unmatched vanished strings
+                if remaining_unused:
+                    dialog = UnusedStringsDialog(
+                        self,
+                        remaining_unused,
+                        file_path_obj.name,
+                    )
+                    result = dialog.exec()
+
+                    if result == QDialog.Accepted:
+                        # Remove unused strings from translation_groups
+                        for source, _ in remaining_unused:
+                            translation_groups.pop(source, None)
+
+                        # Show status message
+                        msg = f"Removed {len(remaining_unused)} unused string(s)"
+                        if dialog.save_requested and dialog.saved_path:
+                            msg += f" (saved to {Path(dialog.saved_path).name})"
+                        if self.status_bar:
+                            self.status_bar.showMessage(msg, 5000)
+                    # If cancelled (rejected), keep all strings as-is
 
             translations = list(translation_groups.values())
             self.editor_tab.load_translations(file_path, translations)
