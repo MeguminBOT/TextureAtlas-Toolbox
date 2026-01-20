@@ -1,102 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="es_es">
+<TS version="2.1" language="ja_JP">
 <context>
     <name>AnimationPreviewWindow</name>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="596"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="590"/>
         <source>Animation Preview</source>
-        <translation>Animación previa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="721"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="715"/>
         <source>Frame 1 / 1</source>
-        <translation>Marco 1 / 1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="844"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="838"/>
         <source>When enabled, the &apos;Frame rate&apos; control switches to show
 the delay (in ms) for the currently selected frame.
 Other settings still affect the entire animation.</source>
-        <translation>Cuando está habilitado, el control &apos;Frame rate&apos; cambia para mostrar
-el retraso (en ms) para el marco seleccionado actualmente.
-Otros ajustes todavía afectan toda la animación.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="855"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="849"/>
         <source>Apply the current frame delay to all frames</source>
-        <translation>Aplicar el retraso actual del marco a todos los marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="893"/>
-        <source>None</source>
-        <translation>Ninguno</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="894"/>
-        <source>Solid Color</source>
-        <translation>Color sólido</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="896"/>
-        <source>Transparency Pattern</source>
-        <translation>Transparencia</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="863"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="857"/>
         <source>Reset all frame delays back to original values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="975"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="887"/>
+        <source>None</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/animation_preview_window.py" line="888"/>
+        <source>Solid Color</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/animation_preview_window.py" line="890"/>
+        <source>Transparency Pattern</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/animation_preview_window.py" line="969"/>
         <source>Animation file not found: {path}</source>
-        <translation>Archivo de animación no encontrado: {path}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="989"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="983"/>
         <source>Loading...</source>
-        <translation>Cargando...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="1011"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="1005"/>
         <source>Loading... {percent}% ({current}/{total})</source>
-        <translation>{percent}% ({current}/{total})</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="1048"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="1042"/>
         <source>Loaded {count} frames</source>
-        <translation>Cargado {count} marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="1086"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="1080"/>
         <source>Error loading animation</source>
-        <translation>Animación de carga de errores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="1130"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="1124"/>
         <source>Frame {index} / {total}</source>
-        <translation>Marco {index} / {total}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="1138"/>
-        <location filename="../gui/extractor/animation_preview_window.py" line="1143"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="1132"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="1137"/>
         <source> ({delay}ms)</source>
-        <translation>({delay}ms)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="1541"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="1535"/>
         <source>Choose Background Color</source>
-        <translation>Elija el color de fondo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="1692"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="1686"/>
         <source>Failed to regenerate animation.</source>
-        <translation>Fallado para regenerar la animación.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="1699"/>
+        <location filename="../gui/extractor/animation_preview_window.py" line="1693"/>
         <source>Failed to regenerate animation: {error}</source>
-        <translation>Fallado para regenerar la animación: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -104,70 +102,80 @@ Otros ajustes todavía afectan toda la animación.</translation>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="49"/>
         <source>Animations &amp; Frames</source>
-        <translation>Animaciones &quot; marcos &quot;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="69"/>
         <source>New animation</source>
-        <translation>Nueva animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="274"/>
         <source>Add animation group</source>
-        <translation>Agregar grupo de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="286"/>
         <location filename="../gui/generator/animation_tree_widget.py" line="318"/>
         <source>Rename animation</source>
-        <translation>Apellido de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="292"/>
         <location filename="../gui/generator/animation_tree_widget.py" line="351"/>
         <source>Delete animation</source>
-        <translation>Eliminar la animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="301"/>
         <source>Remove frame</source>
-        <translation>Quitar el marco</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="319"/>
         <source>Enter new animation name:</source>
-        <translation>Introduzca nuevo nombre de animación:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="327"/>
         <source>Name conflict</source>
-        <translation>Nombre conflicto</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="328"/>
         <source>An animation named &apos;{0}&apos; already exists.</source>
-        <translation>Ya existe una animación llamada &apos;{0}.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="353"/>
         <source>Are you sure you want to delete the animation &apos;{0}&apos; and all its frames?</source>
-        <translation>¿Estás seguro de querer borrar la animación &apos;{0}&apos; y todos sus marcos?</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>AppConfigWindow</name>
     <message>
-        <location filename="../gui/app_config_window.py" line="290"/>
+        <location filename="../gui/app_config_window.py" line="268"/>
+        <source>Your Computer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="272"/>
         <source>CPU: {cpu} (Threads: {threads})</source>
-        <translation>CPU: {cpu} (Temas: {threads})</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="298"/>
+        <location filename="../gui/app_config_window.py" line="280"/>
         <source>RAM: {memory:,} MB</source>
-        <translation>RAM: {memory:,} MB</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="309"/>
+        <location filename="../gui/app_config_window.py" line="287"/>
+        <source>App Resource Limits</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="291"/>
         <source>Number of worker threads for parallel processing.
 
 More threads is not always faster—each worker holds
@@ -182,33 +190,20 @@ Rough estimates (actual usage varies by spritesheet sizes):
 Using more threads with insufficient memory (e.g. 16
 threads on 8,192 MB) will cause most threads to sit idle
 waiting for memory to free up.</source>
-        <translation>Número de hilos de trabajo para el procesamiento paralelo.
-
-Más hilos no siempre es más rápido: cada trabajador sostiene
-sprite data en memoria, por lo que necesita RAM adecuada.
-
-Rough estimates (actual use varies by spritesheet size):
-• 4.096 MB RAM → hasta 2 hilos
-• 8,192 MB RAM → hasta 4 hilos
-• 16.384 MB RAM → hasta 8 hilos
-• 32,768 MB RAM → hasta 16 hilos
-
-Usando más hilos con memoria insuficiente (por ejemplo, 16
-hilos en 8,192 MB) hará que la mayoría de los hilos para sentarse ociosos
-esperando que la memoria se libre.</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="305"/>
+        <source>CPU threads to use (max: {max_threads}):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="318"/>
+        <source>Memory limit (MB, max: {max_memory}):</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="323"/>
-        <source>CPU threads to use (max: {max_threads}):</source>
-        <translation>Hilos CPU para usar (max: {max_threads}):</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="336"/>
-        <source>Memory limit (MB, max: {max_memory}):</source>
-        <translation>Límite de memoria (MB, max: {max_memory}):</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="341"/>
         <source>Memory threshold for worker threads.
 
 When the app&apos;s memory usage exceeds this limit, new
@@ -216,53 +211,34 @@ worker threads will wait before starting their next file.
 Existing work is not interrupted.
 
 Set to 0 to disable memory-based throttling (Not recommended, may make app unstable).</source>
-        <translation>Umbral de memoria para hilos de trabajo.
-
-Cuando el uso de la memoria de la aplicación supera este límite, nuevo
-Los hilos obreros esperarán antes de comenzar su próximo archivo.
-El trabajo existente no se interrumpe.
-
-Set a 0 para desactivar el acelerador basado en memoria (No recomendado, puede hacer que la aplicación sea inestable).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="392"/>
+        <location filename="../gui/app_config_window.py" line="374"/>
         <source>Duration</source>
-        <translation>Duración</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="532"/>
+        <location filename="../gui/app_config_window.py" line="514"/>
         <source>How output filenames are formatted:
 • Standardized: Uses {app_name} standardized naming
 • No spaces: Replace spaces with underscores
 • No special characters: Remove special chars</source>
-        <translation>Cómo se formatean los nombres de archivo de salida:
-• Estándarizado: Usos {app_name}
-• No hay espacios: Reemplazar espacios con relieves
-• No caracteres especiales: Eliminar chars especiales</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="700"/>
-        <location filename="../gui/app_config_window.py" line="748"/>
+        <location filename="../gui/app_config_window.py" line="682"/>
+        <location filename="../gui/app_config_window.py" line="734"/>
         <source>Atlas Settings</source>
-        <translation>Ajustes de Atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="704"/>
+        <location filename="../gui/app_config_window.py" line="686"/>
         <source>Packer method</source>
-        <translation>Método de empaquetado</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="706"/>
-        <source>Automatic (Best Fit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="712"/>
-        <source>Simple Row</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="716"/>
+        <location filename="../gui/app_config_window.py" line="702"/>
         <source>Packing algorithm to use for arranging sprites.
 • Automatic: Tries multiple algorithms and picks the best result
 • MaxRects: Good general-purpose algorithm
@@ -271,226 +247,96 @@ Set a 0 para desactivar el acelerador basado en memoria (No recomendado, puede h
 • Shelf FFDH: Shelf with First Fit Decreasing Height (sorts by height)
 • Skyline: Good for sprites with similar heights
 • Simple Row: Basic left-to-right, row-by-row placement</source>
-        <translation>Algoritmo de embalaje para organizar sprites.
-• Automático: Tries múltiples algoritmos y elige el mejor resultado
-• MaxRects: Buen algoritmo para uso general
-• Guillotina: Rápido, bueno para sprites de tamaño similar
-• Estante: Embalaje sencillo y rápido, menos óptimo
-• Estante FFDH: Estante con Primera Fit Reducción de Altura ( surtidos por altura)
-• Skyline: Bien por sprites con alturas similares
-• Fila simple: Colocación básica izquierda a derecha, fila a mano</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="732"/>
-        <location filename="../gui/app_config_window.py" line="1768"/>
-        <source>Auto (Best Result)</source>
-        <translation type="unfinished">Auto (El mejor resultado)</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="735"/>
+        <location filename="../gui/app_config_window.py" line="721"/>
         <source>Algorithm-specific heuristic for sprite placement.
 Auto will try multiple heuristics and pick the best result.</source>
-        <translation>Heurístico específico de Algorithm para la colocación de sprite.
-Auto probará múltiples heurísticas y elegirá el mejor resultado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="752"/>
+        <location filename="../gui/app_config_window.py" line="738"/>
         <source>Max atlas size</source>
-        <translation>Tamaño máximo de atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="758"/>
+        <location filename="../gui/app_config_window.py" line="744"/>
         <source>Maximum width and height of the generated atlas.
 Larger atlases can fit more sprites but may have
 compatibility issues with older hardware.</source>
-        <translation>Ancho máximo y altura del atlas generado.
-atlas más grandes pueden caber más sprites pero pueden tener
-problemas de compatibilidad con hardware antiguo.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="767"/>
+        <location filename="../gui/app_config_window.py" line="753"/>
         <source>Padding:</source>
-        <translation>Padding:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="773"/>
+        <location filename="../gui/app_config_window.py" line="759"/>
         <source>Pixels of padding between sprites.
 Helps prevent texture bleeding during rendering.</source>
-        <translation>Pixeles de relleno entre sprites.
-Ayuda a prevenir el sangrado de textura durante el renderizado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="785"/>
+        <location filename="../gui/app_config_window.py" line="771"/>
         <source>Force atlas dimensions to be powers of 2 (e.g., 512, 1024, 2048).
 Required by some older graphics hardware and game engines.</source>
-        <translation>Las dimensiones del atlas de la fuerza son poderes de 2 (por ejemplo, 512, 1024, 2048).
-Requerido por algunos gráficos antiguos hardware y motores de juego.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="802"/>
-        <source>Allow sprites to be rotated 90° for tighter packing.
-Only supported by some atlas formats.</source>
-        <translation>Permitir que los sprites sean girados 90° para el embalaje más ajustado.
-Sólo apoyado por algunos formatos de atlas.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="813"/>
-        <source>Detect horizontally/vertically flipped sprite variants.
-Stores only the canonical version with flip metadata,
-reducing atlas size for mirrored sprites.
-Only supported by Starling-XML format.</source>
-        <translation>Detectar variantes sprite horizontal/vertically flipped.
-Almacena sólo la versión canónica con metadatos de flip,
-reducir el tamaño del atlas para los sprites espejo.
-Solo apoyado por el formato Starling-XML.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="826"/>
-        <source>Trim transparent pixels from sprite edges for tighter packing.
-Offset metadata is stored so sprites render correctly.
-Not all atlas formats support trim metadata.</source>
-        <translation>Píxeles transparentes de bordes de sprite para empaquetar más ajustado.
-Los metadatos Offset se almacenan para que los sprites rindan correctamente.
-No todos los formatos atlas soportan metadatos trim.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="841"/>
-        <source>Atlas type</source>
-        <translation>Tipo Atlas</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="864"/>
-        <source>Metadata format for the generated atlas.</source>
-        <translation>Formato de metadatos para el atlas generado.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="870"/>
-        <source>Image format</source>
-        <translation>Formato de imagen</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="892"/>
-        <source>PNG Settings</source>
-        <translation>PNG Settings</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="930"/>
-        <source>WebP Settings</source>
-        <translation>Ajustes de WebP</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1014"/>
-        <source>AVIF Settings</source>
-        <translation>Ajustes AVIF</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1059"/>
-        <source>TIFF Settings</source>
-        <translation>Ajustes TIFF</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1125"/>
-        <source>Update Preferences</source>
-        <translation>Preferencias de actualización</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1139"/>
-        <source>Note: Auto-update will download and install updates automatically when available.</source>
-        <translation>Nota: Auto-update descargará e instalará actualizaciones automáticamente cuando esté disponible.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1378"/>
-        <source>CPU threads cannot exceed {max_threads}</source>
-        <translation>Los hilos CPU no pueden exceder {max_threads}</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1387"/>
-        <source>Memory limit cannot exceed {max_memory} MB</source>
-        <translation>El límite de memoria no puede exceder {max_memory} MB</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1495"/>
-        <source>Configuration has been saved successfully.</source>
-        <translation>La configuración se ha guardado con éxito.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1503"/>
-        <source>Error: {error}</source>
-        <translation>Error {error}</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1509"/>
-        <source>Failed to save configuration: {error}</source>
-        <translation>Fallado para guardar la configuración: {error}</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1571"/>
-        <source>Directory Memory</source>
-        <translation>Directorio de memoria</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1579"/>
-        <source>When enabled, the app will remember and restore the last used input directory on startup</source>
-        <translation>Cuando esté habilitado, la aplicación recordará y restaurará el último directorio de entrada usado en startup</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1589"/>
-        <source>When enabled, the app will remember and restore the last used output directory on startup</source>
-        <translation>Cuando esté habilitado, la aplicación recordará y restaurará el último directorio de salida usado en startup</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1597"/>
-        <source>Spritemap Settings</source>
-        <translation>Ajustes de Spritemap</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1605"/>
-        <source>When enabled, spritemap animations with only one frame will be hidden from the animation list.
-Adobe Animate spritemaps often contain single-frame symbols for cut-ins and poses.
-Should not affect animations that use these single frame symbols.</source>
-        <translation>Cuando esté habilitado, las animaciones spritemap con sólo un marco se ocultarán de la lista de animación.
-Los spritemaps de Adobe Animate a menudo contienen símbolos de marco único para cortes y poses.
-No debe afectar las animaciones que usan estos símbolos de marco único.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1614"/>
-        <source>File Picker</source>
-        <translation>Elijador de archivos</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1622"/>
-        <source>Uses the OS-native file dialog instead of the Qt-styled picker.
-This only affects the Extract tab&apos;s manual file selection.</source>
-        <translation>Utiliza el diálogo de archivos OS-native en lugar del selector Qt.
-Esto sólo afecta la selección manual de archivos de la pestaña Extraer.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1631"/>
-        <source>Animation Behavior</source>
-        <translation>Comportamiento de animación</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="286"/>
-        <source>Your Computer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="305"/>
-        <source>App Resource Limits</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="795"/>
+        <location filename="../gui/app_config_window.py" line="781"/>
         <source>Sprite Optimization</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="837"/>
+        <location filename="../gui/app_config_window.py" line="788"/>
+        <source>Allow sprites to be rotated 90° for tighter packing.
+Only supported by some atlas formats.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="799"/>
+        <source>Detect horizontally/vertically flipped sprite variants.
+Stores only the canonical version with flip metadata,
+reducing atlas size for mirrored sprites.
+Only supported by Starling-XML format.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="812"/>
+        <source>Trim transparent pixels from sprite edges for tighter packing.
+Offset metadata is stored so sprites render correctly.
+Not all atlas formats support trim metadata.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="823"/>
         <source>Output Format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="902"/>
+        <location filename="../gui/app_config_window.py" line="827"/>
+        <source>Atlas type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="850"/>
+        <source>Metadata format for the generated atlas.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="856"/>
+        <source>Image format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="878"/>
+        <source>PNG Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="888"/>
         <source>PNG compression level (0-9):
 • 0: No compression (fastest, largest file)
 • 1-3: Low compression
@@ -500,7 +346,7 @@ This doesn&apos;t affect the quality of the image, only the file size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="918"/>
+        <location filename="../gui/app_config_window.py" line="904"/>
         <source>PNG optimize:
 • Enabled: Uses additional compression techniques for smaller files
 When enabled, compression level is automatically set to 9
@@ -510,7 +356,12 @@ This doesn&apos;t affect the quality of the image, only the file size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="938"/>
+        <location filename="../gui/app_config_window.py" line="916"/>
+        <source>WebP Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="924"/>
         <source>WebP lossless mode:
 • Enabled: Perfect quality preservation, larger file size
 • Disabled: Lossy compression with adjustable quality
@@ -518,7 +369,7 @@ When enabled, quality sliders are disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="954"/>
+        <location filename="../gui/app_config_window.py" line="940"/>
         <source>WebP quality (0-100):
 • 0: Lowest quality, smallest file
 • 75: Balanced quality/size
@@ -527,7 +378,7 @@ Only used in lossy mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="971"/>
+        <location filename="../gui/app_config_window.py" line="957"/>
         <source>WebP compression method (0-6):
 • 0: Fastest encoding, larger file
 • 3: Balanced speed/compression
@@ -536,7 +387,7 @@ Higher values take more time but produce smaller files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="988"/>
+        <location filename="../gui/app_config_window.py" line="974"/>
         <source>WebP alpha channel quality (0-100):
 Controls transparency compression quality
 • 0: Maximum alpha compression
@@ -545,7 +396,7 @@ Only used in lossy mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1003"/>
+        <location filename="../gui/app_config_window.py" line="989"/>
         <source>WebP exact mode:
 • Enabled: Preserves RGB values in transparent areas
 • Disabled: Allows optimization of transparent pixels
@@ -553,7 +404,12 @@ Enable for better quality when transparency matters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1030"/>
+        <location filename="../gui/app_config_window.py" line="1000"/>
+        <source>AVIF Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1016"/>
         <source>AVIF quality (0-100):
 • 0-30: Low quality, very small files
 • 60-80: Good quality for most images
@@ -562,7 +418,7 @@ Enable for better quality when transparency matters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1047"/>
+        <location filename="../gui/app_config_window.py" line="1033"/>
         <source>AVIF encoding speed (0-10):
 • 0: Slowest encoding, best compression
 • 5: Balanced speed/compression (default)
@@ -571,7 +427,12 @@ Higher values encode faster but produce larger files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1069"/>
+        <location filename="../gui/app_config_window.py" line="1045"/>
+        <source>TIFF Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1055"/>
         <source>TIFF compression algorithm:
 • none: No compression, largest files
 • lzw: Lossless, good compression (recommended)
@@ -580,7 +441,7 @@ Higher values encode faster but produce larger files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1086"/>
+        <location filename="../gui/app_config_window.py" line="1072"/>
         <source>TIFF quality (0-100):
 Only used with JPEG compression
 • 0-50: Low quality, small files
@@ -589,7 +450,7 @@ Only used with JPEG compression
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1101"/>
+        <location filename="../gui/app_config_window.py" line="1087"/>
         <source>TIFF optimization:
 • Enabled: Optimize file structure for smaller size
 • Disabled: Standard TIFF format
@@ -597,22 +458,57 @@ Recommended to keep enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1287"/>
+        <location filename="../gui/app_config_window.py" line="1111"/>
+        <source>Update Preferences</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1123"/>
+        <source>Note: Auto-update will download and install updates automatically when available.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1271"/>
         <source>Are you sure you want to reset all settings to their default values?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1548"/>
+        <location filename="../gui/app_config_window.py" line="1362"/>
+        <source>CPU threads cannot exceed {max_threads}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1371"/>
+        <source>Memory limit cannot exceed {max_memory} MB</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1479"/>
+        <source>Configuration has been saved successfully.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1487"/>
+        <source>Error: {error}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1493"/>
+        <source>Failed to save configuration: {error}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1532"/>
         <source>Appearance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1551"/>
+        <location filename="../gui/app_config_window.py" line="1535"/>
         <source>Color scheme:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1553"/>
+        <location filename="../gui/app_config_window.py" line="1537"/>
         <source>Override the operating system&apos;s dark/light mode:
 
 • Auto: Follow system theme
@@ -621,36 +517,77 @@ Recommended to keep enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1562"/>
+        <location filename="../gui/app_config_window.py" line="1546"/>
         <source>Auto (System)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1563"/>
+        <location filename="../gui/app_config_window.py" line="1547"/>
         <source>Light</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1564"/>
+        <location filename="../gui/app_config_window.py" line="1548"/>
         <source>Dark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1638"/>
+        <location filename="../gui/app_config_window.py" line="1555"/>
+        <source>Directory Memory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1563"/>
+        <source>When enabled, the app will remember and restore the last used input directory on startup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1573"/>
+        <source>When enabled, the app will remember and restore the last used output directory on startup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1581"/>
+        <source>Spritemap Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1589"/>
+        <source>When enabled, spritemap animations with only one frame will be hidden from the animation list.
+Adobe Animate spritemaps often contain single-frame symbols for cut-ins and poses.
+Should not affect animations that use these single frame symbols.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1598"/>
+        <source>File Picker</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1606"/>
+        <source>Uses the OS-native file dialog instead of the Qt-styled picker.
+This only affects the Extract tab&apos;s manual file selection.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1615"/>
+        <source>Animation Behavior</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1622"/>
         <source>When enabled, consecutive duplicate frames are merged into a
 single frame with combined duration. Disable if you want to
 keep all frames individually for manual timing adjustments.</source>
-        <translation>Cuando están habilitados, los marcos duplicados consecutivos se fusionan en un
-marco único con duración combinada. Desactivar si quieres
-mantener todos los marcos individualmente para los ajustes de tiempo manual.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1646"/>
+        <location filename="../gui/app_config_window.py" line="1630"/>
         <source>Duration input type:</source>
-        <translation>Tipo de entrada de duración:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1648"/>
+        <location filename="../gui/app_config_window.py" line="1632"/>
         <source>Choose how frame timing is entered in the UI:
 
 • Format Native: Uses each format&apos;s native unit:
@@ -660,40 +597,32 @@ mantener todos los marcos individualmente para los ajustes de tiempo manual.</tr
 • Deciseconds: 1/10th of a second
 • Centiseconds: 1/100th of a second
 • Milliseconds: 1/1000th of a second</source>
-        <translation>Elija cómo se introduce el cronograma en la interfaz de usuario:
-
-• Formato nativo: Usa la unidad nativa de cada formato:
-- GIF: Centiseconds (10ms incrementos)
-- APNG/WebP: Milliseconds
-• FPS: Marcos tradicionales por segundo (conversos a demoras)
-• Deciseconds: 1/10 de segundo
-• Centiseconds: 1/100 de un segundo
-• Milliseconds: 1/1000 de segundo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1661"/>
+        <location filename="../gui/app_config_window.py" line="1645"/>
         <source>Format Native</source>
-        <translation>Formato Nativo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1663"/>
+        <location filename="../gui/app_config_window.py" line="1647"/>
         <source>FPS (frames per second)</source>
-        <translation>FPS (frames por segundo)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1665"/>
+        <location filename="../gui/app_config_window.py" line="1649"/>
         <source>Deciseconds</source>
-        <translation>Deciseconds</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1666"/>
+        <location filename="../gui/app_config_window.py" line="1650"/>
         <source>Centiseconds</source>
-        <translation>Centiseconds</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1667"/>
+        <location filename="../gui/app_config_window.py" line="1651"/>
         <source>Milliseconds</source>
-        <translation>Milliseconds</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -702,29 +631,28 @@ mantener todos los marcos individualmente para los ajustes de tiempo manual.</tr
         <location filename="../gui/extractor/background_handler_window.py" line="56"/>
         <location filename="../gui/extractor/background_handler_window.py" line="94"/>
         <source>Background Color Options</source>
-        <translation>Opciones de color de fondo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="103"/>
         <source>Found {count} unknown spritesheet(s) with background colors.
 Check the box next to each file to remove its background color during processing:</source>
-        <translation>Encontrado {count} desconocido spritesheet(s) con colores de fondo.
-Compruebe la caja junto a cada archivo para eliminar su color de fondo durante el procesamiento:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="114"/>
         <source>Select All</source>
-        <translation>Seleccione todos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="119"/>
         <source>Select None</source>
-        <translation>Seleccione</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="147"/>
         <source>Processing Options:</source>
-        <translation>Opciones de procesamiento:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="152"/>
@@ -735,52 +663,52 @@ Compruebe la caja junto a cada archivo para eliminar su color de fondo durante e
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="163"/>
         <source>💡 Tip: Checked files will have transparent backgrounds in PNG, WebP, and APNG outputs</source>
-        <translation>♥ Tip: Los archivos comprobados tendrán antecedentes transparentes en las salidas PNG, WebP y APNG</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="175"/>
         <source>Apply Settings</source>
-        <translation>Configuración de aplicaciones</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="181"/>
         <source>Cancel</source>
-        <translation>Cancelar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="222"/>
         <source>📄 {filename}</source>
-        <translation>{filename}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="230"/>
         <source>Detected background colors:</source>
-        <translation>Colores de fondo detectados:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="241"/>
         <source>... and {count} more colors</source>
-        <translation>... y {count} más colores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="268"/>
         <source>RGB({r}, {g}, {b})</source>
-        <translation>RGB({r}, {g}, {b})</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="272"/>
         <source>Primary</source>
-        <translation>Primaria</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="274"/>
         <source>Secondary {index}</source>
-        <translation>Secundaria {index}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="278"/>
         <source>{priority}: {rgb}</source>
-        <translation>{priority}: {rgb}</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -788,12 +716,17 @@ Compruebe la caja junto a cada archivo para eliminar su color de fondo durante e
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="83"/>
         <source>Compression settings for {format}</source>
-        <translation>Ajustes de compresión para {format}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="103"/>
         <source>No compression settings available for {format} format.</source>
-        <translation>No hay ajustes de compresión disponibles para {format} formato.</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/compression_settings_window.py" line="133"/>
+        <source>PNG Compression Settings</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="142"/>
@@ -813,6 +746,11 @@ When enabled, compression level is automatically set to 9
 Results in slower processing but better compression
 
 This doesn&apos;t affect the quality of the image, only the file size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/compression_settings_window.py" line="180"/>
+        <source>WebP Compression Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -859,6 +797,11 @@ Enable for better quality when transparency matters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../gui/extractor/compression_settings_window.py" line="272"/>
+        <source>AVIF Compression Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="278"/>
         <source>AVIF lossless mode:
 • Enabled: Perfect quality preservation, larger file size
@@ -885,6 +828,11 @@ AVIF may take much longer to encode than other formats.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../gui/extractor/compression_settings_window.py" line="334"/>
+        <source>TIFF Compression Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="343"/>
         <source>TIFF compression type:
 • None: No compression (largest files, fastest)
@@ -908,45 +856,24 @@ Results in better compression but slower processing
 Not available when compression type is &apos;None&apos;</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="../gui/extractor/compression_settings_window.py" line="133"/>
-        <source>PNG Compression Settings</source>
-        <translation>Ajustes de compresión PNG</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/compression_settings_window.py" line="180"/>
-        <source>WebP Compression Settings</source>
-        <translation>Ajustes de compresión WebP</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/compression_settings_window.py" line="272"/>
-        <source>AVIF Compression Settings</source>
-        <translation>Ajustes de compresión AVIF</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/compression_settings_window.py" line="334"/>
-        <source>TIFF Compression Settings</source>
-        <translation>Ajustes de compresión TIFF</translation>
-    </message>
 </context>
 <context>
     <name>ContributorsWindow</name>
     <message>
         <location filename="../gui/contributors_window.py" line="34"/>
         <source>Contributors</source>
-        <translation>Colaboradores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/contributors_window.py" line="45"/>
         <source>TextureAtlas Toolbox
 Contributors</source>
-        <translation>TextureAtlas Toolbox
-Colaboradores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/contributors_window.py" line="65"/>
         <source>Close</source>
-        <translation>Cerca</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -954,7 +881,7 @@ Colaboradores</translation>
     <message>
         <location filename="../utils/dependencies_checker.py" line="122"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -962,202 +889,202 @@ Colaboradores</translation>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="608"/>
         <source>Drag the frame, use arrow keys for fine adjustments, or type offsets manually.</source>
-        <translation>Arrastre el marco, utilice las teclas de flecha para los ajustes finos, o escriba los offsets manualmente.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="691"/>
         <source>Animations &amp; Frames</source>
-        <translation>Animaciones &quot; marcos &quot;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="779"/>
         <source>Frame offset X</source>
-        <translation>Frame offset X</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="783"/>
         <source>Frame offset Y</source>
-        <translation>Frame offset Y</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="794"/>
         <source>Canvas width</source>
-        <translation>Ancho de lienzo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="798"/>
         <source>Canvas height</source>
-        <translation>Altura de los lienzos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="816"/>
         <source>Canvas origin</source>
-        <translation>Origen de las islas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="827"/>
         <source>Ghost frame</source>
-        <translation>Marco fantasma</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="838"/>
         <source>px</source>
-        <translation>px</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="840"/>
         <source>Snapping</source>
-        <translation>Snapping</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="934"/>
         <source>Centered</source>
-        <translation>Centered</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="935"/>
         <source>Top-left (FlxSprite)</source>
-        <translation>Top-left (FlxSprite)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="938"/>
         <source>Choose how the editor canvas positions frames when offsets are zero.</source>
-        <translation>Elija cómo el editor posiciona los marcos cuando los offsets son cero.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1018"/>
         <source>FlxSprite origin mode enabled so imported offsets match the preview.</source>
-        <translation>Modo de origen FlxSprite habilitado para que los offsets importados coincidan con la vista previa.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1074"/>
         <source>Zoom: {value}%</source>
-        <translation>Zoom: {value}%</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1311"/>
         <source>Pillow is required to load animations.</source>
-        <translation>Pillow es necesario para cargar animaciones.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1343"/>
         <source>Frame {index}</source>
-        <translation>Marco {index}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1354"/>
         <source>{file} did not contain any frames.</source>
-        <translation>{file} no contenía ningún marco.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1376"/>
         <source>Could not load {file}: {error}</source>
-        <translation>No podía cargar {file}: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1403"/>
         <source>Loaded {animation} from {sheet}.</source>
-        <translation>Cargado {animation} de {sheet}.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1413"/>
         <source>Could not load animation &apos;{animation}&apos; from &apos;{sheet}&apos;.</source>
-        <translation>No podía cargar la animación &apos;{animation}&apos; de &apos;{sheet}.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1625"/>
         <source>Select at least two animations to build a composite entry.</source>
-        <translation>Seleccione al menos dos animaciones para construir una entrada compuesta.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1688"/>
         <source>Could not build the composite entry. Ensure the selected animations have frames.</source>
-        <translation>No podía construir la entrada compuesta. Asegúrese de que las animaciones seleccionadas tienen marcos.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1694"/>
         <source>Composite ({count} animations)</source>
-        <translation>Composite ({count} animaciones)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1698"/>
         <source>Composite: {names}</source>
-        <translation>Compuesto: {names}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1738"/>
         <source>Composite entry created with {count} frames.</source>
-        <translation>Entrada compuesta creada con {count} marcos.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1884"/>
         <source>Applied ({x}, {y}) to {count} animations.</source>
-        <translation>Aplica ({x}, {y}]) a animaciones {count}.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2076"/>
         <source>Root selected: offset changes now apply to every frame in this animation.</source>
-        <translation>Root seleccionado: los cambios de compensación ahora se aplican a cada marco en esta animación.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2221"/>
         <source>Applied ({x}, {y}) to every frame.</source>
-        <translation>Aplicado ({x}, {y}) a cada marco.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2311"/>
         <source>Offsets stored for &apos;{name}&apos;. They will be used on the next extraction run.</source>
-        <translation>Offsets stored for &apos;{name}. Se utilizarán en la próxima carrera de extracción.</translation>
-    </message>
-    <message>
-        <location filename="../gui/editor_tab_widget.py" line="2416"/>
-        <source>Export composite</source>
-        <translation>Composite de exportación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2327"/>
         <source>Select a composite entry generated from multiple animations.</source>
-        <translation>Seleccione una entrada compuesta generada de múltiples animaciones.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2337"/>
         <source>Could not determine the source animations for this composite.</source>
-        <translation>No podía determinar las animaciones de origen para este compuesto.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2357"/>
         <source>Composite export currently supports animations loaded from the extractor only.</source>
-        <translation>La exportación compuesta actualmente soporta animaciones cargadas del extractor solamente.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2372"/>
         <source>All combined animations must belong to the same spritesheet and originate from the extractor.</source>
-        <translation>Todas las animaciones combinadas deben pertenecer a la misma spritesheet y originarse del extractor.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2390"/>
         <source>Source animations were removed and no export metadata was stored. Recreate the composite while source animations are present.</source>
-        <translation>Se eliminaron las animaciones de origen y no se almacenaron metadatos de exportación. Recrear el compuesto mientras que las animaciones de origen están presentes.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2399"/>
         <source>Composite_{count}</source>
-        <translation>Composite {count}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2403"/>
         <source>Enter a name for the exported animation</source>
-        <translation>Introduzca un nombre para la animación exportada</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/editor_tab_widget.py" line="2416"/>
+        <source>Export composite</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2417"/>
         <source>Unable to capture composite definition for export.</source>
-        <translation>Incapaz de captar la definición compuesta para la exportación.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2461"/>
         <source>Exported composite to {name}.</source>
-        <translation>Composite exportado a {name}.</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1165,7 +1092,7 @@ Colaboradores</translation>
     <message>
         <location filename="../utils/dependencies_checker.py" line="42"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1173,66 +1100,66 @@ Colaboradores</translation>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="286"/>
         <source>Compression Settings</source>
-        <translation>Ajustes de compresión</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="362"/>
         <source>Select input directory</source>
-        <translation>Seleccionar directorio de entrada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="366"/>
         <location filename="../gui/extract_tab_widget.py" line="1529"/>
         <location filename="../gui/extract_tab_widget.py" line="2420"/>
         <source>No input directory selected</source>
-        <translation>No hay directorio de entrada seleccionado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="372"/>
         <source>Select output directory</source>
-        <translation>Seleccionar directorio de salida</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="376"/>
         <location filename="../gui/extract_tab_widget.py" line="1530"/>
         <location filename="../gui/extract_tab_widget.py" line="2423"/>
         <source>No output directory selected</source>
-        <translation>No hay directorio de salida seleccionado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="582"/>
         <source>Advanced filename options</source>
-        <translation>Opciones avanzadas de nombre de archivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="587"/>
         <source>Show override settings</source>
-        <translation>Mostrar configuración de override</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="592"/>
         <source>Override spritesheet settings</source>
-        <translation>Configuración de spritesheet</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="597"/>
         <source>Override animation settings</source>
-        <translation>Ajustes de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="604"/>
         <source>Start process</source>
-        <translation>Proceso de inicio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="904"/>
         <source>Manual selection ({count} files)</source>
-        <translation>Selección manual ({count})</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="1298"/>
         <source>Composite created in the Editor tab</source>
-        <translation>Composite creado en la pestaña Editor</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="1702"/>
@@ -1240,142 +1167,100 @@ Colaboradores</translation>
         <location filename="../gui/extract_tab_widget.py" line="2060"/>
         <location filename="../gui/extract_tab_widget.py" line="2125"/>
         <source>Please select a spritesheet first.</source>
-        <translation>Por favor, seleccione una spritesheet primero.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="1738"/>
         <location filename="../gui/extract_tab_widget.py" line="2096"/>
         <source>Could not open animation settings: {error}</source>
-        <translation>No podía abrir los ajustes de animación: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="1781"/>
         <location filename="../gui/extract_tab_widget.py" line="1828"/>
         <source>Could not open spritesheet settings: {error}</source>
-        <translation>No podía abrir los ajustes de spritesheet: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="1852"/>
         <source>Load animations for this spritesheet before sending it to the editor.</source>
-        <translation>Animaciones de carga para esta spritesheet antes de enviarla al editor.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="1872"/>
         <source>No animations were found for this spritesheet.</source>
-        <translation>No se encontraron animaciones para esta spritesheet.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="1905"/>
         <location filename="../gui/extract_tab_widget.py" line="1945"/>
         <source>Select a spritesheet first.</source>
-        <translation>Seleccione una spritesheet primero.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="1929"/>
         <source>Unable to locate the exported composite in the editor.</source>
-        <translation>Incapaz de localizar el compuesto exportado en el editor.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="1971"/>
         <source>The spritesheet path could not be determined.</source>
-        <translation>El camino de la spritesheet no podía ser determinado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="1990"/>
         <source>No metadata was located for this spritesheet.</source>
-        <translation>No había metadatos para esta spritesheet.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="2051"/>
         <location filename="../gui/extract_tab_widget.py" line="2116"/>
         <source>Please select an animation first.</source>
-        <translation>Por favor, seleccione una animación primero.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="2138"/>
         <source>Could not find spritesheet file path.</source>
-        <translation>No podía encontrar la ruta del archivo spritesheet.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="2177"/>
         <source>Preview error</source>
-        <translation>Error de vista previa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="2178"/>
         <source>Could not preview animation: {error}</source>
-        <translation>No podía prever la animación: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="2421"/>
         <source>Please select an input directory first.</source>
-        <translation>Por favor seleccione un directorio de entrada primero.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="2424"/>
         <source>Please select an output directory first.</source>
-        <translation>Seleccione primero un directorio de salida.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="2431"/>
         <source>Please enable at least one export option (Animation or Frame).</source>
-        <translation>Por favor, active al menos una opción de exportación (Animación o marco).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="2436"/>
         <source>No spritesheets found. Please select a directory with images.</source>
-        <translation>No se encontraron spritesheets. Seleccione un directorio con imágenes.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="2598"/>
         <source>Processing...</source>
-        <translation>Procesando...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="2598"/>
         <source>Start Process</source>
-        <translation>Proceso de inicio</translation>
-    </message>
-    <message>
-        <location filename="../utils/duration_utils.py" line="198"/>
-        <location filename="../utils/duration_utils.py" line="208"/>
-        <source>Frame rate</source>
-        <translation type="unfinished">Tasa de fractura</translation>
-    </message>
-    <message>
-        <location filename="../utils/duration_utils.py" line="199"/>
-        <source>Frame delay (ds)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../utils/duration_utils.py" line="200"/>
-        <source>Frame delay (cs)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../utils/duration_utils.py" line="203"/>
-        <source>Frame delay (ms)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../utils/duration_utils.py" line="250"/>
-        <location filename="../utils/duration_utils.py" line="265"/>
-        <source>Frames per second (1-1000)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../utils/duration_utils.py" line="253"/>
-        <source>Frame delay in deciseconds (1 = 100ms, 10 = 1 second)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../utils/duration_utils.py" line="256"/>
-        <source>Frame delay in centiseconds (1 = 10ms, 100 = 1 second)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../utils/duration_utils.py" line="259"/>
-        <source>Frame delay in milliseconds (1000 = 1 second)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1384,23 +1269,23 @@ Colaboradores</translation>
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="50"/>
         <source>Find and Replace</source>
-        <translation>Encontrar y reemplazar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="64"/>
         <source>Find and Replace Rules</source>
-        <translation>Encontrar y reemplazar reglas</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/find_replace_window.py" line="94"/>
-        <source>Add Rule</source>
-        <translation>Add Rule</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="70"/>
         <source>Create rules to find and replace text in exported filenames.
 Use $sprite or $anim placeholders to match actual names.
 Example: Find &apos;$sprite&apos; → Replace &apos;&apos; removes the sprite name from filename.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/find_replace_window.py" line="94"/>
+        <source>Add Rule</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1421,161 +1306,160 @@ Example: Find &apos;$sprite&apos; → Replace &apos;&apos; removes the sprite na
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="158"/>
         <source>Find:</source>
-        <translation>Encontrar:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="162"/>
         <source>Text to find...</source>
-        <translation>Texto para encontrar...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="168"/>
         <source>Replace:</source>
-        <translation>Reemplazar:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="172"/>
         <source>Replacement text...</source>
-        <translation>Texto del reemplazo...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="178"/>
         <source>Regular Expression</source>
-        <translation>Expresión regular</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>FirstStartDialog</name>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="56"/>
+        <location filename="../gui/first_start_dialog.py" line="52"/>
         <source>GitHub issues page</source>
-        <translation>Página de problemas de GitHub</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="61"/>
+        <location filename="../gui/first_start_dialog.py" line="57"/>
         <source>translation guide</source>
-        <translation>guía de traducción</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="91"/>
-        <location filename="../gui/first_start_dialog.py" line="288"/>
+        <location filename="../gui/first_start_dialog.py" line="87"/>
+        <location filename="../gui/first_start_dialog.py" line="284"/>
         <source>Welcome to TextureAtlas Toolbox</source>
-        <translation>Bienvenido a TextureAtlas Toolbox</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="102"/>
-        <location filename="../gui/first_start_dialog.py" line="290"/>
+        <location filename="../gui/first_start_dialog.py" line="98"/>
+        <location filename="../gui/first_start_dialog.py" line="286"/>
         <source>Welcome to {app_name} {app_version}</source>
-        <translation>Bienvenidos a {app_name} {app_version}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="114"/>
-        <location filename="../gui/first_start_dialog.py" line="294"/>
+        <location filename="../gui/first_start_dialog.py" line="110"/>
+        <location filename="../gui/first_start_dialog.py" line="290"/>
         <source>Language</source>
-        <translation>Idioma</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="121"/>
-        <location filename="../gui/first_start_dialog.py" line="295"/>
+        <location filename="../gui/first_start_dialog.py" line="117"/>
+        <location filename="../gui/first_start_dialog.py" line="291"/>
         <source>Select language:</source>
-        <translation>Seleccionar idioma:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="147"/>
-        <location filename="../gui/first_start_dialog.py" line="298"/>
+        <location filename="../gui/first_start_dialog.py" line="143"/>
+        <location filename="../gui/first_start_dialog.py" line="294"/>
         <source>Note: Some text may not update until the application is restarted.</source>
-        <translation>Nota: Algunos textos pueden no actualizarse hasta que se reinicia la aplicación.</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="154"/>
+        <location filename="../gui/first_start_dialog.py" line="297"/>
+        <source>New Feature Notice</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/first_start_dialog.py" line="158"/>
-        <location filename="../gui/first_start_dialog.py" line="301"/>
-        <source>New Feature Notice</source>
-        <translation>Nuevo Aviso de Feature</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="162"/>
-        <location filename="../gui/first_start_dialog.py" line="304"/>
+        <location filename="../gui/first_start_dialog.py" line="300"/>
         <source>Language selection is a new feature. You may encounter UI issues such as text not fitting properly in some areas. These will be improved over time.
 </source>
-        <translation>La selección de idiomas es una nueva característica. Usted puede encontrar problemas de interfaz de usuario como texto que no encaja correctamente en algunas áreas. Estos se mejorarán con el tiempo.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="172"/>
-        <location filename="../gui/first_start_dialog.py" line="312"/>
+        <location filename="../gui/first_start_dialog.py" line="168"/>
+        <location filename="../gui/first_start_dialog.py" line="308"/>
         <source>Version 2 introduces many new features and changes from version 1.
 There may be unfound bugs. Please report issues on the {issues_link}.</source>
-        <translation>La versión 2 presenta muchas nuevas características y cambios desde la versión 1.
-Puede haber errores infundados. Sírvanse informar sobre las cuestiones {issues_link}.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="183"/>
-        <location filename="../gui/first_start_dialog.py" line="316"/>
+        <location filename="../gui/first_start_dialog.py" line="179"/>
+        <location filename="../gui/first_start_dialog.py" line="312"/>
         <source>Update Preferences</source>
-        <translation>Preferencias de actualización</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="188"/>
-        <location filename="../gui/first_start_dialog.py" line="319"/>
+        <location filename="../gui/first_start_dialog.py" line="184"/>
+        <location filename="../gui/first_start_dialog.py" line="315"/>
         <source>Would you like the application to check for updates automatically when it starts?</source>
-        <translation>¿Te gustaría que la aplicación comprobara las actualizaciones automáticamente cuando comience?</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="196"/>
-        <location filename="../gui/first_start_dialog.py" line="324"/>
+        <location filename="../gui/first_start_dialog.py" line="192"/>
+        <location filename="../gui/first_start_dialog.py" line="320"/>
         <source>Check for updates on startup (recommended)</source>
-        <translation>Compruebe las actualizaciones de la puesta en marcha (recomendada)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="202"/>
-        <location filename="../gui/first_start_dialog.py" line="327"/>
+        <location filename="../gui/first_start_dialog.py" line="198"/>
+        <location filename="../gui/first_start_dialog.py" line="323"/>
         <source>Automatically download updates when available</source>
-        <translation>Descarga automáticamente actualizaciones cuando esté disponible</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="216"/>
-        <location filename="../gui/first_start_dialog.py" line="329"/>
+        <location filename="../gui/first_start_dialog.py" line="212"/>
+        <location filename="../gui/first_start_dialog.py" line="325"/>
         <source>Continue</source>
-        <translation>Continuar</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="332"/>
+        <source>Native</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="333"/>
+        <source>Reviewed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="334"/>
+        <source>Unreviewed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="335"/>
+        <source>Machine Translated</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/first_start_dialog.py" line="336"/>
-        <source>Native</source>
-        <translation>Native</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="337"/>
-        <source>Reviewed</source>
-        <translation>Reviewed</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="338"/>
-        <source>Unreviewed</source>
-        <translation>Sin revisión</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="339"/>
-        <source>Machine Translated</source>
-        <translation>Máquina traducida</translation>
+        <source>Unknown</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/first_start_dialog.py" line="340"/>
-        <source>Unknown</source>
-        <translation>Desconocido</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="344"/>
         <source>Translation quality: {quality}</source>
-        <translation>Calidad de la traducción: {quality}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="359"/>
+        <location filename="../gui/first_start_dialog.py" line="355"/>
         <source>Machine Translation Warning</source>
-        <translation>Advertencia de traducción automática</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="361"/>
+        <location filename="../gui/first_start_dialog.py" line="357"/>
         <source>This language was machine translated (automated). Some text may be inaccurate or awkward. You can help improve it by contributing translations. See the {guide_link} for how to contribute.</source>
-        <translation>Este idioma fue traducido por máquina (automatizado). Algunos textos pueden ser inexactos o incómodos. Usted puede ayudar a mejorarlo contribuyendo a las traducciones. Vea el {guide_link} para cómo contribuir.</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1588,12 +1472,7 @@ Puede haber errores infundados. Sírvanse informar sobre las cuestiones {issues_
 • Manual: Enter exact resolution manually
 
 Automatic is recommended.</source>
-        <translation>Método de tamaño de Atlas:
-• Automático: Detecta el tamaño de píxel más pequeño
-• MinMax: Limita el tamaño entre min y máxima resolución
-• Manual: Introduzca la resolución exacta manualmente
-
-Se recomienda automático.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="366"/>
@@ -1607,16 +1486,7 @@ and full support for mipmaps and tiling.
 
 Use Po2 when targeting older devices or using mipmapping,
 texture wrapping, or GPU compression.</source>
-        <translation>Las dimensiones del atlas de la fuerza son poderes de 2 (por ejemplo, 512, 1024, 2048).
-
-Potencia de dos tamaños puede permitir una carga más rápida, una mejor compresión,
-y soporte completo para mirfaits y baldosas.
-
-• GPUs más antiguos y WebGL 1 a menudo requieren texturas Po2
-• GPUs modernos y WebGL 2+ soportan completamente texturas no-Po2
-
-Use Po2 cuando se oriente a dispositivos antiguos o utilice mipmapping,
-envoltura de textura, o compresión GPU.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="378"/>
@@ -1624,70 +1494,67 @@ envoltura de textura, o compresión GPU.</translation>
 
 Padding helps prevent texture bleeding during rendering,
 especially when using texture filtering or mipmaps.</source>
-        <translation>Pixeles de relleno entre sprites.
-
-El relleno ayuda a prevenir el sangrado de textura durante el renderizado,
-especialmente cuando se utiliza el filtro de texturas o las mipáginas.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="489"/>
         <source>Created {0} animation(s) from subfolders.</source>
-        <translation>Creado {0} animación(s) de subcarpetas.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="497"/>
         <source>No image files found in any subfolders.</source>
-        <translation>No hay archivos de imagen encontrados en ningún subcarpeta.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="511"/>
         <source>No image files found in the selected directory.</source>
-        <translation>No hay archivos de imagen encontrados en el directorio seleccionado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="564"/>
         <source>Both atlas image and data files are required to import an atlas.</source>
-        <translation>Los archivos de imagen y datos de atlas son necesarios para importar un atlas.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="578"/>
         <source>No frames found in the selected atlas data file.</source>
-        <translation>No se han encontrado marcos en el archivo de datos de atlas seleccionado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="588"/>
         <source>PIL (Pillow) is required to extract frames from atlas files.</source>
-        <translation>PIL (Pillow) es necesario para extraer marcos de archivos atlas.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="721"/>
         <source>Successfully imported {0} frames from atlas &apos;{1}&apos; into {2} animations.</source>
-        <translation>Marcos {0} importados con éxito de atlas &apos;{1} en animaciones {2}.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="736"/>
         <source>All frames from this atlas were already added.</source>
-        <translation>Todos los marcos de este atlas ya fueron añadidos.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="747"/>
         <source>Error importing atlas: {0}</source>
-        <translation>Atlas de importación de errores: {0}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="869"/>
         <source>Configure format-specific compression options for the output image</source>
-        <translation>Configurar opciones de compresión específicas de formato para la imagen de salida</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="922"/>
         <source>Auto (Best Result)</source>
-        <translation>Auto (El mejor resultado)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="944"/>
         <source>N/A</source>
-        <translation>N/A</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1025"/>
@@ -1697,21 +1564,17 @@ especialmente cuando se utiliza el filtro de texturas o las mipáginas.</transla
 When enabled, transparent pixels around each sprite are removed,
 and offset metadata is stored so the original position can be
 reconstructed during playback.</source>
-        <translation>Trim bordes transparentes de sprites para empaquetado más ajustado.
-
-Cuando se activan píxeles transparentes alrededor de cada sprite se eliminan,
-y metadatos offset se almacenan para que la posición original pueda ser
-reconstruido durante la reproducción.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1073"/>
         <source>Allow the packer to rotate sprites 90° clockwise for tighter packing.</source>
-        <translation>Permite al empaquetador girar sprites 90° a mano de reloj para empaquetar más ajustado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1079"/>
         <source>Rotation is not supported by {0} format.</source>
-        <translation>La rotación no es compatible con el formato {0}.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1088"/>
@@ -1726,24 +1589,13 @@ include mirrored variants (e.g., character facing left/right).
 
 Warning: This is a non-standard extension only supported by HaxeFlixel.
 Most Starling/Sparrow implementations will ignore flip attributes.</source>
-        <translation>Detectar y deduplicar variantes sprite volteadas.
-
-Cuando está activado, esprites que son horizontal o verticalmente
-versiones volteadas de otros sprites se almacenan sólo una vez,
-con metadatos para que los motores puedan reconstruirlos.
-
-Esto puede reducir significativamente el tamaño del atlas cuando sus sprites
-incluyen variantes reflejadas (por ejemplo, carácter frente a izquierda/derecha).
-
-Advertencia: Esta es una extensión no estándar sólo soportada por HaxeFlixel.
-La mayoría de las implementaciones de Starling/Sparrow ignorarán atributos de flip.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1102"/>
         <source>Flip is not supported by {0} format.
 Only Sparrow/Starling XML with HaxeFlixel supports flip attributes.</source>
-        <translation>Flip no es compatible con {0} formato.
-Solo Sparrow/Starling XML con HaxeFlixel admite volteretas de atributos.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1124"/>
@@ -1751,147 +1603,142 @@ Solo Sparrow/Starling XML con HaxeFlixel admite volteretas de atributos.</transl
 
 This format cannot store the offset metadata required
 to reconstruct sprite positions after trimming.</source>
-        <translation>Trim no es compatible con {0} formato.
-
-Este formato no puede almacenar los metadatos offset necesarios
-para reconstruir posiciones sprite después de recortar.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1169"/>
         <source>Could not open compression settings: {0}</source>
-        <translation>No podía abrir los ajustes de compresión: {0}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1193"/>
         <source>New animation</source>
-        <translation>Nueva animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1267"/>
         <source>No frames loaded</source>
-        <translation>Sin marcos cargados</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1270"/>
         <source>{0} animation(s), {1} frame(s) total</source>
-        <translation>{0} animación(s), {1} cuadro(s) total</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1290"/>
         <source>Please add frames before generating atlas.</source>
-        <translation>Por favor, agregue marcos antes de generar atlas.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1434"/>
         <source>Generating atlas...</source>
-        <translation>Generando atlas...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1444"/>
         <source>Progress: {0}/{1} - {2}</source>
-        <translation>Progresos: {0}/{1} {2}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1454"/>
         <source>Atlas generated successfully!</source>
-        <translation>Atlas generado con éxito!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1455"/>
         <source>Atlas: {0}</source>
-        <translation>Atlas: {0}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1457"/>
         <source>Size: {0}x{1}</source>
-        <translation>Tamaño: {0}x{1}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1462"/>
         <source>Frames: {0}</source>
-        <translation>Frames: {0}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1463"/>
         <source>Efficiency: {0:.1f}%</source>
-        <translation>Eficiencia: {0:.1f}%</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1465"/>
         <source>Format: {0}</source>
-        <translation>Formato: {0}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1467"/>
         <source>Metadata files: {0}</source>
-        <translation>Archivos de metadatos: {0}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1469"/>
         <source>Generation completed successfully!</source>
-        <translation>Generación completada con éxito!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1471"/>
         <source>GENERATION COMPLETED SUCCESSFULLY!</source>
-        <translation>GENERACIÓN COMPLETED SUCCESSFULLY!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1482"/>
         <location filename="../gui/generate_tab_widget.py" line="1484"/>
         <source>Generation failed!</source>
-        <translation>¡La generación falló!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1486"/>
         <source>Error: {0}</source>
-        <translation>Error {0}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1491"/>
         <source>Atlas generation failed:
 
 {0}</source>
-        <translation>La generación de Atlas falló:
-
-{0}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1502"/>
         <location filename="../gui/generate_tab_widget.py" line="1534"/>
         <source>Width</source>
-        <translation>Width</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1503"/>
         <location filename="../gui/generate_tab_widget.py" line="1535"/>
         <source>Height</source>
-        <translation>Altura</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1505"/>
         <source>Atlas sizing: Automatic mode selected.</source>
-        <translation>Tamaño de Atlas: Modo automático seleccionado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1513"/>
         <source>Min size</source>
-        <translation>Tamaño mínimo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1514"/>
         <source>Max size</source>
-        <translation>Tamaño máximo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1524"/>
         <source>Atlas sizing: MinMax mode enabled - atlas will be constrained between min and max sizes</source>
-        <translation>Talla Atlas: Modo MinMax activado - atlas se limitará entre min y máx</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1545"/>
         <source>Atlas sizing: Manual mode enabled - exact dimensions will be forced (warning will be shown if frames don&apos;t fit)</source>
-        <translation>Talla Atlas: modo manual habilitado - las dimensiones exactas serán forzadas (se mostrará el aviso si los marcos no encajan)</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1899,66 +1746,64 @@ para reconstruir posiciones sprite después de recortar.</translation>
     <message>
         <location filename="../gui/language_selection_window.py" line="75"/>
         <source>Language Settings</source>
-        <translation>Ajustes de idiomas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="139"/>
         <source>Select Application Language</source>
-        <translation>Seleccionar idioma de aplicación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="145"/>
         <source>Language:</source>
-        <translation>Idioma:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="159"/>
         <source>Note: The application may need to be restarted to fully apply the language change.
 Auto detects your system language and falls back to English if unavailable.
 Quality indicators: {native} Native, {reviewed} Reviewed, {unreviewed} Unreviewed, {machine} Machine, {unknown} Unknown</source>
-        <translation>Nota: La aplicación puede necesitar ser reiniciada para aplicar plenamente el cambio de idioma.
-Auto detecta su lenguaje del sistema y vuelve al inglés si no está disponible.
-Indicadores de calidad: {native} Nativo, {reviewed} Revisado, {unreviewed} No revisado, {machine} Máquina {unknown} Desconocido</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="235"/>
         <source>Auto (System Default): {language}</source>
-        <translation>Auto (Default del sistema): {language}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="314"/>
         <location filename="../gui/language_selection_window.py" line="322"/>
         <location filename="../gui/language_selection_window.py" line="357"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="316"/>
         <source>Could not change language: Parent window not available</source>
-        <translation>No podía cambiar el idioma: ventana de pariente no disponible</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="323"/>
         <source>Failed to change language: {}</source>
-        <translation>Failed to change language: {}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="352"/>
         <source>Could not open language selection: {error}</source>
-        <translation>No podía abrir la selección de idiomas: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>MachineTranslationDisclaimer</name>
     <message>
-        <location filename="../utils/translation_manager.py" line="476"/>
+        <location filename="../utils/translation_manager.py" line="315"/>
         <source>Machine Translation Notice</source>
-        <translation>Aviso de traducción automática</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../utils/translation_manager.py" line="479"/>
+        <location filename="../utils/translation_manager.py" line="318"/>
         <source>This language was automatically translated and may contain inaccuracies. If you would like to contribute better translations, please visit our GitHub repository.</source>
-        <translation>Este idioma fue traducido automáticamente y puede contener imprecisiones. Si desea aportar mejores traducciones, visite nuestro repositorio GitHub.</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1966,98 +1811,98 @@ Indicadores de calidad: {native} Nativo, {reviewed} Revisado, {unreviewed} No re
     <message>
         <location filename="../gui/machine_translation_disclaimer_dialog.py" line="96"/>
         <source>Don&apos;t show this disclaimer again for this language</source>
-        <translation>No muestres esta renuncia de nuevo por este idioma</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/machine_translation_disclaimer_dialog.py" line="103"/>
         <source>View on GitHub</source>
-        <translation>Vista en GitHub</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>OverrideSettingsWindow</name>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="116"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="110"/>
         <source>{prefix} Settings Override - {name}</source>
-        <translation>{prefix} Ajustes Override - {name}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="263"/>
-        <source>Name:</source>
-        <translation>Nombre:</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="271"/>
-        <source>Spritesheet:</source>
-        <translation>Spritesheet:</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="279"/>
-        <source>Filename:</source>
-        <translation>Nombre de archivo:</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="355"/>
-        <source>Indices (comma-separated):</source>
-        <translation>Índices (separados por el sistema):</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="358"/>
-        <source>e.g., 0,1,2,3 or leave empty for all</source>
-        <translation>por ejemplo, 0,1,2,3 o dejar vacío para todos</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="208"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="202"/>
         <source>Animation Settings Override</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="210"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="204"/>
         <source>Spritesheet Settings Override</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="282"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="257"/>
+        <source>Name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/override_settings_window.py" line="265"/>
+        <source>Spritesheet:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/override_settings_window.py" line="273"/>
+        <source>Filename:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/override_settings_window.py" line="276"/>
         <source>Leave empty for auto-generated filename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="660"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="349"/>
+        <source>Indices (comma-separated):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/override_settings_window.py" line="352"/>
+        <source>e.g., 0,1,2,3 or leave empty for all</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/override_settings_window.py" line="654"/>
         <source>Info</source>
-        <translation>Info</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="662"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="656"/>
         <source>Preview is only available for animations, not spritesheets.</source>
-        <translation>La vista previa sólo está disponible para animaciones, no spritesheets.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="672"/>
-        <location filename="../gui/extractor/override_settings_window.py" line="693"/>
-        <location filename="../gui/extractor/override_settings_window.py" line="716"/>
-        <location filename="../gui/extractor/override_settings_window.py" line="730"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="666"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="687"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="710"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="724"/>
         <source>Preview Error</source>
-        <translation>Error de vista previa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="673"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="667"/>
         <source>Invalid animation name format.</source>
-        <translation>Formato de nombre de animación inválido.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="694"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="688"/>
         <source>Could not find spritesheet: {name}</source>
-        <translation>No podía encontrar spritesheet: {name}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="717"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="711"/>
         <source>Could not find animation: {name}</source>
-        <translation>No pude encontrar animación: {name}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="731"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="725"/>
         <source>Could not open preview: {error}</source>
-        <translation>No podía abrir la vista previa: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2065,86 +1910,84 @@ Indicadores de calidad: {native} Nativo, {reviewed} Revisado, {unreviewed} No re
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="81"/>
         <source>Parse Issues Detected</source>
-        <translation>Problemas de pares detectados</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="129"/>
         <source>Found {errors} error(s) and {warnings} warning(s) in {files} file(s).
 Some sprites may not extract correctly.</source>
-        <translation>Encontrado {errors} errores(s) y {warnings} advertencia(s) en {files} archivo(s).
-Algunos sprites pueden no extraer correctamente.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="137"/>
         <source>Found {warnings} warning(s) in {files} file(s).
 Extraction can proceed but results may be affected.</source>
-        <translation>Encontrado {warnings} advertencia(s) en {files} fichero(s).
-La extracción puede proceder pero los resultados pueden verse afectados.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="142"/>
         <source>All files parsed successfully.</source>
-        <translation>Todos los archivos se analizaron con éxito.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="155"/>
         <source>File / Issue</source>
-        <translation>Archivo / Edición</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="156"/>
         <source>Type</source>
-        <translation>Tipo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="157"/>
         <source>Skip</source>
-        <translation>Skip</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="172"/>
         <source>Skip all files with errors</source>
-        <translation>Saltar todos los archivos con errores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="185"/>
         <source>Continue Anyway</source>
-        <translation>Continúa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="187"/>
         <source>Process all files, including those with errors</source>
-        <translation>Procesar todos los archivos, incluyendo aquellos con errores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="192"/>
         <source>Skip Selected</source>
-        <translation>Skip Selected</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="194"/>
         <source>Skip files that are checked in the Skip column</source>
-        <translation>Saltar archivos que se registran en la columna Skip</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="199"/>
         <source>Cancel</source>
-        <translation>Cancelar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="235"/>
         <source>Skip this file during extraction</source>
-        <translation>Saltar este archivo durante la extracción</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="250"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="260"/>
         <source>Warning</source>
-        <translation>Advertencia</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2152,171 +1995,171 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../gui/extractor/processing_window.py" line="62"/>
         <source>Processing...</source>
-        <translation>Procesando...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="94"/>
         <source>Extracting TextureAtlas Files</source>
-        <translation>Extracting TextureAtlas Files</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="106"/>
         <source>Current File:</source>
-        <translation>Archivo actual:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="109"/>
         <location filename="../gui/extractor/processing_window.py" line="549"/>
         <source>Initializing...</source>
-        <translation>Iniciando...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="119"/>
         <source>Worker Status</source>
-        <translation>Estado del trabajador</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="128"/>
         <location filename="../gui/extractor/processing_window.py" line="483"/>
         <source>Show worker details</source>
-        <translation>Mostrar detalles del trabajador</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="155"/>
         <source>Progress: 0 / 0 files</source>
-        <translation>Progreso: 0 / 0 archivos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="170"/>
         <source>Statistics:</source>
-        <translation>Estadísticas:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="176"/>
         <source>Frames Generated: 0</source>
-        <translation>Frames Generado: 0</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="177"/>
         <source>Animations Generated: 0</source>
-        <translation>Animaciones Generadas: 0</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="178"/>
         <source>Sprites Failed: 0</source>
-        <translation>Sprites Failed: 0</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="179"/>
         <source>Duration: 00:00</source>
-        <translation>Duración: 00:00</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="188"/>
         <source>Processing Log:</source>
-        <translation>Registro de procesamiento:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="239"/>
         <source>Starting extraction of {count} files...</source>
-        <translation>Comenzando la extracción de archivos {count}...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="281"/>
         <location filename="../gui/extractor/processing_window.py" line="291"/>
         <source>Processing: {filename}</source>
-        <translation>Procesamiento: {filename}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="300"/>
         <source>Progress: {current} / {total} files</source>
-        <translation>Progreso: {current} / {total}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="325"/>
         <source>Duration: {minutes:02d}:{seconds:02d}</source>
-        <translation>Duración: {minutes:02d}:{seconds:02d}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="368"/>
         <source>Processing completed successfully!</source>
-        <translation>¡Procesamiento completado con éxito!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="370"/>
         <source>✓ Extraction completed successfully!</source>
-        <translation>✓ Extracción completada con éxito!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="374"/>
         <source>Processing failed!</source>
-        <translation>¡Procesamiento falló!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="375"/>
         <source>✗ Extraction failed!</source>
-        <translation>✗ Extracción falló!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="378"/>
         <source>Error: {message}</source>
-        <translation>Error {message}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="399"/>
         <source>Cancelling...</source>
-        <translation>Cancelando...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="401"/>
         <source>Cancellation requested...</source>
-        <translation>Cancelación solicitada...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="415"/>
         <source>Forcing cancellation due to timeout...</source>
-        <translation>Forzar la cancelación debido al tiempo libre...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="450"/>
         <source>Frames Generated: {count}</source>
-        <translation>Frames Generated: {count}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="453"/>
         <source>Animations Generated: {count}</source>
-        <translation>Animaciones generadas: {count}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="458"/>
         <source>Sprites Failed: {count}</source>
-        <translation>Sprites Failed: {count}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="481"/>
         <source>Hide worker details</source>
-        <translation>Ocultar detalles del trabajador</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="512"/>
         <source>No active workers</source>
-        <translation>No hay trabajadores activos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="519"/>
         <source>Worker</source>
-        <translation>Trabajador</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="520"/>
         <location filename="../gui/extractor/processing_window.py" line="528"/>
         <source>Idle</source>
-        <translation>Idle</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="544"/>
         <source>Processing: {files}</source>
-        <translation>Procesamiento: {files}</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2324,22 +2167,22 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/update_installer.py" line="109"/>
         <source>TextureAtlas Toolbox Updater</source>
-        <translation>TextureAtlas Toolbox Updater</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/update_installer.py" line="125"/>
         <source>Initializing...</source>
-        <translation>Iniciando...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/update_installer.py" line="132"/>
         <source>Restart Application</source>
-        <translation>Aplicación de reinicio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/update_installer.py" line="136"/>
         <source>Close</source>
-        <translation>Cerca</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2347,33 +2190,33 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../gui/settings_window.py" line="42"/>
         <source>Current Settings Overview</source>
-        <translation>Panorama actual</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/settings_window.py" line="79"/>
         <source>Animation Settings</source>
-        <translation>Ajustes de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/settings_window.py" line="89"/>
         <location filename="../gui/settings_window.py" line="118"/>
         <source>  {key}: {value}</source>
-        <translation>{key}: {value}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/settings_window.py" line="95"/>
         <source>  No animation-specific settings configured</source>
-        <translation>No se configuran configuraciones específicas de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/settings_window.py" line="108"/>
         <source>Spritesheet Settings</source>
-        <translation>Ajustes de la hoja de cálculo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/settings_window.py" line="124"/>
         <source>  No spritesheet-specific settings configured</source>
-        <translation>No se configuran configuraciones específicas de spritesheet</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2381,247 +2224,247 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../gui/extract_tab_widget.py" line="119"/>
         <source>Path or filenames</source>
-        <translation>Path or filenames</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="142"/>
         <source>Paste a path or space-separated files</source>
-        <translation>Pruebe un camino o archivos separados del espacio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="174"/>
         <source>Type a path and press Enter</source>
-        <translation>Escribe un camino y pulsa Enter</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>TextureAtlasExtractorApp</name>
     <message>
-        <location filename="../Main.py" line="186"/>
+        <location filename="../Main.py" line="179"/>
         <source>Variable delay</source>
-        <translation>Diferencia variable</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="190"/>
+        <location filename="../Main.py" line="183"/>
         <source>Enable variable delay between frames for more accurate timing</source>
-        <translation>Permitir retraso variable entre marcos para un tiempo más preciso</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="195"/>
+        <location filename="../Main.py" line="188"/>
         <source>FNF: Set loop delay on idle animations to 0</source>
-        <translation>FNF: Establecer retraso de bucle en animaciones ociosas a 0</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="200"/>
+        <location filename="../Main.py" line="193"/>
         <source>Automatically set loop delay to 0 for animations with &apos;idle&apos; in their name</source>
-        <translation>Retraso automático del bucle a 0 para animaciones con &apos;idle&apos; en su nombre</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="209"/>
+        <location filename="../Main.py" line="202"/>
         <source>Language...</source>
-        <translation>Idioma...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="210"/>
+        <location filename="../Main.py" line="203"/>
         <source>Change application language</source>
-        <translation>Cambiar idioma de aplicación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="241"/>
-        <location filename="../Main.py" line="244"/>
-        <location filename="../Main.py" line="247"/>
-        <location filename="../Main.py" line="255"/>
-        <location filename="../Main.py" line="1206"/>
+        <location filename="../Main.py" line="234"/>
+        <location filename="../Main.py" line="237"/>
+        <location filename="../Main.py" line="240"/>
+        <location filename="../Main.py" line="248"/>
+        <location filename="../Main.py" line="1199"/>
         <source>Editor</source>
-        <translation>Editor</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="307"/>
+        <location filename="../Main.py" line="300"/>
         <source>TextureAtlas Toolbox v{version}</source>
-        <translation>TextureAtlas Toolbox v{version}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="319"/>
+        <location filename="../Main.py" line="312"/>
         <source>No input directory selected</source>
-        <translation>No hay directorio de entrada seleccionado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="320"/>
+        <location filename="../Main.py" line="313"/>
         <source>No output directory selected</source>
-        <translation>No hay directorio de salida seleccionado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="434"/>
-        <location filename="../Main.py" line="464"/>
-        <location filename="../Main.py" line="475"/>
-        <location filename="../Main.py" line="486"/>
-        <location filename="../Main.py" line="506"/>
-        <location filename="../Main.py" line="584"/>
-        <location filename="../Main.py" line="800"/>
-        <location filename="../Main.py" line="1032"/>
-        <location filename="../Main.py" line="1041"/>
+        <location filename="../Main.py" line="427"/>
+        <location filename="../Main.py" line="457"/>
+        <location filename="../Main.py" line="468"/>
+        <location filename="../Main.py" line="479"/>
+        <location filename="../Main.py" line="499"/>
+        <location filename="../Main.py" line="577"/>
+        <location filename="../Main.py" line="793"/>
+        <location filename="../Main.py" line="1025"/>
+        <location filename="../Main.py" line="1034"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="435"/>
+        <location filename="../Main.py" line="428"/>
         <source>Could not open language selection: {error}</source>
-        <translation>No podía abrir la selección de idiomas: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="453"/>
-        <location filename="../Main.py" line="522"/>
-        <location filename="../Main.py" line="536"/>
+        <location filename="../Main.py" line="446"/>
+        <location filename="../Main.py" line="515"/>
+        <location filename="../Main.py" line="529"/>
         <source>Warning</source>
-        <translation>Advertencia</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="454"/>
+        <location filename="../Main.py" line="447"/>
         <source>Could not open preferences: {error}</source>
-        <translation>No podía abrir preferencias: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="465"/>
+        <location filename="../Main.py" line="458"/>
         <source>Could not open help window: {error}</source>
-        <translation>No podía abrir la ventana de ayuda: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="476"/>
+        <location filename="../Main.py" line="469"/>
         <source>Could not open FNF help window: {error}</source>
-        <translation>No podía abrir la ventana de ayuda FNF: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="487"/>
+        <location filename="../Main.py" line="480"/>
         <source>Could not open contributors window: {error}</source>
-        <translation>No podía abrir la ventana de los contribuyentes: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="507"/>
+        <location filename="../Main.py" line="500"/>
         <source>Could not open compression settings window: {error}</source>
-        <translation>No podía abrir la ventana de configuración de compresión: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="523"/>
+        <location filename="../Main.py" line="516"/>
         <source>Could not open find/replace window: {error}</source>
-        <translation>No podía abrir la ventana de hallazgo/reemplazamiento: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="537"/>
+        <location filename="../Main.py" line="530"/>
         <source>Could not open settings window: {error}</source>
-        <translation>No podía abrir la ventana de configuración: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="551"/>
+        <location filename="../Main.py" line="544"/>
         <source>Select FNF Character Data File</source>
-        <translation>Seleccione el archivo de datos de caracteres FNF</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="553"/>
+        <location filename="../Main.py" line="546"/>
         <source>JSON files (*.json);;All files (*.*)</source>
-        <translation>Archivos JSON (*.json);;Todos los archivos (*.*)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="570"/>
-        <location filename="../Main.py" line="1027"/>
+        <location filename="../Main.py" line="563"/>
+        <location filename="../Main.py" line="1020"/>
         <source>Success</source>
-        <translation>Éxito</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="571"/>
+        <location filename="../Main.py" line="564"/>
         <source>FNF settings imported successfully!</source>
-        <translation>Ajustes FNF importados con éxito!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="585"/>
+        <location filename="../Main.py" line="578"/>
         <source>Failed to import FNF settings: {error}</source>
-        <translation>Failed to import FNF settings: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="616"/>
+        <location filename="../Main.py" line="609"/>
         <source>Up to Date</source>
-        <translation>Hasta la fecha</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="618"/>
+        <location filename="../Main.py" line="611"/>
         <source>You are already running the latest version ({version}).</source>
-        <translation>Usted ya está ejecutando la última versión ({version}).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="653"/>
+        <location filename="../Main.py" line="646"/>
         <source>Update Check Failed</source>
-        <translation>Actualización de datos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="654"/>
+        <location filename="../Main.py" line="647"/>
         <source>Could not check for updates: {error}</source>
-        <translation>No podía comprobar las actualizaciones: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="662"/>
+        <location filename="../Main.py" line="655"/>
         <source>latest</source>
-        <translation>más recientes</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="665"/>
+        <location filename="../Main.py" line="658"/>
         <source>Launching Updater</source>
-        <translation>Actualizador de lanzamiento</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="667"/>
+        <location filename="../Main.py" line="660"/>
         <source>The updater for version {version} will launch in a new window. The application will now close.</source>
-        <translation>El actualizador para la versión {version} lanzará en una nueva ventana. La aplicación se cerrará ahora.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1024"/>
+        <location filename="../Main.py" line="1017"/>
         <source>Language changed successfully!</source>
-        <translation>¡El lenguaje cambió con éxito!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1033"/>
+        <location filename="../Main.py" line="1026"/>
         <source>Could not load language &apos;{language}&apos;</source>
-        <translation>No podía cargar el lenguaje &apos;{language}&apos;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1042"/>
+        <location filename="../Main.py" line="1035"/>
         <source>Failed to change language: {error}</source>
-        <translation>Failed to change language: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1102"/>
-        <location filename="../Main.py" line="1180"/>
-        <location filename="../Main.py" line="1189"/>
+        <location filename="../Main.py" line="1095"/>
+        <location filename="../Main.py" line="1173"/>
+        <location filename="../Main.py" line="1182"/>
         <source>Preview Error</source>
-        <translation>Error de vista previa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1103"/>
+        <location filename="../Main.py" line="1096"/>
         <source>Could not open animation preview: {error}</source>
-        <translation>No podía abrir la vista previa de la animación: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1134"/>
+        <location filename="../Main.py" line="1127"/>
         <source>Settings Saved</source>
-        <translation>Ajustes guardados</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1135"/>
+        <location filename="../Main.py" line="1128"/>
         <source>Animation override settings have been saved for &apos;{name}&apos;.</source>
-        <translation>Los ajustes de anulación de animación se han guardado para &apos;{name}.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1181"/>
+        <location filename="../Main.py" line="1174"/>
         <source>Could not generate animation preview.</source>
-        <translation>No podía generar la vista previa de la animación.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1190"/>
+        <location filename="../Main.py" line="1183"/>
         <source>Failed to preview animation: {error}</source>
-        <translation>Fallado para la animación de la vista previa: {error}</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1207"/>
+        <location filename="../Main.py" line="1200"/>
         <source>The editor tab is not available in this session.</source>
-        <translation>La ficha del editor no está disponible en esta sesión.</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2629,222 +2472,222 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../gui/app_ui.py" line="1041"/>
         <source>Select directory</source>
-        <translation>Seleccionar directorio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1046"/>
         <source>Select files</source>
-        <translation>Seleccione archivos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1049"/>
         <source>Clear export list</source>
-        <translation>Lista de exportación clara</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1054"/>
         <source>FNF: Import settings from character data file</source>
-        <translation>FNF: Ajustes de importación del archivo de datos de caracteres</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1061"/>
         <source>Preferences</source>
-        <translation>Preferencias</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1064"/>
         <source>User Manual</source>
-        <translation>Manual de usuario</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1067"/>
         <source>FNF Guide</source>
-        <translation>FNF Guide</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1070"/>
         <source>Show Contributors</source>
-        <translation>Mostrar colaboradores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1079"/>
         <source>Extract frames from TextureAtlases. Extraction supports exporting as frames or animations.</source>
-        <translation>Extraer marcos de TextureAtlases. La extracción permite exportar como marcos o animaciones.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1088"/>
         <source>List of all spritesheets to extract</source>
-        <translation>Lista de todas las spritesheets para extraer</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1095"/>
         <source>List of all the animations of the currently selected spritesheet</source>
-        <translation>Lista de todas las animaciones de la spritesheet seleccionada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1103"/>
         <source>Select input directory</source>
-        <translation>Seleccionar directorio de entrada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1108"/>
         <source>Select output directory</source>
-        <translation>Seleccionar directorio de salida</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1113"/>
         <source>No input directory selected</source>
-        <translation>No hay directorio de entrada seleccionado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1118"/>
         <source>No output directory selected</source>
-        <translation>No hay directorio de salida seleccionado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1124"/>
         <location filename="../utils/ui_constants.py" line="87"/>
         <source>Animation export settings</source>
-        <translation>Ajustes de exportación de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1130"/>
         <source>Export as animations</source>
-        <translation>Exportar como animaciones</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1140"/>
         <source>Sets the format of animated images</source>
-        <translation>Establece el formato de imágenes animadas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1147"/>
         <location filename="../utils/ui_constants.py" line="39"/>
         <source>Animation format</source>
-        <translation>Formato de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1153"/>
         <source>Sets the playback rate of animated images</source>
-        <translation>Establece la tasa de reproducción de imágenes animadas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1164"/>
         <source>Time to wait before looping the animation</source>
-        <translation>Hora de esperar antes de la animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1174"/>
         <source>Forces animated images to be played for at least the set amount of time.</source>
-        <translation>Fuerzas animadas imágenes para jugar por lo menos la cantidad de tiempo establecida.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1183"/>
         <location filename="../utils/ui_constants.py" line="41"/>
         <source>Frame rate</source>
-        <translation>Tasa de fractura</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1186"/>
         <location filename="../utils/ui_constants.py" line="52"/>
         <source>Loop delay</source>
-        <translation>Prórroga del bucle</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1189"/>
         <location filename="../utils/ui_constants.py" line="54"/>
         <source>Minimum period</source>
-        <translation>Período mínimo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1192"/>
         <location filename="../gui/app_ui.py" line="1249"/>
         <location filename="../utils/ui_constants.py" line="45"/>
         <source>Scale</source>
-        <translation>Escala</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1195"/>
         <location filename="../utils/ui_constants.py" line="50"/>
         <source>Alpha threshold</source>
-        <translation>Umbral de alfa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1201"/>
         <source>[GIFs only!] Sets the alpha threshold of GIFs</source>
-        <translation>[GIFs only!] Establece el umbral de alfa de los GIF</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1211"/>
         <source>Sets the scale of animated images</source>
-        <translation>Establece la escala de imágenes animadas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1219"/>
         <location filename="../utils/ui_constants.py" line="92"/>
         <source>Frame export settings</source>
-        <translation>Ajustes de exportación de marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1225"/>
         <source>Export as frames</source>
-        <translation>Exportar como marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1239"/>
         <source>Sets the format of frame images</source>
-        <translation>Establece el formato de imágenes de marco</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1246"/>
         <location filename="../utils/ui_constants.py" line="40"/>
         <source>Frame format</source>
-        <translation>Formato marco</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1253"/>
         <source>Sets the scale of frames images</source>
-        <translation>Establece la escala de imágenes de marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1265"/>
         <source>Which frames to export. &quot;All&quot; exports all frames, &quot;No duplicates&quot; only exports unique frames, &quot;First, Last&quot; exports the first and last frame of the animation.</source>
-        <translation>Que marcos para exportar. &quot;Todos&quot; exporta todos los marcos, &quot;No duplicados&quot; sólo exporta marcos únicos, &quot;Primero, Último&quot; exporta el primer y último marco de la animación.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1273"/>
         <location filename="../utils/ui_constants.py" line="43"/>
         <source>Frame selection</source>
-        <translation>Selección de marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1279"/>
         <source>Controls compression settings for frame images</source>
-        <translation>Controles configuración de compresión para imágenes de marco</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1287"/>
         <location filename="../utils/ui_constants.py" line="119"/>
         <location filename="../utils/ui_constants.py" line="170"/>
         <source>Compression settings</source>
-        <translation>Ajustes de compresión</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1292"/>
         <location filename="../utils/ui_constants.py" line="46"/>
         <source>Cropping method</source>
-        <translation>Método de cultivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1302"/>
         <source>How cropping should be done. Note: &quot;Frame based&quot; only works on frames, animations will automatically use &quot;Animation based&quot; if &quot;Frame based&quot; was chosen.</source>
-        <translation>Cómo se debe hacer el cultivo. Nota: &quot;Frame basado&quot; sólo funciona en marcos, animaciones utilizarán automáticamente &quot;Animación basada&quot; si se eligió &quot;Frame based&quot;.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1310"/>
         <location filename="../utils/ui_constants.py" line="48"/>
         <source>Resampling method</source>
-        <translation>Método de muestreo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1323"/>
@@ -2856,519 +2699,519 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
         <location filename="../gui/app_ui.py" line="1331"/>
         <location filename="../utils/ui_constants.py" line="78"/>
         <source>Filename prefix</source>
-        <translation>Nombre de archivo prefijo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1337"/>
         <source>Adds a prefix to the filename</source>
-        <translation>Añade un prefijo al nombre de archivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1344"/>
         <location filename="../utils/ui_constants.py" line="79"/>
         <source>Filename suffix</source>
-        <translation>Nombre de archivo suffix</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1350"/>
         <source>Adds a suffix to the filename</source>
-        <translation>Añade un sufijo al nombre de archivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1363"/>
         <source>How filenames should be formatted. Standardized exports names as &quot;Spritesheet name - animation name&quot;.</source>
-        <translation>Cómo se deben formatear los nombres de archivo. Exportaciones estandarizadas nombres como &quot;nombre de hoja de cálculo - nombre de animación&quot;.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1371"/>
         <location filename="../utils/ui_constants.py" line="47"/>
         <source>Filename format</source>
-        <translation>Formato de nombre de archivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1377"/>
         <source>Advanced filename options allows using pattern matching to remove certain words or phrases from filenames. Supports &quot;Regular Expression&quot;.</source>
-        <translation>Opciones avanzadas de nombre de archivo permite utilizar el patrón que coincida para eliminar ciertas palabras o frases de nombres de archivo. Soporta &quot;Expresión regional&quot;.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1385"/>
         <source>Advanced filename options</source>
-        <translation>Opciones avanzadas de nombre de archivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1391"/>
         <source>Starts extraction process</source>
-        <translation>Empieza proceso de extracción</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1397"/>
         <source>Start process</source>
-        <translation>Proceso de inicio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1401"/>
         <source>Opens a window showing all the current override settings.</source>
-        <translation>Abre una ventana que muestra todos los ajustes de anulación actual.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1409"/>
         <source>Show override settings</source>
-        <translation>Mostrar configuración de override</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1415"/>
         <source>Overrides the global settings for the selected spritesheet</source>
-        <translation>Supera la configuración global para la spritesheet seleccionada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1423"/>
         <source>Override spritesheet settings</source>
-        <translation>Configuración de spritesheet</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1429"/>
         <source>Resets the filelist and override settings</source>
-        <translation>Restablecer la lista de archivos y anular la configuración</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1437"/>
         <location filename="../utils/ui_constants.py" line="108"/>
         <source>Reset</source>
-        <translation>Reset</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1441"/>
         <source>Overrides the global settings for the selected animation</source>
-        <translation>Supera la configuración global para la animación seleccionada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1449"/>
         <source>Override animation settings</source>
-        <translation>Ajustes de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1455"/>
         <source>Extract</source>
-        <translation>Extracto</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1458"/>
         <source>Input</source>
-        <translation>Input</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1465"/>
         <source>Adds all images from the selected directory to the atlas generator</source>
-        <translation>Añade todas las imágenes del directorio seleccionado al generador atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1473"/>
         <source>Directory</source>
-        <translation>Directorio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1477"/>
         <source>Adds selected files to the atlas generator</source>
-        <translation>Añade archivos seleccionados al generador atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1485"/>
         <source>Files</source>
-        <translation>Archivos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1489"/>
         <source>Adds an existing atlas to be regenerated by the generator</source>
-        <translation>Añade un atlas existente para ser regenerado por el generador</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1497"/>
         <source>Atlas</source>
-        <translation>Atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1501"/>
         <source>Clears all input files</source>
-        <translation>Limpia todos los archivos de entrada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1507"/>
         <source>Clear All</source>
-        <translation>Despejado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1511"/>
         <source>Manually adds a new animation entry for the atlas</source>
-        <translation>Añade manualmente una nueva entrada de animación para el atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1519"/>
         <source>New Animation</source>
-        <translation>Nueva animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1522"/>
         <source>No frames loaded</source>
-        <translation>Sin marcos cargados</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1527"/>
         <source>Atlas Settings</source>
-        <translation>Ajustes de Atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1535"/>
         <location filename="../gui/app_ui.py" line="1560"/>
         <source>Choose how the atlas size is determined</source>
-        <translation>Elija cómo se determina el tamaño del atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1543"/>
         <source>Atlas type</source>
-        <translation>Tipo Atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1568"/>
         <source>Atlas size method</source>
-        <translation>Método de tamaño Atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1574"/>
         <source>Pads the atlas to the nearest power-of-two size (e.g., 512, 1024, 4096). Improves compatibility with older hardware.</source>
-        <translation>Padea el atlas al tamaño más cercano (por ejemplo, 512, 1024, 4096). Mejora la compatibilidad con hardware antiguo.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1582"/>
         <location filename="../utils/ui_constants.py" line="292"/>
         <source>Use &quot;Power of 2&quot; sizes</source>
-        <translation>Use &quot;Power of 2&quot; tamaños</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1590"/>
         <source>Min atlas size</source>
-        <translation>Tamaño min de atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1594"/>
         <location filename="../utils/ui_constants.py" line="293"/>
         <source>Allow rotation (90°)</source>
-        <translation>Permitir la rotación (90°)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1599"/>
         <location filename="../utils/ui_constants.py" line="294"/>
         <source>Allow flip X/Y (non-standard)</source>
-        <translation>Permitir voltereta X/Y (no estándar)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1608"/>
         <source>Packer method</source>
-        <translation>Método de empaquetado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1611"/>
         <source>Image format</source>
-        <translation>Formato de imagen</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1617"/>
         <source>Max atlas size</source>
-        <translation>Tamaño máximo de atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1621"/>
         <source>Adds some extra whitespace between textures or sprites to ensure they won&apos;t overlap</source>
-        <translation>Añade un poco de espacio blanco extra entre texturas o sprites para asegurar que no se solapan</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1629"/>
         <source>Padding:</source>
-        <translation>Padding:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1633"/>
         <source>Generate Atlas</source>
-        <translation>Generar Atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1636"/>
         <source>Ready</source>
-        <translation>Listo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1638"/>
         <source>Atlas generation log will appear here...</source>
-        <translation>El registro de generación de Atlas aparecerá aquí...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1656"/>
         <source>Generate</source>
-        <translation>Generar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1659"/>
         <source>Animations &amp; Frames</source>
-        <translation>Animaciones &quot; marcos &quot;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1664"/>
         <source>Load</source>
-        <translation>Carga</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1667"/>
         <location filename="../utils/ui_constants.py" line="110"/>
         <source>Remove</source>
-        <translation>Retirar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1670"/>
         <source>Combine</source>
-        <translation>Combinación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1673"/>
         <source>-</source>
-        <translation>-</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1676"/>
         <source>+</source>
-        <translation>+</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1679"/>
         <source>100%</source>
-        <translation>100%</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1682"/>
         <source>50%</source>
-        <translation>50%</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1685"/>
         <location filename="../utils/ui_constants.py" line="127"/>
         <source>Center View</source>
-        <translation>Vista del centro</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1688"/>
         <location filename="../utils/ui_constants.py" line="128"/>
         <source>Fit Canvas</source>
-        <translation>Fit Canvas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1691"/>
         <location filename="../utils/ui_constants.py" line="126"/>
         <source>Reset Zoom</source>
-        <translation>Reset Zoom</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1694"/>
         <source>Zoom: 100%</source>
-        <translation>Zoom: 100%</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1697"/>
         <source>Drag the frame, use arrow keys for fine adjustments, or type offsets manually.</source>
-        <translation>Arrastre el marco, utilice las teclas de flecha para los ajustes finos, o escriba los offsets manualmente.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1704"/>
         <source>Alignment controls</source>
-        <translation>Controles de alineación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1709"/>
         <source>Frame offset X</source>
-        <translation>Frame offset X</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1712"/>
         <source>Frame offset Y</source>
-        <translation>Frame offset Y</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1717"/>
         <source>Reset to default</source>
-        <translation>Reiniciar por defecto</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1722"/>
         <source>Apply to all frames</source>
-        <translation>Aplicar a todos los marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1727"/>
         <location filename="../utils/ui_constants.py" line="133"/>
         <source>Save Alignment to Extract Tab</source>
-        <translation>Guardar alineación a la pestaña Extracto</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1732"/>
         <source>Canvas controls</source>
-        <translation>Controles de tubos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1737"/>
         <source>Canvas width</source>
-        <translation>Ancho de lienzo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1741"/>
         <source>Canvas height</source>
-        <translation>Altura de los lienzos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1745"/>
         <source>Canvas origin</source>
-        <translation>Origen de las islas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1748"/>
         <location filename="../gui/app_ui.py" line="1754"/>
         <location filename="../utils/ui_constants.py" line="305"/>
         <source>Enable</source>
-        <translation>Habilitación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1751"/>
         <source>Snapping</source>
-        <translation>Snapping</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1758"/>
         <source>Ghost frame</source>
-        <translation>Marco fantasma</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1761"/>
         <source>Detach canvas</source>
-        <translation>Colocar lienzo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1764"/>
         <location filename="../utils/ui_constants.py" line="134"/>
         <source>Export Composite to Sprites</source>
-        <translation>Export Composite to Sprites</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1770"/>
         <location filename="../utils/ui_constants.py" line="192"/>
         <source>Editor</source>
-        <translation>Editor</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1773"/>
         <source>File</source>
-        <translation>Archivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1776"/>
         <source>Import</source>
-        <translation>Importación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1779"/>
         <source>Help</source>
-        <translation>Ayuda</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1782"/>
         <location filename="../utils/ui_constants.py" line="172"/>
         <source>Contributors</source>
-        <translation>Colaboradores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1785"/>
         <source>Advanced</source>
-        <translation>Avances</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1788"/>
         <source>Options</source>
-        <translation>Opciones</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="50"/>
         <source>All</source>
-        <translation>Todos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="51"/>
         <source>No duplicates</source>
-        <translation>No hay duplicados</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="52"/>
         <source>First</source>
-        <translation>Primera</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="53"/>
         <source>Last</source>
-        <translation>Último</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="54"/>
         <source>First, Last</source>
-        <translation>Primero, último</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="55"/>
         <source>Custom</source>
-        <translation>Aduanas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="58"/>
         <source>None</source>
-        <translation>Ninguno</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="59"/>
         <source>Animation based</source>
-        <translation>Animación basada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="60"/>
         <source>Frame based</source>
-        <translation>Marco basado en</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="63"/>
         <source>Standardized</source>
-        <translation>Normalización</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="64"/>
         <source>No spaces</source>
-        <translation>No hay espacios</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/combo_options.py" line="65"/>
         <source>No special characters</source>
-        <translation>No hay caracteres especiales</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="38"/>
         <source>Format</source>
-        <translation>Formato</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="42"/>
         <source>Frame scale</source>
-        <translation>Escala de marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="44"/>
         <source>Frame Selection</source>
-        <translation>Selección de marco</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="49"/>
         <source>Resampling</source>
-        <translation>Reamplificación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="51"/>
@@ -3383,12 +3226,12 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="55"/>
         <source>Min period</source>
-        <translation>Período mínimo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="56"/>
         <source>Variable delay</source>
-        <translation>Diferencia variable</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="57"/>
@@ -3408,87 +3251,87 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="60"/>
         <source>Position:</source>
-        <translation>Posición:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="61"/>
         <source>Preview Zoom:</source>
-        <translation>Vista previa Zoom:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="62"/>
         <source>Background:</source>
-        <translation>Antecedentes:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="63"/>
         <source>Enable animation export:</source>
-        <translation>Activar la exportación de animación:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="64"/>
         <source>Enable frame export:</source>
-        <translation>Exportación de marco:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="65"/>
         <source>Loop preview</source>
-        <translation>Loop Previsualización</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="66"/>
         <source>Edit selected frame only</source>
-        <translation>Editar el marco seleccionado sólo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="68"/>
         <source>Quality (0-100):</source>
-        <translation>Calidad (0-100):</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="69"/>
         <source>Compress Level (0-9):</source>
-        <translation>Nivel de compresión (0-9):</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="70"/>
         <source>Method (0-6):</source>
-        <translation>Método (0-6):</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="71"/>
         <source>Alpha Quality (0-100):</source>
-        <translation>Calidad alfa (0-100):</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="72"/>
         <source>Speed (0-10):</source>
-        <translation>Velocidad (0-10):</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="73"/>
         <source>Compression Type:</source>
-        <translation>Tipo de compresión:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="75"/>
         <source>Heuristic</source>
-        <translation>Heuristic</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="76"/>
         <source>Prefix</source>
-        <translation>Prefijo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="77"/>
         <source>Suffix</source>
-        <translation>Suffix</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="84"/>
         <source>Animation export</source>
-        <translation>Exportación de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="85"/>
@@ -3503,12 +3346,12 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="88"/>
         <source>Animation Settings</source>
-        <translation>Ajustes de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="89"/>
         <source>Frame export</source>
-        <translation>Exportación de marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="90"/>
@@ -3528,7 +3371,7 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="94"/>
         <source>Export</source>
-        <translation>Exportación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="95"/>
@@ -3538,157 +3381,157 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="96"/>
         <source>Display</source>
-        <translation>Visualización</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="97"/>
         <source>Alignment Controls</source>
-        <translation>Controles de alineación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="98"/>
         <source>Display &amp; snapping</source>
-        <translation>Mostrar &quot; snapping</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="103"/>
         <source>OK</source>
-        <translation>OK</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="104"/>
         <source>Cancel</source>
-        <translation>Cancelar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="105"/>
         <source>Close</source>
-        <translation>Cerca</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="106"/>
         <source>Save</source>
-        <translation>Guardar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="107"/>
         <source>Apply</source>
-        <translation>Aplicar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="109"/>
         <source>Delete</source>
-        <translation>Suprimir</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="111"/>
         <source>Continue</source>
-        <translation>Continuar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="112"/>
         <source>Play</source>
-        <translation>Jugar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="113"/>
         <source>Pause</source>
-        <translation>Pausa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="114"/>
         <source>Next</source>
-        <translation>Siguiente</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="115"/>
         <source>Previous</source>
-        <translation>Anterior</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="116"/>
         <source>Reset to defaults</source>
-        <translation>Reset to defaults</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="117"/>
         <source>Close and Save</source>
-        <translation>Cerrar y guardar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="118"/>
         <source>Preview animation</source>
-        <translation>Avance de la animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="120"/>
         <source>Apply to All</source>
-        <translation>Aplicar a todos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="121"/>
         <source>Reset Timing</source>
-        <translation>Reset Timing</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="122"/>
         <source>Force Regenerate Animation</source>
-        <translation>Fuerza de Animación Regenerada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="124"/>
         <source>Load Animation Files</source>
-        <translation>Cargar archivos de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="125"/>
         <source>Combine Selected</source>
-        <translation>Combinación seleccionada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="129"/>
         <source>Detach Canvas</source>
-        <translation>Detach Canvas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="130"/>
         <source>Reattach Canvas</source>
-        <translation>Reattach Canvas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="131"/>
         <source>Reset to Default</source>
-        <translation>Reset to Default</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="132"/>
         <source>Apply to All Frames</source>
-        <translation>Aplicar a todos los marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="135"/>
         <source>Load GIF/WebP/APNG/PNG files into the editor</source>
-        <translation>Cargar archivos GIF/WebP/APNG/PNG en el editor</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="136"/>
         <source>Create a composite entry from all selected animations for group alignment</source>
-        <translation>Crear una entrada compuesta de todas las animaciones seleccionadas para alineación de grupo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="141"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="142"/>
         <source>Warning</source>
-        <translation>Advertencia</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="143"/>
         <source>Success</source>
-        <translation>Éxito</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="144"/>
@@ -3703,7 +3546,7 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="146"/>
         <source>Info</source>
-        <translation>Info</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="147"/>
@@ -3713,142 +3556,142 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="148"/>
         <source>Settings Saved</source>
-        <translation>Ajustes guardados</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="149"/>
         <source>Invalid Input</source>
-        <translation>Entrada inválida</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="150"/>
         <source>Preview Error</source>
-        <translation>Error de vista previa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="151"/>
         <source>Load failed</source>
-        <translation>La carga falló</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="152"/>
         <source>Missing dependency</source>
-        <translation>Falta de dependencia</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="153"/>
         <source>Alignment saved</source>
-        <translation>Alineación salvada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="154"/>
         <source>Export composite</source>
-        <translation>Composite de exportación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="155"/>
         <source>Composite name</source>
-        <translation>Nombre compuesto</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="156"/>
         <source>Need more animations</source>
-        <translation>Necesita más animaciones</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="157"/>
         <source>Combine failed</source>
-        <translation>Combinación fallida</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="158"/>
         <source>Name conflict</source>
-        <translation>Nombre conflicto</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="159"/>
         <source>Parse Issues Detected</source>
-        <translation>Problemas de pares detectados</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="160"/>
         <source>Up to Date</source>
-        <translation>Hasta la fecha</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="161"/>
         <source>Update Check Failed</source>
-        <translation>Actualización de datos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="162"/>
         <source>Launching Updater</source>
-        <translation>Actualizador de lanzamiento</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="163"/>
         <source>Update Available</source>
-        <translation>Actualización disponible</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="164"/>
         <source>Machine Translation Warning</source>
-        <translation>Advertencia de traducción automática</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="169"/>
         <source>App Options</source>
-        <translation>Opciones de aplicación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="171"/>
         <source>Animation Preview</source>
-        <translation>Animación previa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="173"/>
         <source>Find and Replace</source>
-        <translation>Encontrar y reemplazar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="174"/>
         <source>Language Settings</source>
-        <translation>Ajustes de idiomas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="175"/>
         <source>Current Settings Overview</source>
-        <translation>Panorama actual</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="176"/>
         <source>Background Color Options</source>
-        <translation>Opciones de color de fondo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="177"/>
         <source>Unknown Atlas Warning</source>
-        <translation>Advertencia de Atlas desconocida</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="178"/>
         <source>Processing...</source>
-        <translation>Procesando...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="179"/>
         <source>Welcome to TextureAtlas Toolbox</source>
-        <translation>Bienvenido a TextureAtlas Toolbox</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="180"/>
         <source>Alignment Canvas</source>
-        <translation>Alignment Canvas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="181"/>
         <source>TextureAtlas Toolbox Updater</source>
-        <translation>TextureAtlas Toolbox Updater</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="186"/>
@@ -3883,192 +3726,192 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="197"/>
         <source>Select Input Directory</source>
-        <translation>Select Input Directory</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="198"/>
         <source>Select Output Directory</source>
-        <translation>Select Output Directory</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="199"/>
         <source>Select Files</source>
-        <translation>Seleccione archivos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="200"/>
         <source>Select frames</source>
-        <translation>Seleccionar marcos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="201"/>
         <source>Select directory with frame images</source>
-        <translation>Seleccionar directorio con imágenes de marco</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="202"/>
         <source>Select Atlas Image File</source>
-        <translation>Seleccione el archivo de imagen de Atlas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="203"/>
         <source>Select Atlas Data File</source>
-        <translation>Seleccione Atlas Data File</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="204"/>
         <source>Select animation files</source>
-        <translation>Seleccione archivos de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="205"/>
         <source>Save Atlas As</source>
-        <translation>Guardar Atlas como</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="206"/>
         <source>Select FNF Character Data File</source>
-        <translation>Seleccione el archivo de datos de caracteres FNF</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="207"/>
         <source>Choose Background Color</source>
-        <translation>Elija el color de fondo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="249"/>
         <source>Image files ({0})</source>
-        <translation>Archivos de imagen ({0})</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="250"/>
         <source>Atlas image files ({0})</source>
-        <translation>Archivos de imagen de Atlas ({0})</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="251"/>
         <source>Spritesheet data files ({0})</source>
-        <translation>Archivos de datos de spritesheet ({0})</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="252"/>
         <source>Animation files (*.gif *.apng *.png *.webp);;All files (*.*)</source>
-        <translation>Archivos de animación (*.gif *.apng *.png *.webp);Todos los archivos (*.*)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="287"/>
         <source>Optimize PNG</source>
-        <translation>Optimize PNG</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="288"/>
         <source>Lossless WebP</source>
-        <translation>Lossless WebP</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="289"/>
         <source>Exact WebP</source>
-        <translation>Exact WebP</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="290"/>
         <source>Lossless AVIF</source>
-        <translation>Pérdida AVIF</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="291"/>
         <source>Optimize TIFF</source>
-        <translation>Optimize TIFF</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="295"/>
         <source>Trim transparent edges</source>
-        <translation>Bordes transparentes Trim</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="296"/>
         <source>Check for updates on startup</source>
-        <translation>Comprobación para las actualizaciones de inicio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="297"/>
         <source>Auto-download and install updates</source>
-        <translation>Actualizaciones de descarga automática e instalación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="298"/>
         <source>Remember last used input directory</source>
-        <translation>Recuerda el último directorio de entrada usado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="299"/>
         <source>Remember last used output directory</source>
-        <translation>Recuerda el último directorio de salida usado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="300"/>
         <source>Hide single-frame spritemap animations</source>
-        <translation>Ocultar animaciones spritemap de marco único</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="301"/>
         <source>Use native file picker when available</source>
-        <translation>Use el selector de archivos nativo cuando esté disponible</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="302"/>
         <source>Merge duplicate frames</source>
-        <translation>Combinar marcos duplicados</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="303"/>
         <source>Trim Sprites</source>
-        <translation>Trim Sprites</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="304"/>
         <source>Regular Expression</source>
-        <translation>Expresión regular</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="306"/>
         <source>Skip all files with errors</source>
-        <translation>Saltar todos los archivos con errores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="307"/>
         <source>Check for updates on startup (recommended)</source>
-        <translation>Compruebe las actualizaciones de la puesta en marcha (recomendada)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="308"/>
         <source>Automatically download updates when available</source>
-        <translation>Descarga automáticamente actualizaciones cuando esté disponible</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="313"/>
         <source>Optional prefix</source>
-        <translation>Prefijo opcional</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="314"/>
         <source>Optional suffix</source>
-        <translation>Sufijo opcional</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="315"/>
         <source>Text to find...</source>
-        <translation>Texto para encontrar...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="316"/>
         <source>Replacement text...</source>
-        <translation>Texto del reemplazo...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="317"/>
         <source>e.g., 0,2,4 or 0-5 (leave empty for all frames)</source>
-        <translation>por ejemplo, 0,2,4 o 0-5 (dejar vacío para todos los marcos)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="318"/>
@@ -4078,72 +3921,72 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="319"/>
         <source>Type a path and press Enter</source>
-        <translation>Escribe un camino y pulsa Enter</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="320"/>
         <source>Paste a path or space-separated files</source>
-        <translation>Pruebe un camino o archivos separados del espacio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="325"/>
         <source>Add to Editor Tab</source>
-        <translation>Añadir a la pestaña Editor</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="326"/>
         <source>Focus in Editor Tab</source>
-        <translation>Focus in Editor Tab</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="327"/>
         <source>Override Settings</source>
-        <translation>Override Settings</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="328"/>
         <source>Preview Animation</source>
-        <translation>Avance Animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="329"/>
         <source>Remove from List</source>
-        <translation>Eliminar de la lista</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="330"/>
         <source>Remove animation(s)</source>
-        <translation>Quitar animaciones (s)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="331"/>
         <source>Remove selected frame(s)</source>
-        <translation>Eliminar los marcos seleccionados</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="332"/>
         <source>Add animation group</source>
-        <translation>Agregar grupo de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="333"/>
         <source>Rename animation</source>
-        <translation>Apellido de animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="334"/>
         <source>Delete animation</source>
-        <translation>Eliminar la animación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="335"/>
         <source>Remove frame</source>
-        <translation>Quitar el marco</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="336"/>
         <source>Add Rule</source>
-        <translation>Add Rule</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="337"/>
@@ -4153,42 +3996,42 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="338"/>
         <source>Select All</source>
-        <translation>Seleccione todos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="339"/>
         <source>Select None</source>
-        <translation>Seleccione</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="340"/>
         <source>Continue Anyway</source>
-        <translation>Continúa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="341"/>
         <source>Skip Selected</source>
-        <translation>Skip Selected</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="342"/>
         <source>Proceed anyway</source>
-        <translation>Procede de todos modos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="343"/>
         <source>Skip unknown</source>
-        <translation>Skip unknown</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="344"/>
         <source>Update Now</source>
-        <translation>Actualizar ahora</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="345"/>
         <source>Restart Application</source>
-        <translation>Aplicación de reinicio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="350"/>
@@ -4196,10 +4039,7 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
 • 0%: All pixels visible
 • 50%: Default, balanced transparency
 • 100%: Only fully opaque pixels visible</source>
-        <translation>Umbral alfa para la transparencia GIF (0-100%):
-• 0%: Todos los píxeles visibles
-• 50%: transparencia predeterminada y equilibrada
-• 100%: Sólo los píxeles totalmente opacos visibles</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="356"/>
@@ -4209,12 +4049,7 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
 • First: Export only the first frame
 • Last: Export only the last frame
 • First, Last: Export first and last frames</source>
-        <translation>Que marcos para exportar:
-• Todos: Exportar cada marco
-• No hay duplicados: Exportar marcos únicos solamente (fotos repetidos de desprendimiento)
-• Primero: Exportar sólo el primer marco
-• Last: Exportar sólo el último marco
-• Primero, último: Exportar los marcos primero y último</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="364"/>
@@ -4222,10 +4057,7 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
 • None: No cropping, keep original sprite size
 • Animation based: Crop to fit all frames in an animation
 • Frame based: Crop each frame individually (frames only)</source>
-        <translation>Cómo se debe hacer el cultivo:
-• Ninguno: Sin recortar, mantener el tamaño original de la sprite
-• Animación basada: Crop para ajustar todos los marcos en una animación
-• Marco basado: Recorte cada marco individualmente (sólo marcos)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="370"/>
@@ -4235,17 +4067,17 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
     <message>
         <location filename="../utils/ui_constants.py" line="376"/>
         <source>Image format for the atlas texture.</source>
-        <translation>Formato de imagen para la textura atlas.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="379"/>
         <source>Metadata format for the generated atlas.</source>
-        <translation>Formato de metadatos para el atlas generado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="382"/>
         <source>Hold Ctrl and use mouse wheel to zoom in/out</source>
-        <translation>Sostenga Ctrl y utilice la rueda del ratón para ampliar/out</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4254,7 +4086,7 @@ La extracción puede proceder pero los resultados pueden verse afectados.</trans
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="61"/>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="80"/>
         <source>Unknown Atlas Warning</source>
-        <translation>Advertencia de Atlas desconocida</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="88"/>
@@ -4269,42 +4101,32 @@ The tool can attempt to extract the unknown atlas(es) but has these limitations:
 • Output may not be usable in rare cases
 
 What would you like to do?</source>
-        <translation>Advertencia: {count} desconocido tipo atlas (s) detectado:
-
-Esto significa que el archivo de metadatos está desaparecido o no está soportado.
-
-La herramienta puede intentar extraer los atlas desconocidos (es) pero tiene estas limitaciones:
-• No se admite la exportación de animación
-• El cultivo puede ser inconsistente
-• La detección de sprite puede faltar o identificar incorrectamente sprites
-• La salida puede no ser usable en casos raros
-
-¿Qué quieres hacer?</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="105"/>
         <source>Affected files:</source>
-        <translation>Archivos afectados:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="114"/>
         <source>Proceed anyway</source>
-        <translation>Procede de todos modos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="120"/>
         <source>Skip unknown</source>
-        <translation>Skip unknown</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="125"/>
         <source>Cancel</source>
-        <translation>Cancelar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="167"/>
         <source>... and {count} more</source>
-        <translation>... y {count} más</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4312,7 +4134,7 @@ La herramienta puede intentar extraer los atlas desconocidos (es) pero tiene est
     <message>
         <location filename="../parsers/unknown_parser.py" line="209"/>
         <source>Background Color Detected</source>
-        <translation>Color de fondo detectado</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4320,17 +4142,17 @@ La herramienta puede intentar extraer los atlas desconocidos (es) pero tiene est
     <message>
         <location filename="../utils/update_checker.py" line="122"/>
         <source>Update Available</source>
-        <translation>Actualización disponible</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/update_checker.py" line="177"/>
         <source>Update Now</source>
-        <translation>Actualizar ahora</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utils/update_checker.py" line="196"/>
         <source>Cancel</source>
-        <translation>Cancelar</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4338,7 +4160,7 @@ La herramienta puede intentar extraer los atlas desconocidos (es) pero tiene est
     <message>
         <location filename="../utils/utilities.py" line="21"/>
         <source>TextureAtlas Toolbox</source>
-        <translation>TextureAtlas Toolbox</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
