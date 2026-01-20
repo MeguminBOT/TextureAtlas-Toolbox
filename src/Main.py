@@ -140,7 +140,7 @@ class TextureAtlasExtractorApp(QMainWindow):
         self.ui = Ui_TextureAtlasToolboxApp()
         self.ui.setupUi(self)
         self._resize_tools_tab_to_window()
-        self._default_minimum_size = QSize(900, 770)
+        self._default_minimum_size = QSize(900, 768)
         self._editor_minimum_size = QSize(1280, 850)
         self._pre_editor_size: Optional[QSize] = None
         self.setMinimumSize(self._default_minimum_size)
@@ -181,6 +181,32 @@ class TextureAtlasExtractorApp(QMainWindow):
 
     def setup_advanced_menu(self):
         """Set up the advanced menu with variable delay and FNF options."""
+        # Create start extraction action with keyboard shortcut (band-aid for low-res users)
+        self.start_extraction_action = QAction(
+            self.tr("Start Extraction"), self, checkable=False
+        )
+        self.start_extraction_action.setShortcut("Ctrl+Return")
+        self.start_extraction_action.setStatusTip(
+            self.tr("Start the extraction process (Ctrl+Enter)")
+        )
+        self.start_extraction_action.triggered.connect(self.start_process)
+
+        # Add to file menu (before preferences typically)
+        # Insert after file selection actions if possible
+        file_menu_actions = self.ui.menubar.actions()
+        if file_menu_actions:
+            file_menu = file_menu_actions[0].menu()
+            if file_menu:
+                actions = file_menu.actions()
+                if len(actions) > 3:
+                    # Insert before the 4th action (index 3)
+                    file_menu.insertSeparator(actions[3])
+                    file_menu.insertAction(actions[3], self.start_extraction_action)
+                else:
+                    # Append at the end if menu is smaller than expected
+                    file_menu.addSeparator()
+                    file_menu.addAction(self.start_extraction_action)
+
         # Create variable delay action
         self.variable_delay_action = QAction(
             self.tr("Variable delay"), self, checkable=True
