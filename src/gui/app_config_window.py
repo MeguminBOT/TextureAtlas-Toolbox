@@ -30,7 +30,7 @@ from PySide6.QtWidgets import (
     QSpinBox,
     QDoubleSpinBox,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QCoreApplication
 from PySide6.QtGui import QFont
 
 from utils.translation_manager import tr as translate
@@ -84,6 +84,24 @@ class AppConfigWindow(QDialog):
 
     tr = translate
 
+    # Context for translating strings from ui_constants module
+    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
+
+    def trc(self, text: str) -> str:
+        """Translate a string from ui_constants using its proper context.
+
+        Use this method for strings defined in ui_constants.py (Labels,
+        GroupTitles, CheckBoxLabels, etc.) to ensure they are looked up
+        in the correct translation context.
+
+        Args:
+            text: The string constant from ui_constants to translate.
+
+        Returns:
+            The translated string.
+        """
+        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
+
     def __init__(self, parent, app_config):
         """Initialize the configuration dialog.
 
@@ -93,7 +111,7 @@ class AppConfigWindow(QDialog):
         """
         super().__init__(parent)
         self.app_config = app_config
-        self.setWindowTitle(self.tr(WindowTitles.APP_OPTIONS))
+        self.setWindowTitle(self.trc(WindowTitles.APP_OPTIONS))
         self.setModal(True)
         self.resize(520, 750)
 
@@ -184,39 +202,39 @@ class AppConfigWindow(QDialog):
         tab_widget = QTabWidget()
 
         system_tab = self.create_system_tab()
-        tab_widget.addTab(system_tab, self.tr(TabTitles.SYSTEM_RESOURCES))
+        tab_widget.addTab(system_tab, self.trc(TabTitles.SYSTEM_RESOURCES))
 
         interface_tab = self.create_interface_tab()
-        tab_widget.addTab(interface_tab, self.tr(TabTitles.INTERFACE))
+        tab_widget.addTab(interface_tab, self.trc(TabTitles.INTERFACE))
 
         extraction_tab = self.create_extraction_tab()
-        tab_widget.addTab(extraction_tab, self.tr(TabTitles.EXTRACTION_DEFAULTS))
+        tab_widget.addTab(extraction_tab, self.trc(TabTitles.EXTRACTION_DEFAULTS))
 
         generator_tab = self.create_generator_tab()
-        tab_widget.addTab(generator_tab, self.tr(TabTitles.GENERATOR_DEFAULTS))
+        tab_widget.addTab(generator_tab, self.trc(TabTitles.GENERATOR_DEFAULTS))
 
         compression_tab = self.create_compression_tab()
-        tab_widget.addTab(compression_tab, self.tr(TabTitles.COMPRESSION_DEFAULTS))
+        tab_widget.addTab(compression_tab, self.trc(TabTitles.COMPRESSION_DEFAULTS))
 
         update_tab = self.create_update_tab()
-        tab_widget.addTab(update_tab, self.tr(TabTitles.UPDATES))
+        tab_widget.addTab(update_tab, self.trc(TabTitles.UPDATES))
 
         main_layout.addWidget(tab_widget)
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        reset_btn = QPushButton(self.tr(ButtonLabels.RESET_TO_DEFAULTS))
+        reset_btn = QPushButton(self.trc(ButtonLabels.RESET_TO_DEFAULTS))
         reset_btn.clicked.connect(self.reset_to_defaults)
         reset_btn.setMinimumWidth(130)
         button_layout.addWidget(reset_btn)
 
-        cancel_btn = QPushButton(self.tr(ButtonLabels.CANCEL))
+        cancel_btn = QPushButton(self.trc(ButtonLabels.CANCEL))
         cancel_btn.clicked.connect(self.reject)
         cancel_btn.setMinimumWidth(100)
         button_layout.addWidget(cancel_btn)
 
-        save_btn = QPushButton(self.tr(ButtonLabels.SAVE))
+        save_btn = QPushButton(self.trc(ButtonLabels.SAVE))
         save_btn.clicked.connect(self.save_config)
         save_btn.setMinimumWidth(100)
         save_btn.setDefault(True)
@@ -351,18 +369,18 @@ class AppConfigWindow(QDialog):
         layout = QVBoxLayout(widget)
 
         # Animation export group
-        anim_group = QGroupBox(self.tr(GroupTitles.ANIMATION_EXPORT_DEFAULTS))
+        anim_group = QGroupBox(self.trc(GroupTitles.ANIMATION_EXPORT_DEFAULTS))
         anim_layout = QGridLayout(anim_group)
 
         row = 0
-        anim_layout.addWidget(QLabel(self.tr(Labels.ENABLE_ANIMATION_EXPORT)), row, 0)
+        anim_layout.addWidget(QLabel(self.trc(Labels.ENABLE_ANIMATION_EXPORT)), row, 0)
         anim_export_cb = QCheckBox()
         anim_export_cb.setChecked(True)
         self.extraction_fields["animation_export"] = anim_export_cb
         anim_layout.addWidget(anim_export_cb, row, 1)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr(Labels.ANIMATION_FORMAT)), row, 0)
+        anim_layout.addWidget(QLabel(self.trc(Labels.ANIMATION_FORMAT)), row, 0)
         anim_format_combo = QComboBox()
         anim_format_combo.addItems(get_display_texts(ANIMATION_FORMAT_OPTIONS))
         anim_format_combo.setCurrentText("GIF")
@@ -384,7 +402,7 @@ class AppConfigWindow(QDialog):
         duration_spinbox.valueChanged.connect(self._on_duration_spinbox_changed)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr(Labels.LOOP_DELAY)), row, 0)
+        anim_layout.addWidget(QLabel(self.trc(Labels.LOOP_DELAY)), row, 0)
         delay_spinbox = QSpinBox()
         delay_spinbox.setRange(0, 99999)
         delay_spinbox.setValue(250)
@@ -392,7 +410,7 @@ class AppConfigWindow(QDialog):
         anim_layout.addWidget(delay_spinbox, row, 1)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr(Labels.MINIMUM_PERIOD)), row, 0)
+        anim_layout.addWidget(QLabel(self.trc(Labels.MINIMUM_PERIOD)), row, 0)
         period_spinbox = QSpinBox()
         period_spinbox.setRange(0, 99999)
         period_spinbox.setValue(0)
@@ -400,7 +418,7 @@ class AppConfigWindow(QDialog):
         anim_layout.addWidget(period_spinbox, row, 1)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr(Labels.SCALE)), row, 0)
+        anim_layout.addWidget(QLabel(self.trc(Labels.SCALE)), row, 0)
         scale_spinbox = QDoubleSpinBox()
         configure_spinbox(scale_spinbox, SpinBoxConfig.SCALE)
         scale_spinbox.setSuffix(" x")
@@ -408,18 +426,18 @@ class AppConfigWindow(QDialog):
         anim_layout.addWidget(scale_spinbox, row, 1)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr(Labels.ALPHA_THRESHOLD)), row, 0)
+        anim_layout.addWidget(QLabel(self.trc(Labels.ALPHA_THRESHOLD)), row, 0)
         threshold_spinbox = QSpinBox()
         threshold_spinbox.setRange(0, 100)
         threshold_spinbox.setSingleStep(1)
         threshold_spinbox.setValue(50)
         threshold_spinbox.setSuffix(" %")
-        threshold_spinbox.setToolTip(self.tr(Tooltips.ALPHA_THRESHOLD))
+        threshold_spinbox.setToolTip(self.trc(Tooltips.ALPHA_THRESHOLD))
         self.extraction_fields["threshold"] = threshold_spinbox
         anim_layout.addWidget(threshold_spinbox, row, 1)
         row += 1
 
-        anim_layout.addWidget(QLabel(self.tr(Labels.VARIABLE_DELAY) + ":"), row, 0)
+        anim_layout.addWidget(QLabel(self.trc(Labels.VARIABLE_DELAY) + ":"), row, 0)
         variable_delay_cb = QCheckBox()
         variable_delay_cb.setChecked(False)
         self.extraction_fields["variable_delay"] = variable_delay_cb
@@ -429,18 +447,18 @@ class AppConfigWindow(QDialog):
         layout.addWidget(anim_group)
 
         # Frame export group
-        frame_group = QGroupBox(self.tr(GroupTitles.FRAME_EXPORT_DEFAULTS))
+        frame_group = QGroupBox(self.trc(GroupTitles.FRAME_EXPORT_DEFAULTS))
         frame_layout = QGridLayout(frame_group)
 
         row = 0
-        frame_layout.addWidget(QLabel(self.tr(Labels.ENABLE_FRAME_EXPORT)), row, 0)
+        frame_layout.addWidget(QLabel(self.trc(Labels.ENABLE_FRAME_EXPORT)), row, 0)
         frame_export_cb = QCheckBox()
         frame_export_cb.setChecked(True)
         self.extraction_fields["frame_export"] = frame_export_cb
         frame_layout.addWidget(frame_export_cb, row, 1)
         row += 1
 
-        frame_layout.addWidget(QLabel(self.tr(Labels.FRAME_FORMAT)), row, 0)
+        frame_layout.addWidget(QLabel(self.trc(Labels.FRAME_FORMAT)), row, 0)
         frame_format_combo = QComboBox()
         frame_format_combo.addItems(get_display_texts(FRAME_FORMAT_OPTIONS))
         frame_format_combo.setCurrentText("PNG")
@@ -448,7 +466,7 @@ class AppConfigWindow(QDialog):
         frame_layout.addWidget(frame_format_combo, row, 1)
         row += 1
 
-        frame_layout.addWidget(QLabel(self.tr(Labels.FRAME_SCALE)), row, 0)
+        frame_layout.addWidget(QLabel(self.trc(Labels.FRAME_SCALE)), row, 0)
         frame_scale_spinbox = QDoubleSpinBox()
         configure_spinbox(frame_scale_spinbox, SpinBoxConfig.FRAME_SCALE)
         frame_scale_spinbox.setSuffix(" x")
@@ -456,34 +474,34 @@ class AppConfigWindow(QDialog):
         frame_layout.addWidget(frame_scale_spinbox, row, 1)
         row += 1
 
-        frame_layout.addWidget(QLabel(self.tr(Labels.FRAME_SELECTION)), row, 0)
+        frame_layout.addWidget(QLabel(self.trc(Labels.FRAME_SELECTION)), row, 0)
         frame_selection_combo = QComboBox()
         options_without_custom = tuple(
             opt for opt in FRAME_SELECTION_OPTIONS if opt.internal != "custom"
         )
-        populate_combobox(frame_selection_combo, options_without_custom, self.tr)
+        populate_combobox(frame_selection_combo, options_without_custom, self.trc)
         frame_selection_combo.setCurrentIndex(0)
-        frame_selection_combo.setToolTip(self.tr(Tooltips.FRAME_SELECTION))
+        frame_selection_combo.setToolTip(self.trc(Tooltips.FRAME_SELECTION))
         self.extraction_fields["frame_selection"] = frame_selection_combo
         frame_layout.addWidget(frame_selection_combo, row, 1)
 
         layout.addWidget(frame_group)
 
         # General export settings group
-        general_group = QGroupBox(self.tr(GroupTitles.GENERAL_EXPORT_SETTINGS))
+        general_group = QGroupBox(self.trc(GroupTitles.GENERAL_EXPORT_SETTINGS))
         general_layout = QGridLayout(general_group)
 
         row = 0
-        general_layout.addWidget(QLabel(self.tr(Labels.CROPPING_METHOD)), row, 0)
+        general_layout.addWidget(QLabel(self.trc(Labels.CROPPING_METHOD)), row, 0)
         crop_combo = QComboBox()
-        populate_combobox(crop_combo, CROPPING_METHOD_OPTIONS, self.tr)
+        populate_combobox(crop_combo, CROPPING_METHOD_OPTIONS, self.trc)
         crop_combo.setCurrentIndex(1)  # Default to "Animation based"
-        crop_combo.setToolTip(self.tr(Tooltips.CROPPING_METHOD))
+        crop_combo.setToolTip(self.trc(Tooltips.CROPPING_METHOD))
         self.extraction_fields["crop_option"] = crop_combo
         general_layout.addWidget(crop_combo, row, 1)
         row += 1
 
-        general_layout.addWidget(QLabel(self.tr(Labels.RESAMPLING_METHOD)), row, 0)
+        general_layout.addWidget(QLabel(self.trc(Labels.RESAMPLING_METHOD)), row, 0)
         from utils.resampling import (
             RESAMPLING_DISPLAY_NAMES,
             get_resampling_tooltip,
@@ -503,11 +521,11 @@ class AppConfigWindow(QDialog):
         general_layout.addWidget(resampling_combo, row, 1)
         row += 1
 
-        general_layout.addWidget(QLabel(self.tr(Labels.FILENAME_FORMAT)), row, 0)
+        general_layout.addWidget(QLabel(self.trc(Labels.FILENAME_FORMAT)), row, 0)
         from utils.version import APP_NAME
 
         filename_format_combo = QComboBox()
-        populate_combobox(filename_format_combo, FILENAME_FORMAT_OPTIONS, self.tr)
+        populate_combobox(filename_format_combo, FILENAME_FORMAT_OPTIONS, self.trc)
         filename_format_combo.setCurrentIndex(0)
         filename_format_combo.setToolTip(
             self.tr(
@@ -521,16 +539,16 @@ class AppConfigWindow(QDialog):
         general_layout.addWidget(filename_format_combo, row, 1)
         row += 1
 
-        general_layout.addWidget(QLabel(self.tr(Labels.FILENAME_PREFIX)), row, 0)
+        general_layout.addWidget(QLabel(self.trc(Labels.FILENAME_PREFIX)), row, 0)
         prefix_entry = QLineEdit()
-        prefix_entry.setPlaceholderText(self.tr(Placeholders.OPTIONAL_PREFIX))
+        prefix_entry.setPlaceholderText(self.trc(Placeholders.OPTIONAL_PREFIX))
         self.extraction_fields["filename_prefix"] = prefix_entry
         general_layout.addWidget(prefix_entry, row, 1)
         row += 1
 
-        general_layout.addWidget(QLabel(self.tr(Labels.FILENAME_SUFFIX)), row, 0)
+        general_layout.addWidget(QLabel(self.trc(Labels.FILENAME_SUFFIX)), row, 0)
         suffix_entry = QLineEdit()
-        suffix_entry.setPlaceholderText(self.tr(Placeholders.OPTIONAL_SUFFIX))
+        suffix_entry.setPlaceholderText(self.trc(Placeholders.OPTIONAL_SUFFIX))
         self.extraction_fields["filename_suffix"] = suffix_entry
         general_layout.addWidget(suffix_entry, row, 1)
 
@@ -685,18 +703,14 @@ class AppConfigWindow(QDialog):
         row = 0
         algo_layout.addWidget(QLabel(self.tr("Packer method")), row, 0)
         algorithm_combo = QComboBox()
-        algorithm_combo.addItems(
-            [
-                "Automatic (Best Fit)",
-                "MaxRects",
-                "Guillotine",
-                "Shelf",
-                "Shelf FFDH",
-                "Skyline",
-                "Simple Row",
-            ]
-        )
-        algorithm_combo.setCurrentText("Automatic (Best Fit)")
+        algorithm_combo.addItem(self.tr("Automatic (Best Fit)"), "auto")
+        algorithm_combo.addItem("MaxRects", "maxrects")
+        algorithm_combo.addItem("Guillotine", "guillotine")
+        algorithm_combo.addItem("Shelf", "shelf")
+        algorithm_combo.addItem("Shelf FFDH", "shelf-ffdh")
+        algorithm_combo.addItem("Skyline", "skyline")
+        algorithm_combo.addItem(self.tr("Simple Row"), "simple")
+        algorithm_combo.setCurrentIndex(0)
         algorithm_combo.setToolTip(
             self.tr(
                 "Packing algorithm to use for arranging sprites.\n"
@@ -713,9 +727,9 @@ class AppConfigWindow(QDialog):
         algo_layout.addWidget(algorithm_combo, row, 1)
         row += 1
 
-        algo_layout.addWidget(QLabel(self.tr(Labels.HEURISTIC)), row, 0)
+        algo_layout.addWidget(QLabel(self.trc(Labels.HEURISTIC)), row, 0)
         heuristic_combo = QComboBox()
-        heuristic_combo.addItem("Auto (Best Result)", "auto")
+        heuristic_combo.addItem(self.tr("Auto (Best Result)"), "auto")
         heuristic_combo.setToolTip(
             self.tr(
                 "Algorithm-specific heuristic for sprite placement.\n"
@@ -725,8 +739,8 @@ class AppConfigWindow(QDialog):
         self.generator_fields["heuristic"] = heuristic_combo
         algo_layout.addWidget(heuristic_combo, row, 1)
 
-        algorithm_combo.currentTextChanged.connect(self._update_heuristic_options)
-        self._update_heuristic_options(algorithm_combo.currentText())
+        algorithm_combo.currentIndexChanged.connect(self._update_heuristic_options)
+        self._update_heuristic_options()
 
         layout.addWidget(algo_group)
 
@@ -764,7 +778,7 @@ class AppConfigWindow(QDialog):
         size_layout.addWidget(padding_spinbox, row, 1)
         row += 1
 
-        power_of_two_cb = QCheckBox(self.tr(CheckBoxLabels.POWER_OF_TWO))
+        power_of_two_cb = QCheckBox(self.trc(CheckBoxLabels.POWER_OF_TWO))
         power_of_two_cb.setChecked(False)
         power_of_two_cb.setToolTip(
             self.tr(
@@ -781,7 +795,7 @@ class AppConfigWindow(QDialog):
         optim_group = QGroupBox(self.tr("Sprite Optimization"))
         optim_layout = QVBoxLayout(optim_group)
 
-        allow_rotation_cb = QCheckBox(self.tr(CheckBoxLabels.ALLOW_ROTATION))
+        allow_rotation_cb = QCheckBox(self.trc(CheckBoxLabels.ALLOW_ROTATION))
         allow_rotation_cb.setChecked(False)
         allow_rotation_cb.setToolTip(
             self.tr(
@@ -792,7 +806,7 @@ class AppConfigWindow(QDialog):
         self.generator_fields["allow_rotation"] = allow_rotation_cb
         optim_layout.addWidget(allow_rotation_cb)
 
-        allow_flip_cb = QCheckBox(self.tr(CheckBoxLabels.ALLOW_FLIP))
+        allow_flip_cb = QCheckBox(self.trc(CheckBoxLabels.ALLOW_FLIP))
         allow_flip_cb.setChecked(False)
         allow_flip_cb.setToolTip(
             self.tr(
@@ -805,7 +819,7 @@ class AppConfigWindow(QDialog):
         self.generator_fields["allow_flip"] = allow_flip_cb
         optim_layout.addWidget(allow_flip_cb)
 
-        trim_sprites_cb = QCheckBox(self.tr(CheckBoxLabels.TRIM_TRANSPARENT))
+        trim_sprites_cb = QCheckBox(self.trc(CheckBoxLabels.TRIM_TRANSPARENT))
         trim_sprites_cb.setChecked(False)
         trim_sprites_cb.setToolTip(
             self.tr(
@@ -857,7 +871,7 @@ class AppConfigWindow(QDialog):
         image_format_combo = QComboBox()
         image_format_combo.addItems(get_display_texts(GENERATOR_IMAGE_FORMAT_OPTIONS))
         image_format_combo.setCurrentText("PNG")
-        image_format_combo.setToolTip(self.tr(Tooltips.IMAGE_FORMAT))
+        image_format_combo.setToolTip(self.trc(Tooltips.IMAGE_FORMAT))
         self.generator_fields["image_format"] = image_format_combo
         output_layout.addWidget(image_format_combo, row, 1)
 
@@ -879,7 +893,7 @@ class AppConfigWindow(QDialog):
         png_layout = QGridLayout(png_group)
 
         row = 0
-        png_layout.addWidget(QLabel(self.tr(Labels.COMPRESS_LEVEL_0_9)), row, 0)
+        png_layout.addWidget(QLabel(self.trc(Labels.COMPRESS_LEVEL_0_9)), row, 0)
         png_compress_spinbox = QSpinBox()
         png_compress_spinbox.setRange(0, 9)
         png_compress_spinbox.setValue(9)
@@ -897,7 +911,7 @@ class AppConfigWindow(QDialog):
         png_layout.addWidget(png_compress_spinbox, row, 1)
         row += 1
 
-        png_optimize_checkbox = QCheckBox(self.tr(CheckBoxLabels.OPTIMIZE_PNG))
+        png_optimize_checkbox = QCheckBox(self.trc(CheckBoxLabels.OPTIMIZE_PNG))
         png_optimize_checkbox.setChecked(True)
         png_optimize_checkbox.setToolTip(
             self.tr(
@@ -917,7 +931,7 @@ class AppConfigWindow(QDialog):
         webp_layout = QGridLayout(webp_group)
 
         row = 0
-        webp_lossless_checkbox = QCheckBox(self.tr(CheckBoxLabels.LOSSLESS_WEBP))
+        webp_lossless_checkbox = QCheckBox(self.trc(CheckBoxLabels.LOSSLESS_WEBP))
         webp_lossless_checkbox.setChecked(True)
         webp_lossless_checkbox.setToolTip(
             self.tr(
@@ -931,7 +945,7 @@ class AppConfigWindow(QDialog):
         webp_layout.addWidget(webp_lossless_checkbox, row, 0, 1, 2)
         row += 1
 
-        webp_layout.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), row, 0)
+        webp_layout.addWidget(QLabel(self.trc(Labels.QUALITY_0_100)), row, 0)
         webp_quality_spinbox = QSpinBox()
         webp_quality_spinbox.setRange(0, 100)
         webp_quality_spinbox.setValue(90)
@@ -948,7 +962,7 @@ class AppConfigWindow(QDialog):
         webp_layout.addWidget(webp_quality_spinbox, row, 1)
         row += 1
 
-        webp_layout.addWidget(QLabel(self.tr(Labels.METHOD_0_6)), row, 0)
+        webp_layout.addWidget(QLabel(self.trc(Labels.METHOD_0_6)), row, 0)
         webp_method_spinbox = QSpinBox()
         webp_method_spinbox.setRange(0, 6)
         webp_method_spinbox.setValue(3)
@@ -965,7 +979,7 @@ class AppConfigWindow(QDialog):
         webp_layout.addWidget(webp_method_spinbox, row, 1)
         row += 1
 
-        webp_layout.addWidget(QLabel(self.tr(Labels.ALPHA_QUALITY_0_100)), row, 0)
+        webp_layout.addWidget(QLabel(self.trc(Labels.ALPHA_QUALITY_0_100)), row, 0)
         webp_alpha_quality_spinbox = QSpinBox()
         webp_alpha_quality_spinbox.setRange(0, 100)
         webp_alpha_quality_spinbox.setValue(90)
@@ -982,7 +996,7 @@ class AppConfigWindow(QDialog):
         webp_layout.addWidget(webp_alpha_quality_spinbox, row, 1)
         row += 1
 
-        webp_exact_checkbox = QCheckBox(self.tr(CheckBoxLabels.EXACT_WEBP))
+        webp_exact_checkbox = QCheckBox(self.trc(CheckBoxLabels.EXACT_WEBP))
         webp_exact_checkbox.setChecked(True)
         webp_exact_checkbox.setToolTip(
             self.tr(
@@ -1001,13 +1015,13 @@ class AppConfigWindow(QDialog):
         avif_layout = QGridLayout(avif_group)
 
         row = 0
-        avif_lossless_checkbox = QCheckBox(self.tr(CheckBoxLabels.LOSSLESS_AVIF))
+        avif_lossless_checkbox = QCheckBox(self.trc(CheckBoxLabels.LOSSLESS_AVIF))
         avif_lossless_checkbox.setChecked(True)
         self.compression_fields["avif_lossless"] = avif_lossless_checkbox
         avif_layout.addWidget(avif_lossless_checkbox, row, 0, 1, 2)
         row += 1
 
-        avif_layout.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), row, 0)
+        avif_layout.addWidget(QLabel(self.trc(Labels.QUALITY_0_100)), row, 0)
         avif_quality_spinbox = QSpinBox()
         avif_quality_spinbox.setRange(0, 100)
         avif_quality_spinbox.setValue(90)
@@ -1024,7 +1038,7 @@ class AppConfigWindow(QDialog):
         avif_layout.addWidget(avif_quality_spinbox, row, 1)
         row += 1
 
-        avif_layout.addWidget(QLabel(self.tr(Labels.SPEED_0_10)), row, 0)
+        avif_layout.addWidget(QLabel(self.trc(Labels.SPEED_0_10)), row, 0)
         avif_speed_spinbox = QSpinBox()
         avif_speed_spinbox.setRange(0, 10)
         avif_speed_spinbox.setValue(5)
@@ -1046,7 +1060,7 @@ class AppConfigWindow(QDialog):
         tiff_layout = QGridLayout(tiff_group)
 
         row = 0
-        tiff_layout.addWidget(QLabel(self.tr(Labels.COMPRESSION_TYPE)), row, 0)
+        tiff_layout.addWidget(QLabel(self.trc(Labels.COMPRESSION_TYPE)), row, 0)
         tiff_compression_combobox = QComboBox()
         tiff_compression_combobox.addItems(["none", "lzw", "zip", "jpeg"])
         tiff_compression_combobox.setCurrentText("lzw")
@@ -1063,7 +1077,7 @@ class AppConfigWindow(QDialog):
         tiff_layout.addWidget(tiff_compression_combobox, row, 1)
         row += 1
 
-        tiff_layout.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), row, 0)
+        tiff_layout.addWidget(QLabel(self.trc(Labels.QUALITY_0_100)), row, 0)
         tiff_quality_spinbox = QSpinBox()
         tiff_quality_spinbox.setRange(0, 100)
         tiff_quality_spinbox.setValue(90)
@@ -1080,7 +1094,7 @@ class AppConfigWindow(QDialog):
         tiff_layout.addWidget(tiff_quality_spinbox, row, 1)
         row += 1
 
-        tiff_optimize_checkbox = QCheckBox(self.tr(CheckBoxLabels.OPTIMIZE_TIFF))
+        tiff_optimize_checkbox = QCheckBox(self.trc(CheckBoxLabels.OPTIMIZE_TIFF))
         tiff_optimize_checkbox.setChecked(True)
         tiff_optimize_checkbox.setToolTip(
             self.tr(
@@ -1111,11 +1125,13 @@ class AppConfigWindow(QDialog):
         group = QGroupBox(self.tr("Update Preferences"))
         group_layout = QVBoxLayout(group)
 
-        self.check_updates_cb = QCheckBox(self.tr(CheckBoxLabels.CHECK_UPDATES_STARTUP))
+        self.check_updates_cb = QCheckBox(
+            self.trc(CheckBoxLabels.CHECK_UPDATES_STARTUP)
+        )
         self.check_updates_cb.stateChanged.connect(self.on_check_updates_change)
         group_layout.addWidget(self.check_updates_cb)
 
-        self.auto_update_cb = QCheckBox(self.tr(CheckBoxLabels.AUTO_DOWNLOAD_UPDATES))
+        self.auto_update_cb = QCheckBox(self.trc(CheckBoxLabels.AUTO_DOWNLOAD_UPDATES))
         group_layout.addWidget(self.auto_update_cb)
 
         note_label = QLabel(
@@ -1266,7 +1282,7 @@ class AppConfigWindow(QDialog):
 
         reply = QMessageBox.question(
             self,
-            self.tr(DialogTitles.RESET_TO_DEFAULTS),
+            self.trc(DialogTitles.RESET_TO_DEFAULTS),
             self.tr(
                 "Are you sure you want to reset all settings to their default values?"
             ),
@@ -1475,7 +1491,7 @@ class AppConfigWindow(QDialog):
 
             QMessageBox.information(
                 self,
-                self.tr(DialogTitles.SETTINGS_SAVED),
+                self.trc(DialogTitles.SETTINGS_SAVED),
                 self.tr("Configuration has been saved successfully."),
             )
             self.accept()
@@ -1483,13 +1499,13 @@ class AppConfigWindow(QDialog):
         except ValueError as e:
             QMessageBox.critical(
                 self,
-                self.tr(DialogTitles.INVALID_INPUT),
+                self.trc(DialogTitles.INVALID_INPUT),
                 self.tr("Error: {error}").format(error=str(e)),
             )
         except Exception as e:
             QMessageBox.critical(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Failed to save configuration: {error}").format(error=str(e)),
             )
 
@@ -1556,7 +1572,7 @@ class AppConfigWindow(QDialog):
         dir_layout = QVBoxLayout(dir_group)
 
         self.remember_input_dir_cb = QCheckBox(
-            self.tr(CheckBoxLabels.REMEMBER_INPUT_DIR)
+            self.trc(CheckBoxLabels.REMEMBER_INPUT_DIR)
         )
         self.remember_input_dir_cb.setToolTip(
             self.tr(
@@ -1566,7 +1582,7 @@ class AppConfigWindow(QDialog):
         dir_layout.addWidget(self.remember_input_dir_cb)
 
         self.remember_output_dir_cb = QCheckBox(
-            self.tr(CheckBoxLabels.REMEMBER_OUTPUT_DIR)
+            self.trc(CheckBoxLabels.REMEMBER_OUTPUT_DIR)
         )
         self.remember_output_dir_cb.setToolTip(
             self.tr(
@@ -1582,7 +1598,7 @@ class AppConfigWindow(QDialog):
         spritemap_layout = QVBoxLayout(spritemap_group)
 
         self.filter_single_frame_spritemaps_cb = QCheckBox(
-            self.tr(CheckBoxLabels.HIDE_SINGLE_FRAME)
+            self.trc(CheckBoxLabels.HIDE_SINGLE_FRAME)
         )
         self.filter_single_frame_spritemaps_cb.setToolTip(
             self.tr(
@@ -1599,7 +1615,7 @@ class AppConfigWindow(QDialog):
         file_dialog_layout = QVBoxLayout(file_dialog_group)
 
         self.use_native_file_dialog_cb = QCheckBox(
-            self.tr(CheckBoxLabels.USE_NATIVE_FILE_PICKER)
+            self.trc(CheckBoxLabels.USE_NATIVE_FILE_PICKER)
         )
         self.use_native_file_dialog_cb.setToolTip(
             self.tr(
@@ -1615,7 +1631,7 @@ class AppConfigWindow(QDialog):
         anim_behavior_group = QGroupBox(self.tr("Animation Behavior"))
         anim_behavior_layout = QVBoxLayout(anim_behavior_group)
 
-        self.merge_duplicates_cb = QCheckBox(self.tr(CheckBoxLabels.MERGE_DUPLICATES))
+        self.merge_duplicates_cb = QCheckBox(self.trc(CheckBoxLabels.MERGE_DUPLICATES))
         self.merge_duplicates_cb.setChecked(True)
         self.merge_duplicates_cb.setToolTip(
             self.tr(
@@ -1733,33 +1749,27 @@ class AppConfigWindow(QDialog):
         "simple": [],
     }
 
-    def _update_heuristic_options(self, algorithm_display_name: str = None):
+    def _update_heuristic_options(self, _index: int = 0):
         """Update heuristic combobox options based on selected algorithm.
 
         Args:
-            algorithm_display_name: Display name of the selected algorithm.
-                If None, reads from the algorithm combobox.
+            _index: Index of the selected algorithm (unused, we read currentData).
         """
         heuristic_combo = self.generator_fields.get("heuristic")
         algorithm_combo = self.generator_fields.get("algorithm")
         if not heuristic_combo or not algorithm_combo:
             return
 
-        if algorithm_display_name is None:
-            algorithm_display_name = algorithm_combo.currentText()
-
-        algorithm_key = self._ALGORITHM_MAP.get(
-            algorithm_display_name, algorithm_display_name.lower()
-        )
+        algorithm_key = algorithm_combo.currentData() or "auto"
 
         heuristic_combo.blockSignals(True)
         heuristic_combo.clear()
 
-        heuristic_combo.addItem("Auto (Best Result)", "auto")
+        heuristic_combo.addItem(self.tr("Auto (Best Result)"), "auto")
 
         heuristics = self._ALGORITHM_HEURISTICS.get(algorithm_key, [])
         for key, display_name in heuristics:
-            heuristic_combo.addItem(display_name, key)
+            heuristic_combo.addItem(self.tr(display_name), key)
 
         heuristic_combo.setCurrentIndex(0)
         heuristic_combo.blockSignals(False)
@@ -1774,10 +1784,9 @@ class AppConfigWindow(QDialog):
         if algorithm_value:
             algorithm_combo = self.generator_fields.get("algorithm")
             if algorithm_combo:
-                display_name = self._ALGORITHM_REVERSE.get(
-                    algorithm_value, algorithm_value
-                )
-                algorithm_combo.setCurrentText(display_name)
+                index = algorithm_combo.findData(algorithm_value)
+                if index >= 0:
+                    algorithm_combo.setCurrentIndex(index)
 
         for key, control in self.generator_fields.items():
             if key == "algorithm":
@@ -1817,10 +1826,7 @@ class AppConfigWindow(QDialog):
         for key, control in self.generator_fields.items():
             if isinstance(control, QComboBox):
                 if key == "algorithm":
-                    display_text = control.currentText()
-                    generator_defaults[key] = self._ALGORITHM_MAP.get(
-                        display_text, display_text.lower()
-                    )
+                    generator_defaults[key] = control.currentData() or "auto"
                 elif key == "heuristic":
                     generator_defaults[key] = control.currentData() or "auto"
                 elif key == "export_format":

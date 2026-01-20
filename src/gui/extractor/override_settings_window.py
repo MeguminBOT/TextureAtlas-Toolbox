@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QCheckBox,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QCoreApplication, Qt
 from PySide6.QtGui import QFont
 
 from utils.utilities import Utilities
@@ -77,6 +77,12 @@ class OverrideSettingsWindow(QDialog):
     """
 
     tr = translate
+
+    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
+
+    def trc(self, text: str) -> str:
+        """Translate a string from ui_constants using its proper context."""
+        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
 
     def __init__(
         self, parent, name, settings_type, settings_manager, on_store_callback, app=None
@@ -224,19 +230,19 @@ class OverrideSettingsWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        ok_btn = QPushButton(self.tr(ButtonLabels.OK))
+        ok_btn = QPushButton(self.trc(ButtonLabels.OK))
         ok_btn.clicked.connect(self.store_input)
         ok_btn.setMinimumWidth(100)
         ok_btn.setDefault(True)
         button_layout.addWidget(ok_btn)
 
         if self.settings_type == "animation":
-            preview_btn = QPushButton(self.tr(ButtonLabels.PREVIEW_ANIMATION))
+            preview_btn = QPushButton(self.trc(ButtonLabels.PREVIEW_ANIMATION))
             preview_btn.clicked.connect(self.handle_preview_click)
             preview_btn.setMinimumWidth(130)
             button_layout.addWidget(preview_btn)
 
-        cancel_btn = QPushButton(self.tr(ButtonLabels.CANCEL))
+        cancel_btn = QPushButton(self.trc(ButtonLabels.CANCEL))
         cancel_btn.clicked.connect(self.reject)
         cancel_btn.setMinimumWidth(100)
         button_layout.addWidget(cancel_btn)
@@ -249,7 +255,7 @@ class OverrideSettingsWindow(QDialog):
         Returns:
             QGroupBox containing name display and optional filename input.
         """
-        group = QGroupBox(self.tr(GroupTitles.GENERAL_EXPORT_SETTINGS))
+        group = QGroupBox(self.trc(GroupTitles.GENERAL_EXPORT_SETTINGS))
         layout = QGridLayout(group)
 
         row = 0
@@ -286,15 +292,15 @@ class OverrideSettingsWindow(QDialog):
         Returns:
             QGroupBox containing format, FPS, delay, scale, and related controls.
         """
-        group = QGroupBox(self.tr(GroupTitles.ANIMATION_EXPORT_SETTINGS))
+        group = QGroupBox(self.trc(GroupTitles.ANIMATION_EXPORT_SETTINGS))
         layout = QGridLayout(group)
 
         row = 0
 
-        layout.addWidget(QLabel(self.tr(Labels.ANIMATION_FORMAT)), row, 0)
+        layout.addWidget(QLabel(self.trc(Labels.ANIMATION_FORMAT)), row, 0)
         self.animation_format_combo = QComboBox()
         self.animation_format_combo.addItems(
-            get_display_texts(ANIMATION_FORMAT_OPTIONS_WITH_NONE)
+            get_display_texts(ANIMATION_FORMAT_OPTIONS_WITH_NONE, self.trc)
         )
         self.animation_format_combo.currentTextChanged.connect(
             self.on_animation_format_change
@@ -309,21 +315,21 @@ class OverrideSettingsWindow(QDialog):
         layout.addWidget(self.fps_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.LOOP_DELAY)), row, 0)
+        layout.addWidget(QLabel(self.trc(Labels.LOOP_DELAY)), row, 0)
         self.delay_spinbox = QSpinBox()
         self.delay_spinbox.setRange(0, 10000)
         self.delay_spinbox.setSuffix(" ms")
         layout.addWidget(self.delay_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.MINIMUM_PERIOD)), row, 0)
+        layout.addWidget(QLabel(self.trc(Labels.MINIMUM_PERIOD)), row, 0)
         self.period_spinbox = QSpinBox()
         self.period_spinbox.setRange(0, 10000)
         self.period_spinbox.setSuffix(" ms")
         layout.addWidget(self.period_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.SCALE)), row, 0)
+        layout.addWidget(QLabel(self.trc(Labels.SCALE)), row, 0)
         self.scale_spinbox = QDoubleSpinBox()
         self.scale_spinbox.setRange(-10.0, 10.0)
         self.scale_spinbox.setSingleStep(0.1)
@@ -331,14 +337,14 @@ class OverrideSettingsWindow(QDialog):
         layout.addWidget(self.scale_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.RESAMPLING)), row, 0)
+        layout.addWidget(QLabel(self.trc(Labels.RESAMPLING)), row, 0)
         self.resampling_combo = QComboBox()
         self.resampling_combo.addItems(RESAMPLING_DISPLAY_NAMES)
-        self.resampling_combo.setToolTip(self.tr(Tooltips.RESAMPLING_ANIMATION))
+        self.resampling_combo.setToolTip(self.trc(Tooltips.RESAMPLING_ANIMATION))
         layout.addWidget(self.resampling_combo, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.ALPHA_THRESHOLD)), row, 0)
+        layout.addWidget(QLabel(self.trc(Labels.ALPHA_THRESHOLD)), row, 0)
         self.threshold_spinbox = QSpinBox()
         self.threshold_spinbox.setRange(0, 100)
         self.threshold_spinbox.setSingleStep(1)
@@ -354,7 +360,7 @@ class OverrideSettingsWindow(QDialog):
         layout.addWidget(self.indices_edit, row, 1)
         row += 1
 
-        self.var_delay_check = QCheckBox(self.tr(Labels.VARIABLE_DELAY))
+        self.var_delay_check = QCheckBox(self.trc(Labels.VARIABLE_DELAY))
         layout.addWidget(self.var_delay_check, row, 0, 1, 2)
         row += 1
 
@@ -366,24 +372,24 @@ class OverrideSettingsWindow(QDialog):
         Returns:
             QGroupBox containing frame format, scale, and selection controls.
         """
-        group = QGroupBox(self.tr(GroupTitles.FRAME_EXPORT_SETTINGS))
+        group = QGroupBox(self.trc(GroupTitles.FRAME_EXPORT_SETTINGS))
         layout = QGridLayout(group)
 
         row = 0
 
-        layout.addWidget(QLabel(self.tr(Labels.FRAME_SELECTION)), row, 0)
+        layout.addWidget(QLabel(self.trc(Labels.FRAME_SELECTION)), row, 0)
         self.frames_edit = QLineEdit()
-        self.frames_edit.setPlaceholderText(self.tr(Placeholders.INDICES_HINT))
+        self.frames_edit.setPlaceholderText(self.trc(Placeholders.INDICES_HINT))
         layout.addWidget(self.frames_edit, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.FRAME_FORMAT)), row, 0)
+        layout.addWidget(QLabel(self.trc(Labels.FRAME_FORMAT)), row, 0)
         self.frame_format_combo = QComboBox()
         self.frame_format_combo.addItems(get_display_texts(FRAME_FORMAT_OPTIONS))
         layout.addWidget(self.frame_format_combo, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.FRAME_SCALE)), row, 0)
+        layout.addWidget(QLabel(self.trc(Labels.FRAME_SCALE)), row, 0)
         self.frame_scale_spinbox = QDoubleSpinBox()
         configure_spinbox(
             self.frame_scale_spinbox,
@@ -524,7 +530,7 @@ class OverrideSettingsWindow(QDialog):
             self.filename_edit.setText(self.local_settings.get("filename", ""))
 
         anim_format = self.local_settings.get("animation_format", "")
-        valid_formats = get_display_texts(ANIMATION_FORMAT_OPTIONS_WITH_NONE)
+        valid_formats = get_display_texts(ANIMATION_FORMAT_OPTIONS_WITH_NONE, self.trc)
         if anim_format and anim_format in valid_formats:
             self.animation_format_combo.setCurrentText(anim_format)
         else:

@@ -406,7 +406,10 @@ class TranslationManager:
         return info.get("english_name", "Unknown") if info else "Unknown"
 
     def get_display_name(
-        self, language_code: str, show_english: bool = False, show_completeness: bool = False
+        self,
+        language_code: str,
+        show_english: bool = False,
+        show_completeness: bool = False,
     ) -> str:
         """Get the display name for a language.
 

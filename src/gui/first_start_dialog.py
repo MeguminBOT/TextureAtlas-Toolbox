@@ -460,7 +460,9 @@ class FirstStartDialog(QDialog):
         return self.language_changed
 
 
-def show_first_start_dialog(parent, translation_manager, app_config) -> tuple[bool, bool]:
+def show_first_start_dialog(
+    parent, translation_manager, app_config
+) -> tuple[bool, bool]:
     """Show the first-start dialog if this is the first launch.
 
     Args:

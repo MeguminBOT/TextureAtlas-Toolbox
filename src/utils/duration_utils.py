@@ -33,6 +33,8 @@ from __future__ import annotations
 
 from typing import NamedTuple, Tuple
 
+from PySide6.QtCore import QT_TRANSLATE_NOOP
+
 
 DURATION_FPS = "fps"
 DURATION_NATIVE = "native"
@@ -193,12 +195,18 @@ def get_duration_label(duration_type: str, animation_format: str) -> str:
         duration_type = resolve_native_duration_type(animation_format)
 
     labels = {
-        DURATION_FPS: "Frame rate",
-        DURATION_DECISECONDS: "Frame delay (ds)",
-        DURATION_CENTISECONDS: "Frame delay (cs)",
-        DURATION_MILLISECONDS: "Frame delay (ms)",
+        DURATION_FPS: QT_TRANSLATE_NOOP("ExtractTabWidget", "Frame rate"),
+        DURATION_DECISECONDS: QT_TRANSLATE_NOOP("ExtractTabWidget", "Frame delay (ds)"),
+        DURATION_CENTISECONDS: QT_TRANSLATE_NOOP(
+            "ExtractTabWidget", "Frame delay (cs)"
+        ),
+        DURATION_MILLISECONDS: QT_TRANSLATE_NOOP(
+            "ExtractTabWidget", "Frame delay (ms)"
+        ),
     }
-    return labels.get(duration_type, "Frame rate")
+    return labels.get(
+        duration_type, QT_TRANSLATE_NOOP("ExtractTabWidget", "Frame rate")
+    )
 
 
 def get_duration_range(duration_type: str, animation_format: str) -> Tuple[int, int]:
@@ -239,12 +247,23 @@ def get_duration_tooltip(duration_type: str, animation_format: str) -> str:
         duration_type = resolve_native_duration_type(animation_format)
 
     tooltips = {
-        DURATION_FPS: "Frames per second (1-1000)",
-        DURATION_DECISECONDS: "Frame delay in deciseconds (1 = 100ms, 10 = 1 second)",
-        DURATION_CENTISECONDS: "Frame delay in centiseconds (1 = 10ms, 100 = 1 second)",
-        DURATION_MILLISECONDS: "Frame delay in milliseconds (1000 = 1 second)",
+        DURATION_FPS: QT_TRANSLATE_NOOP(
+            "ExtractTabWidget", "Frames per second (1-1000)"
+        ),
+        DURATION_DECISECONDS: QT_TRANSLATE_NOOP(
+            "ExtractTabWidget", "Frame delay in deciseconds (1 = 100ms, 10 = 1 second)"
+        ),
+        DURATION_CENTISECONDS: QT_TRANSLATE_NOOP(
+            "ExtractTabWidget", "Frame delay in centiseconds (1 = 10ms, 100 = 1 second)"
+        ),
+        DURATION_MILLISECONDS: QT_TRANSLATE_NOOP(
+            "ExtractTabWidget", "Frame delay in milliseconds (1000 = 1 second)"
+        ),
     }
-    return tooltips.get(duration_type, "Frames per second (1-1000)")
+    return tooltips.get(
+        duration_type,
+        QT_TRANSLATE_NOOP("ExtractTabWidget", "Frames per second (1-1000)"),
+    )
 
 
 class DurationDisplayMeta(NamedTuple):
