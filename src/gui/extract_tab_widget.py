@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
     QMenu,
     QMessageBox,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QCoreApplication
 from PySide6.QtGui import QAction
 
 from gui.base_tab_widget import BaseTabWidget
@@ -1591,7 +1591,10 @@ class ExtractTabWidget(BaseTabWidget):
 
         menu = QMenu(self)
 
-        editor_action = QAction(self.tr(MenuActions.ADD_TO_EDITOR), self)
+        # Use UI context for MenuActions/ButtonLabels constants
+        _trc = lambda text: QCoreApplication.translate("TextureAtlasToolboxApp", text)
+
+        editor_action = QAction(_trc(MenuActions.ADD_TO_EDITOR), self)
         editor_action.triggered.connect(
             lambda checked=False, entries=selected_items: self.open_spritesheets_in_editor(
                 entries
@@ -1600,13 +1603,13 @@ class ExtractTabWidget(BaseTabWidget):
         menu.addAction(editor_action)
         menu.addSeparator()
 
-        settings_action = QAction(self.tr(MenuActions.OVERRIDE_SETTINGS), self)
+        settings_action = QAction(_trc(MenuActions.OVERRIDE_SETTINGS), self)
         settings_action.triggered.connect(self.override_spritesheet_settings)
         menu.addAction(settings_action)
 
         menu.addSeparator()
 
-        delete_action = QAction(self.tr(ButtonLabels.DELETE), self)
+        delete_action = QAction(_trc(ButtonLabels.DELETE), self)
         delete_action.triggered.connect(self.delete_selected_spritesheet)
         menu.addAction(delete_action)
 
@@ -1642,11 +1645,14 @@ class ExtractTabWidget(BaseTabWidget):
             for sel in selected_items
         )
 
+        # Use UI context for MenuActions/ButtonLabels constants
+        _trc = lambda text: QCoreApplication.translate("TextureAtlasToolboxApp", text)
+
         editor_action = QAction(
             (
-                self.tr(MenuActions.FOCUS_IN_EDITOR)
+                _trc(MenuActions.FOCUS_IN_EDITOR)
                 if any_composite
-                else self.tr(MenuActions.ADD_TO_EDITOR)
+                else _trc(MenuActions.ADD_TO_EDITOR)
             ),
             self,
         )
@@ -1666,19 +1672,19 @@ class ExtractTabWidget(BaseTabWidget):
             ):
                 menu.addSeparator()
 
-                preview_action = QAction(self.tr(MenuActions.PREVIEW_ANIMATION), self)
+                preview_action = QAction(_trc(MenuActions.PREVIEW_ANIMATION), self)
                 preview_action.triggered.connect(self.preview_selected_animation)
                 menu.addAction(preview_action)
 
                 menu.addSeparator()
 
-                settings_action = QAction(self.tr(MenuActions.OVERRIDE_SETTINGS), self)
+                settings_action = QAction(_trc(MenuActions.OVERRIDE_SETTINGS), self)
                 settings_action.triggered.connect(self.override_animation_settings)
                 menu.addAction(settings_action)
 
         menu.addSeparator()
 
-        delete_action = QAction(self.tr(MenuActions.REMOVE_FROM_LIST), self)
+        delete_action = QAction(_trc(MenuActions.REMOVE_FROM_LIST), self)
         delete_action.triggered.connect(self.delete_selected_animations)
         menu.addAction(delete_action)
 
