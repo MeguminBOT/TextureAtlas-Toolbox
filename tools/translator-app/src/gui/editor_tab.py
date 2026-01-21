@@ -222,6 +222,7 @@ class EditorTab(QWidget):
         if self.placeholder_group.isVisible():
             self.setup_placeholders()
         self._apply_preview_theme()
+        self._apply_translation_text_style()
 
     def _build_ui(self) -> None:
         """Construct the main layout with left and right panels.
@@ -380,6 +381,7 @@ class EditorTab(QWidget):
         self.translation_text = QTextEdit()
         self.translation_text.setMaximumHeight(100)
         self.translation_text.setFont(QFont("Consolas", 10))
+        self._apply_translation_text_style()
         self.translation_highlighter = PlaceholderHighlighter(
             self.translation_text.document(), self.dark_mode
         )
@@ -677,8 +679,11 @@ class EditorTab(QWidget):
         self.placeholder_group.setVisible(True)
 
     def _apply_preview_theme(self) -> None:
-        """Apply dark or light theme styling to the preview area."""
+        """Apply dark or light theme styling to the preview area.
 
+        Sets background and text colors on the preview text widget to
+        match the current ``dark_mode`` setting.
+        """
         if not hasattr(self, "preview_text") or self.preview_text is None:
             return
         if self.dark_mode:
@@ -688,6 +693,29 @@ class EditorTab(QWidget):
         else:
             self.preview_text.setStyleSheet(
                 "QTextEdit { background-color: #f0f0f0; color: #000000; border: 1px solid #cccccc; }"
+            )
+
+    def _apply_translation_text_style(self) -> None:
+        """Apply consistent font and color styling to the translation text area.
+
+        Ensures the translation text widget maintains proper styling regardless
+        of any inherited styles from pasted text or other sources.
+        """
+        if not hasattr(self, "translation_text") or self.translation_text is None:
+            return
+
+        font = QFont("Consolas", 10)
+        self.translation_text.setFont(font)
+
+        if self.dark_mode:
+            self.translation_text.setStyleSheet(
+                "QTextEdit { background-color: #2f2f2f; color: #ffffff; "
+                "border: 1px solid #555555; font-family: Consolas; font-size: 10pt; }"
+            )
+        else:
+            self.translation_text.setStyleSheet(
+                "QTextEdit { background-color: #ffffff; color: #000000; "
+                "border: 1px solid #cccccc; font-family: Consolas; font-size: 10pt; }"
             )
 
     def get_placeholder_values(self) -> Dict[str, str]:
