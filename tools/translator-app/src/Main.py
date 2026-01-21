@@ -211,6 +211,10 @@ class TranslationEditor(QMainWindow):
         save_as_action.setShortcut("Ctrl+Shift+S")
         save_as_action.triggered.connect(self.save_file_as)
 
+        close_action = file_menu.addAction("Close")
+        close_action.setShortcut("Ctrl+W")
+        close_action.triggered.connect(self.close_file)
+
         file_menu.addSeparator()
 
         exit_action = file_menu.addAction("Exit")
@@ -364,6 +368,22 @@ class TranslationEditor(QMainWindow):
         if file_path:
             self.load_ts_file(file_path)
 
+    def close_file(self) -> None:
+        """Close the currently open .ts file after checking for unsaved changes."""
+        if not self.editor_tab:
+            return
+
+        if not self.editor_tab.get_current_file():
+            return
+
+        if not self._check_unsaved_changes():
+            return
+
+        self.editor_tab.clear_translations()
+        self.current_ts_language = None
+        if self.manage_tab:
+            self.manage_tab.refresh_status_table()
+
     def load_ts_file(self, file_path: str, check_unsaved: bool = True) -> None:
         """Parse a Qt .ts file and populate the editor with its entries.
 
@@ -507,7 +527,7 @@ class TranslationEditor(QMainWindow):
                                             trans_elem = message.find("translation")
                                             if trans_elem is not None:
                                                 item.translation = trans_elem.text or ""
-                                                item.marker = None
+                                                item.marker = TranslationMarker.NONE
                                                 break
             except Exception as e:
                 print(f"Warning: Could not recover duplicate translations: {e}")
@@ -1105,7 +1125,7 @@ def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("Translation Editor")
     app.setApplicationDisplayName("Translation Editor - TextureAtlas Toolbox")
-    app.setApplicationVersion("1.1.0")
+    app.setApplicationVersion("1.2.0")
     app.setOrganizationName("AutisticLulu")
 
     window = TranslationEditor()
