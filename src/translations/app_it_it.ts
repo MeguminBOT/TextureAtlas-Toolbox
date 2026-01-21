@@ -14,6 +14,11 @@
         <translation>Fotogramma 1 / 1</translation>
     </message>
     <message>
+        <location filename="../gui/extractor/animation_preview_window.py" line="893"/>
+        <source>None</source>
+        <translation>Nessuno</translation>
+    </message>
+    <message>
         <location filename="../gui/extractor/animation_preview_window.py" line="844"/>
         <source>When enabled, the &apos;Frame rate&apos; control switches to show
 the delay (in ms) for the currently selected frame.
@@ -28,24 +33,19 @@ Altre impostazioni influenzano ancora l&apos;intera animazione.</translation>
         <translation>Applica il ritardo del fotogramma corrente a tutti i fotogrammi</translation>
     </message>
     <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="863"/>
-        <source>Reset all frame delays back to original values</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/animation_preview_window.py" line="893"/>
-        <source>None</source>
-        <translation>Nessuno</translation>
-    </message>
-    <message>
         <location filename="../gui/extractor/animation_preview_window.py" line="894"/>
         <source>Solid Color</source>
-        <translation>Colore uniquo</translation>
+        <translation>Colore unico</translation>
     </message>
     <message>
         <location filename="../gui/extractor/animation_preview_window.py" line="896"/>
         <source>Transparency Pattern</source>
         <translation>Modello di trasparenza</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/animation_preview_window.py" line="863"/>
+        <source>Reset all frame delays back to original values</source>
+        <translation>Ripristina i ritardi di fotogrammi al loro valore originale</translation>
     </message>
     <message>
         <location filename="../gui/extractor/animation_preview_window.py" line="975"/>
@@ -81,12 +81,12 @@ Altre impostazioni influenzano ancora l&apos;intera animazione.</translation>
         <location filename="../gui/extractor/animation_preview_window.py" line="1138"/>
         <location filename="../gui/extractor/animation_preview_window.py" line="1143"/>
         <source> ({delay}ms)</source>
-        <translation>{delay}ms]</translation>
+        <translation> ({delay}ms)</translation>
     </message>
     <message>
         <location filename="../gui/extractor/animation_preview_window.py" line="1541"/>
         <source>Choose Background Color</source>
-        <translation>Scegli il colore di sfondo</translation>
+        <translation>Scegli il colore dello sfondo</translation>
     </message>
     <message>
         <location filename="../gui/extractor/animation_preview_window.py" line="1692"/>
@@ -107,11 +107,6 @@ Altre impostazioni influenzano ancora l&apos;intera animazione.</translation>
         <translation>Animazioni e Fotogrammi</translation>
     </message>
     <message>
-        <location filename="../gui/generator/animation_tree_widget.py" line="69"/>
-        <source>New animation</source>
-        <translation>Nuova animazione</translation>
-    </message>
-    <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="274"/>
         <source>Add animation group</source>
         <translation>Aggiungi gruppo di animazione</translation>
@@ -120,7 +115,7 @@ Altre impostazioni influenzano ancora l&apos;intera animazione.</translation>
         <location filename="../gui/generator/animation_tree_widget.py" line="286"/>
         <location filename="../gui/generator/animation_tree_widget.py" line="318"/>
         <source>Rename animation</source>
-        <translation>Rinominare l&apos;animazione</translation>
+        <translation>Rinomina l&apos;animazione</translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="292"/>
@@ -131,17 +126,22 @@ Altre impostazioni influenzano ancora l&apos;intera animazione.</translation>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="301"/>
         <source>Remove frame</source>
-        <translation>Rimuovi il telaio</translation>
-    </message>
-    <message>
-        <location filename="../gui/generator/animation_tree_widget.py" line="319"/>
-        <source>Enter new animation name:</source>
-        <translation>Inserisci nuovo nome di animazione:</translation>
+        <translation>Rimuovi il fotogramma</translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="327"/>
         <source>Name conflict</source>
-        <translation>Nome conflitto</translation>
+        <translation>Conflitto di nome</translation>
+    </message>
+    <message>
+        <location filename="../gui/generator/animation_tree_widget.py" line="69"/>
+        <source>New animation</source>
+        <translation>Nuova animazione</translation>
+    </message>
+    <message>
+        <location filename="../gui/generator/animation_tree_widget.py" line="319"/>
+        <source>Enter new animation name:</source>
+        <translation>Inserisci un nuovo nome di animazione:</translation>
     </message>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="328"/>
@@ -151,30 +151,56 @@ Altre impostazioni influenzano ancora l&apos;intera animazione.</translation>
     <message>
         <location filename="../gui/generator/animation_tree_widget.py" line="353"/>
         <source>Are you sure you want to delete the animation &apos;{0}&apos; and all its frames?</source>
-        <translation>Sei sicuro di voler eliminare l&apos;animazione &apos;{0}&apos; e tutte le sue cornici?</translation>
+        <translation>Sei sicuro di voler eliminare l&apos;animazione &apos;{0}&apos; e tutte i suoi fotogrammi?</translation>
     </message>
 </context>
 <context>
     <name>AppConfigWindow</name>
     <message>
-        <location filename="../gui/app_config_window.py" line="286"/>
-        <source>Your Computer</source>
-        <translation type="unfinished"></translation>
+        <location filename="../gui/app_config_window.py" line="700"/>
+        <location filename="../gui/app_config_window.py" line="748"/>
+        <source>Atlas Settings</source>
+        <translation>Impostazioni dell&apos;Atlas</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="704"/>
+        <source>Packer method</source>
+        <translation>Metodo del Packer</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="752"/>
+        <source>Max atlas size</source>
+        <translation>Dimensioni max. dell&apos;atlas</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="767"/>
+        <source>Padding:</source>
+        <translation>Spaziatura:</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="841"/>
+        <source>Atlas type</source>
+        <translation>Tipo d&apos;Atlas</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="864"/>
+        <source>Metadata format for the generated atlas.</source>
+        <translation>Formato metadati per l&apos;atlas generato.</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="870"/>
+        <source>Image format</source>
+        <translation>Formato dell&apos;immagine</translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="290"/>
         <source>CPU: {cpu} (Threads: {threads})</source>
-        <translation>CPU: {cpu} (Threads: {threads})</translation>
+        <translation>Processore: {cpu} (Threads: {threads})</translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="298"/>
         <source>RAM: {memory:,} MB</source>
         <translation>RAM: {memory:,} MB</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="305"/>
-        <source>App Resource Limits</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="309"/>
@@ -210,7 +236,7 @@ innativa, in attesa che la memoria si svuoti.</translation>
     <message>
         <location filename="../gui/app_config_window.py" line="323"/>
         <source>CPU threads to use (max: {max_threads}):</source>
-        <translation>Threads dello CPU da usare (max: {max_threads}):</translation>
+        <translation>Threads dello processore da usare (max: {max_threads}):</translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="336"/>
@@ -229,7 +255,7 @@ Set to 0 to disable memory-based throttling (Not recommended, may make app unsta
         <translation>Soglia di memoria per i worker threads.
 
 Quando l&apos;utilizzo della memoria dell&apos;app supera questo limite, i
-nuovi workers di threads aspetteranno prima di iniziare il loro prossimo file.
+nuovi workers aspetteranno prima di iniziare il loro prossimo file.
 Il lavoro esistente non è interrotto.
 
 Impostare a 0 per disabilitare il throttling basato sulla memoria (non consigliato, può rendere l&apos;app instabile).</translation>
@@ -245,21 +271,10 @@ Impostare a 0 per disabilitare il throttling basato sulla memoria (non consiglia
 • Standardized: Uses {app_name} standardized naming
 • No spaces: Replace spaces with underscores
 • No special characters: Remove special chars</source>
-        <translation>Come vengono formattati i nomi dei file di uscita:
+        <translation>Come vengono formattati i nomi di file di uscita:
 • Standardizzato: Utilizza {app_name} denominazione standardizzata
 • Senza spazio: Sostituisci spazi con sottoscore
 • Senza carattere speciale: Rimuovi caratteri speciali</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="700"/>
-        <location filename="../gui/app_config_window.py" line="748"/>
-        <source>Atlas Settings</source>
-        <translation>Impostazioni dell&apos;Atlas</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="704"/>
-        <source>Packer method</source>
-        <translation>Metodo del Packer</translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="706"/>
@@ -281,20 +296,20 @@ Impostare a 0 per disabilitare il throttling basato sulla memoria (non consiglia
 • Shelf FFDH: Shelf with First Fit Decreasing Height (sorts by height)
 • Skyline: Good for sprites with similar heights
 • Simple Row: Basic left-to-right, row-by-row placement</source>
-        <translation>Algoritmo di packing da usare per organizzare sprite.
+        <translation>Algoritmo del packer da usare per organizzare sprite.
 • Automatico: Prova algoritmi diversi e sceglie il miglior risultato
 • MaxRects: Buon algoritmo in generale
-• Guillotine: Veloce, buono per sprite simili
+• Guillotine: Veloce, buono per sprites simili
 • Scaffale: Packing semplice e veloce, ma meno ottimale
 • Shelf FFDH: Shelf with First Fit Decreasing Height (ordina per altezza)
 • Skyline: Buono per sprite con altezze simili
-• Simple Row: Posizionamento base sinistro a destra, riga per riga</translation>
+• Simple Row: Posizionamento sinistro a destra, riga per riga</translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="732"/>
         <location filename="../gui/app_config_window.py" line="1768"/>
         <source>Auto (Best Result)</source>
-        <translation type="unfinished">Auto (migliore risultato)</translation>
+        <translation type="unfinished">Auto (Migliore Risultato)</translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="735"/>
@@ -304,29 +319,19 @@ Auto will try multiple heuristics and pick the best result.</source>
 Auto proverà diversi algorithmi e sceglierà il miglior risultato.</translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="752"/>
-        <source>Max atlas size</source>
-        <translation>Dimensione max. dell&apos;atlas</translation>
-    </message>
-    <message>
         <location filename="../gui/app_config_window.py" line="758"/>
         <source>Maximum width and height of the generated atlas.
 Larger atlases can fit more sprites but may have
 compatibility issues with older hardware.</source>
         <translation>Larghezza e altezza massima dell&apos;atlas generato.
-Atlas più grandi possono avere più sprites, ma possono avere
+I atlas più grandi possono avere più sprites, ma possono avere
 problemi di compatibilità con hardware vecchi.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="767"/>
-        <source>Padding:</source>
-        <translation>Spaziatura:</translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="773"/>
         <source>Pixels of padding between sprites.
 Helps prevent texture bleeding during rendering.</source>
-        <translation>Pixel di spaziatura tra sprite.
+        <translation>Pixel di spaziatura tra sprites.
 Aiuta a prevenire la presenza di una parte di un sprite in un altro durante il trattamento.</translation>
     </message>
     <message>
@@ -337,15 +342,10 @@ Required by some older graphics hardware and game engines.</source>
 Richiesto da alcuni vecchi hardware grafica e motori di gioco.</translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="795"/>
-        <source>Sprite Optimization</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../gui/app_config_window.py" line="802"/>
         <source>Allow sprites to be rotated 90° for tighter packing.
 Only supported by some atlas formats.</source>
-        <translation>Consenti gli sprite da ruotare 90° per un imballaggio più stretto.
+        <translation>Consenti gli sprites da ruotare 90° per un imballaggio più stretto.
 Solo supportato da alcuni formati di atlas.</translation>
     </message>
     <message>
@@ -354,7 +354,7 @@ Solo supportato da alcuni formati di atlas.</translation>
 Stores only the canonical version with flip metadata,
 reducing atlas size for mirrored sprites.
 Only supported by Starling-XML format.</source>
-        <translation>Rileva le varianti di sprite in orizzontale/vertimentale.
+        <translation>Rileva le varianti di sprites in orizzontale/vertimentale.
 Memorizza solo la versione canonica con i metadati invertiti,
 riducendo le dimensioni dell&apos;atlas per i sprites invertiti.
 Supportato solo dal formato Starling-XML.</translation>
@@ -369,49 +369,9 @@ I metadati offset vengono memorizzati in modo che gli sprites rendano correttame
 Non tutti i formati atlas supportano i metadati trim.</translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="837"/>
-        <source>Output Format</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="841"/>
-        <source>Atlas type</source>
-        <translation>Tipo d&apos;Atlas</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="864"/>
-        <source>Metadata format for the generated atlas.</source>
-        <translation>Formato metadati per l&apos;atlas generato.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="870"/>
-        <source>Image format</source>
-        <translation>Formato dell&apos;immagine</translation>
-    </message>
-    <message>
         <location filename="../gui/app_config_window.py" line="892"/>
         <source>PNG Settings</source>
         <translation>Impostazioni del PNG</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="902"/>
-        <source>PNG compression level (0-9):
-• 0: No compression (fastest, largest file)
-• 1-3: Low compression
-• 4-6: Medium compression
-• 7-9: High compression (slowest, smallest file)
-This doesn&apos;t affect the quality of the image, only the file size</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="918"/>
-        <source>PNG optimize:
-• Enabled: Uses additional compression techniques for smaller files
-When enabled, compression level is automatically set to 9
-Results in slower processing but better compression
-
-This doesn&apos;t affect the quality of the image, only the file size</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="930"/>
@@ -419,101 +379,14 @@ This doesn&apos;t affect the quality of the image, only the file size</source>
         <translation>Impostazioni del WebP</translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="938"/>
-        <source>WebP lossless mode:
-• Enabled: Perfect quality preservation, larger file size
-• Disabled: Lossy compression with adjustable quality
-When enabled, quality sliders are disabled</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="954"/>
-        <source>WebP quality (0-100):
-• 0: Lowest quality, smallest file
-• 75: Balanced quality/size
-• 100: Highest quality, largest file
-Only used in lossy mode</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="971"/>
-        <source>WebP compression method (0-6):
-• 0: Fastest encoding, larger file
-• 3: Balanced speed/compression
-• 6: Slowest encoding, best compression
-Higher values take more time but produce smaller files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="988"/>
-        <source>WebP alpha channel quality (0-100):
-Controls transparency compression quality
-• 0: Maximum alpha compression
-• 100: Best alpha quality
-Only used in lossy mode</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1003"/>
-        <source>WebP exact mode:
-• Enabled: Preserves RGB values in transparent areas
-• Disabled: Allows optimization of transparent pixels
-Enable for better quality when transparency matters</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../gui/app_config_window.py" line="1014"/>
         <source>AVIF Settings</source>
         <translation>Impostazioni dell&apos;AVIF</translation>
     </message>
     <message>
-        <location filename="../gui/app_config_window.py" line="1030"/>
-        <source>AVIF quality (0-100):
-• 0-30: Low quality, very small files
-• 60-80: Good quality for most images
-• 85-95: High quality (recommended)
-• 95-100: Excellent quality, larger files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1047"/>
-        <source>AVIF encoding speed (0-10):
-• 0: Slowest encoding, best compression
-• 5: Balanced speed/compression (default)
-• 10: Fastest encoding, larger files
-Higher values encode faster but produce larger files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../gui/app_config_window.py" line="1059"/>
         <source>TIFF Settings</source>
         <translation>Impostazioni del TIFF</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1069"/>
-        <source>TIFF compression algorithm:
-• none: No compression, largest files
-• lzw: Lossless, good compression (recommended)
-• zip: Lossless, better compression
-• jpeg: Lossy compression, smallest files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1086"/>
-        <source>TIFF quality (0-100):
-Only used with JPEG compression
-• 0-50: Low quality, small files
-• 75-90: Good quality
-• 95-100: Excellent quality</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1101"/>
-        <source>TIFF optimization:
-• Enabled: Optimize file structure for smaller size
-• Disabled: Standard TIFF format
-Recommended to keep enabled</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="1125"/>
@@ -523,12 +396,7 @@ Recommended to keep enabled</source>
     <message>
         <location filename="../gui/app_config_window.py" line="1139"/>
         <source>Note: Auto-update will download and install updates automatically when available.</source>
-        <translation>Nota: l&apos;aggiornamento automatico scarica e installa automaticamente gli aggiornamenti quando disponibile.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1287"/>
-        <source>Are you sure you want to reset all settings to their default values?</source>
-        <translation type="unfinished"></translation>
+        <translation>Nota: l&apos;aggiornamento automatico scarica e installa gli aggiornamenti quando disponibile.</translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="1378"/>
@@ -553,41 +421,7 @@ Recommended to keep enabled</source>
     <message>
         <location filename="../gui/app_config_window.py" line="1509"/>
         <source>Failed to save configuration: {error}</source>
-        <translation>Non riuscito a salvare la configurazione: {error}</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1548"/>
-        <source>Appearance</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1551"/>
-        <source>Color scheme:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1553"/>
-        <source>Override the operating system&apos;s dark/light mode:
-
-• Auto: Follow system theme
-• Light: Always use light theme
-• Dark: Always use dark theme</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1562"/>
-        <source>Auto (System)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1563"/>
-        <source>Light</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1564"/>
-        <source>Dark</source>
-        <translation type="unfinished"></translation>
+        <translation>Non è riuscito a salvare la configurazione: {error}</translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="1571"/>
@@ -636,6 +470,223 @@ Questo influisce solo sulla selezione manuale del file della scheda Estrazione.<
         <translation>Comportamento dell&apos;animazione</translation>
     </message>
     <message>
+        <location filename="../gui/app_config_window.py" line="286"/>
+        <source>Your Computer</source>
+        <translation>Il tuo computer</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="305"/>
+        <source>App Resource Limits</source>
+        <translation>Limite delle risorse dell&apos;app</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="795"/>
+        <source>Sprite Optimization</source>
+        <translation>Ottimizzazione dei sprite</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="837"/>
+        <source>Output Format</source>
+        <translation>Formato dell&apos;uscita</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="902"/>
+        <source>PNG compression level (0-9):
+• 0: No compression (fastest, largest file)
+• 1-3: Low compression
+• 4-6: Medium compression
+• 7-9: High compression (slowest, smallest file)
+This doesn&apos;t affect the quality of the image, only the file size</source>
+        <translation>Livello di compressione PNG (0-9):
+• 0: Senza compressione (più veloce, file più grande)
+• 1-3: Compressione bassa
+• 4-6: Compressione media
+• 7-9: Compressione alta (più lenta, file più piccolo)
+Non influenzerà la qualità dell&apos;immagine, soltanto la grandezza del file.</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="918"/>
+        <source>PNG optimize:
+• Enabled: Uses additional compression techniques for smaller files
+When enabled, compression level is automatically set to 9
+Results in slower processing but better compression
+
+This doesn&apos;t affect the quality of the image, only the file size</source>
+        <translation>Ottimizzazione PNG:
+• Attivata: Usa delle tecniche di compressione in più per file più piccoli
+Se attivata, il livello di compressione sarà automaticamente impostato a 9
+Causera in un trattamento più lento ma una migliore compressione
+
+Non influenzerà la qualità dell&apos;immagine, soltanto la grandezza del file.</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="938"/>
+        <source>WebP lossless mode:
+• Enabled: Perfect quality preservation, larger file size
+• Disabled: Lossy compression with adjustable quality
+When enabled, quality sliders are disabled</source>
+        <translation>Modalità &apos;senza perta di qualità&apos; WebP:
+• Attivata: Conservazione perfetta della qualità, file più grande
+• Disattivata: Compressione con perta di qualità, con qualità ajustabile.
+Se attivata, i cursori di qualità saranno disattivate.</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="954"/>
+        <source>WebP quality (0-100):
+• 0: Lowest quality, smallest file
+• 75: Balanced quality/size
+• 100: Highest quality, largest file
+Only used in lossy mode</source>
+        <translation>Qualità WebP (0-100):
+• 0: Qualità più bassa, file più piccolo
+• 75: Equilbrio fra qualità e grandezza
+• 100: Qualità più alta, file più grande
+Soltanto usata nella modalità &apos;con perta di qualità&apos;</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="971"/>
+        <source>WebP compression method (0-6):
+• 0: Fastest encoding, larger file
+• 3: Balanced speed/compression
+• 6: Slowest encoding, best compression
+Higher values take more time but produce smaller files</source>
+        <translation>Metodo di compressione WebP (0-6):
+• 0: Codifica più veloce, file più grande
+• 3: Equilibrio fra velocità e compressione
+• 6: Codifica più lenta, migliore compressione
+Valori più alte prendono più di tempo ma producono file più piccoli.</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="988"/>
+        <source>WebP alpha channel quality (0-100):
+Controls transparency compression quality
+• 0: Maximum alpha compression
+• 100: Best alpha quality
+Only used in lossy mode</source>
+        <translation>Qualità del canale alfa WebP (0-100):
+Controlla la qualità di compressione della trasparenza
+• 0: Compressione alfa massima
+• 100: Migliore qualità alfa
+Soltanto utilizata nella modalità &apos;con perta di qualità&apos;</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1003"/>
+        <source>WebP exact mode:
+• Enabled: Preserves RGB values in transparent areas
+• Disabled: Allows optimization of transparent pixels
+Enable for better quality when transparency matters</source>
+        <translation>Modalità &apos;esatta&apos; WebP:
+• Attivata: Preserva i valori RVB nelle zone trasparenti
+• Disattivata: Permette l&apos;ottimizzazione dei pixel trasparenti
+Attiva per una qualità migliore se la trasparenza importa.</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1030"/>
+        <source>AVIF quality (0-100):
+• 0-30: Low quality, very small files
+• 60-80: Good quality for most images
+• 85-95: High quality (recommended)
+• 95-100: Excellent quality, larger files</source>
+        <translation>Qualità AVIF (0-100):
+• 0-30: Scarsa qualità, file molti piccoli
+• 60-80: Buona qualità per la maggior parte delle immagini
+• 85-95: Altà qualità (raccomandato)
+• 95-100: Qualità eccelente, file più grandi</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1047"/>
+        <source>AVIF encoding speed (0-10):
+• 0: Slowest encoding, best compression
+• 5: Balanced speed/compression (default)
+• 10: Fastest encoding, larger files
+Higher values encode faster but produce larger files</source>
+        <translation>Velocità della codifica AVIF (0-10):
+• 0: Codifica più lenta, migliore compressione
+• 5: Equilibro fra velocità e compressione (predefinita)
+• 10: Codifica più veloce, file più grande
+Valori più alte prendono meno di tempo ma producono file più grandi.</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1069"/>
+        <source>TIFF compression algorithm:
+• none: No compression, largest files
+• lzw: Lossless, good compression (recommended)
+• zip: Lossless, better compression
+• jpeg: Lossy compression, smallest files</source>
+        <translation>Algorithmo di compressione TIFF:
+• none: Senza compressione, file più grande
+• lzw: Senza perta di qualità, buona compressione (raccomandato)
+• zip: Senza perta di qualità, compressione migliore
+• jpeg: Compressione con perta di qualità, file più piccolo</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1086"/>
+        <source>TIFF quality (0-100):
+Only used with JPEG compression
+• 0-50: Low quality, small files
+• 75-90: Good quality
+• 95-100: Excellent quality</source>
+        <translation>Qualità TIFF (0-100):
+Utilizata soltando con la compressione JPEG
+• 0-50: Qualità bassa, file più piccolo
+• 75-90: Buona qualità
+• 95-100: Qualità eccelente</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1101"/>
+        <source>TIFF optimization:
+• Enabled: Optimize file structure for smaller size
+• Disabled: Standard TIFF format
+Recommended to keep enabled</source>
+        <translation>Ottimizzazione TIFF:
+• Attivata: Ottimizza la struttura del file per una grandezza più piccola
+• Disattivata: Formato standard TIFF 
+Raccomandato tenerla attivata</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1287"/>
+        <source>Are you sure you want to reset all settings to their default values?</source>
+        <translation>Sei sicuro di voler ripristire tutte le impostazioni ai valori originali?</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1548"/>
+        <source>Appearance</source>
+        <translation>Apparenza</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1551"/>
+        <source>Color scheme:</source>
+        <translation>Tema dell&apos;app:</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1553"/>
+        <source>Override the operating system&apos;s dark/light mode:
+
+• Auto: Follow system theme
+• Light: Always use light theme
+• Dark: Always use dark theme</source>
+        <translation>Sostituisce la modalità chiara/scura del sistema:
+
+• Auto: Usa il tema del sistema
+• Chiaro: Sempre usa il tema chiaro
+• Scuro: Sempre usa il tema scuro</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1562"/>
+        <source>Auto (System)</source>
+        <translation>Auto (Sistema)</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1563"/>
+        <source>Light</source>
+        <translation>Chiaro</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1564"/>
+        <source>Dark</source>
+        <translation>Scuro</translation>
+    </message>
+    <message>
         <location filename="../gui/app_config_window.py" line="1638"/>
         <source>When enabled, consecutive duplicate frames are merged into a
 single frame with combined duration. Disable if you want to
@@ -648,6 +699,27 @@ tenere tutti i fotogrammi singolarmente per le regolazioni di ritmo manuali.</tr
         <location filename="../gui/app_config_window.py" line="1646"/>
         <source>Duration input type:</source>
         <translation>Tipo di durata:</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_config_window.py" line="1648"/>
+        <source>Choose how frame timing is entered in the UI:
+
+• Format Native: Uses each format&apos;s native unit:
+    - GIF: Centiseconds (10ms increments)
+    - APNG/WebP: Milliseconds
+• FPS: Traditional frames-per-second (converted to delays)
+• Deciseconds: 1/10th of a second
+• Centiseconds: 1/100th of a second
+• Milliseconds: 1/1000th of a second</source>
+        <translation>Scegliere come il tempo del fotogramma è inserita nell&apos;interfaccia utente:
+
+• Formato Nativo: Utilizza l&apos;unità nativa di ogni formato:
+    - GIF: Centisecondi (incremento di 10ms)
+    - APNG/WebP: Millisecondi
+• FPS: Fotogrammi al secondo (convertiti a ritardi)
+• Decisecondi: 1/10 di secondo
+• Centisecondi: 1/100 di secondo
+• Millisecondi: 1/1000 di secondo</translation>
     </message>
     <message>
         <location filename="../gui/app_config_window.py" line="1661"/>
@@ -674,83 +746,63 @@ tenere tutti i fotogrammi singolarmente per le regolazioni di ritmo manuali.</tr
         <source>Milliseconds</source>
         <translation>Millisecondi</translation>
     </message>
-    <message>
-        <location filename="../gui/app_config_window.py" line="1648"/>
-        <source>Choose how frame timing is entered in the UI:
-
-• Format Native: Uses each format&apos;s native unit:
-    - GIF: Centiseconds (10ms increments)
-    - APNG/WebP: Milliseconds
-• FPS: Traditional frames-per-second (converted to delays)
-• Deciseconds: 1/10th of a second
-• Centiseconds: 1/100th of a second
-• Milliseconds: 1/1000th of a second</source>
-        <translation>Scegliere come il tempo del fotogramma è inserita nell&apos;interfaccia utente:
-
-• Formato Nativo: Utilizza l&apos;unità nativa di ogni formato:
-    - GIF: Centisecondi (incremento di 10ms)
-    - APNG/WebP: Millisecondi
-• FPS: Fotogrammi al secondo (convertiti a ritardi)
-• Decisecondi: 1/10 di secondo
-• Centisecondi: 1/100 di secondo
-• Millisecondi: 1/1000 di secondo</translation>
-    </message>
 </context>
 <context>
     <name>BackgroundHandlerWindow</name>
-    <message>
-        <location filename="../gui/extractor/background_handler_window.py" line="56"/>
-        <location filename="../gui/extractor/background_handler_window.py" line="94"/>
-        <source>Background Color Options</source>
-        <translation>Opzioni di colore di sfondo</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/background_handler_window.py" line="103"/>
-        <source>Found {count} unknown spritesheet(s) with background colors.
-Check the box next to each file to remove its background color during processing:</source>
-        <translation>Trovato {count} Spritesheet(s) sconosciuto con colori di sfondo.
-Controllare la casella accanto a ogni file per rimuovere il suo colore di sfondo durante l&apos;elaborazione:</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/background_handler_window.py" line="114"/>
-        <source>Select All</source>
-        <translation>Seleziona tutto</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/background_handler_window.py" line="119"/>
-        <source>Select None</source>
-        <translation>Selezionare Nessuno</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/background_handler_window.py" line="147"/>
-        <source>Processing Options:</source>
-        <translation>Opzioni di elaborazione:</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/background_handler_window.py" line="152"/>
-        <source>• Checked: Remove background colors (apply color keying)
-• Unchecked: Keep background colors but exclude them during sprite detection</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/background_handler_window.py" line="163"/>
-        <source>💡 Tip: Checked files will have transparent backgrounds in PNG, WebP, and APNG outputs</source>
-        <translation>💡 Suggerimento: I file controllati avranno sfondi trasparenti nelle uscite PNG, WebP e APNG</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/background_handler_window.py" line="175"/>
-        <source>Apply Settings</source>
-        <translation>Applicare le impostazioni</translation>
-    </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="181"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
+        <location filename="../gui/extractor/background_handler_window.py" line="56"/>
+        <location filename="../gui/extractor/background_handler_window.py" line="94"/>
+        <source>Background Color Options</source>
+        <translation>Opzioni di colore dello sfondo</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/background_handler_window.py" line="114"/>
+        <source>Select All</source>
+        <translation>Tutto selezionare</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/background_handler_window.py" line="119"/>
+        <source>Select None</source>
+        <translation>Niente selezionare</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/background_handler_window.py" line="103"/>
+        <source>Found {count} unknown spritesheet(s) with background colors.
+Check the box next to each file to remove its background color during processing:</source>
+        <translation>{count} sprite sheet(s) sconosciuto(i) con colori di sfondo.
+Spunta la casella accanto a ogni file per rimuovere il suo colore di sfondo durante il trattamento:</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/background_handler_window.py" line="147"/>
+        <source>Processing Options:</source>
+        <translation>Opzioni di trattamento:</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/background_handler_window.py" line="152"/>
+        <source>• Checked: Remove background colors (apply color keying)
+• Unchecked: Keep background colors but exclude them during sprite detection</source>
+        <translation>• Spuntato: Rimuove i colori di sfondo (applica il color keying)
+• Non spuntato: Conserva i colori di sfondo ma li esclude durante il rilevamento degli sprite</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/background_handler_window.py" line="163"/>
+        <source>💡 Tip: Checked files will have transparent backgrounds in PNG, WebP, and APNG outputs</source>
+        <translation>💡 Suggerimento: I file spuntati avranno sfondi trasparenti nelle uscite PNG, WebP e APNG</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/background_handler_window.py" line="175"/>
+        <source>Apply Settings</source>
+        <translation>Applica le impostazioni</translation>
+    </message>
+    <message>
         <location filename="../gui/extractor/background_handler_window.py" line="222"/>
         <source>📄 {filename}</source>
-        <translation>{filename}</translation>
+        <translation>📄 {filename}</translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="230"/>
@@ -760,12 +812,12 @@ Controllare la casella accanto a ogni file per rimuovere il suo colore di sfondo
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="241"/>
         <source>... and {count} more colors</source>
-        <translation>... e {count} più colori</translation>
+        <translation>... e {count} colori di più</translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="268"/>
         <source>RGB({r}, {g}, {b})</source>
-        <translation>{r}, {g}, {b}]</translation>
+        <translation>RVB({r}, {g}, {b})</translation>
     </message>
     <message>
         <location filename="../gui/extractor/background_handler_window.py" line="272"/>
@@ -793,7 +845,12 @@ Controllare la casella accanto a ogni file per rimuovere il suo colore di sfondo
 • 4-6: Medium compression
 • 7-9: High compression (slowest, smallest file)
 This doesn&apos;t affect the quality of the image, only the file size</source>
-        <translation type="unfinished"></translation>
+        <translation>Livello di compressione PNG (0-9):
+• 0: Senza compressione (più veloce, file più grande)
+• 1-3: Compressione bassa
+• 4-6: Compressione media
+• 7-9: Compressione alta (più lenta, file più piccolo)
+Non influenzerà la qualità dell&apos;immagine, soltanto la grandezza del file.</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="155"/>
@@ -803,7 +860,12 @@ When enabled, compression level is automatically set to 9
 Results in slower processing but better compression
 
 This doesn&apos;t affect the quality of the image, only the file size</source>
-        <translation type="unfinished"></translation>
+        <translation>Ottimizzazione PNG:
+• Attivata: Usa delle tecniche di compressione in più per file più piccoli
+Se attivata, il livello di compressione sarà automaticamente impostato a 9
+Causera in un trattamento più lento ma una migliore compressione
+
+Non influenzerà la qualità dell&apos;immagine, soltanto la grandezza del file.</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="186"/>
@@ -811,7 +873,10 @@ This doesn&apos;t affect the quality of the image, only the file size</source>
 • Enabled: Perfect quality preservation, larger file size
 • Disabled: Lossy compression with adjustable quality
 When enabled, quality sliders are disabled</source>
-        <translation type="unfinished"></translation>
+        <translation>Modalità &apos;senza perta di qualità&apos; WebP:
+• Attivata: Conservazione perfetta della qualità, file più grande
+• Disattivata: Compressione con perta di qualità, con qualità ajustabile.
+Se attivata, i cursori di qualità saranno disattivate.</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="200"/>
@@ -820,7 +885,11 @@ When enabled, quality sliders are disabled</source>
 • 75: Balanced quality/size
 • 100: Highest quality, largest file
 Only used in lossy mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Qualità WebP (0-100):
+• 0: Qualità più bassa, file più piccolo
+• 75: Equilbrio fra qualità e grandezza
+• 100: Qualità più alta, file più grande
+Soltanto usata nella modalità &apos;con perta di qualità&apos;</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="215"/>
@@ -829,7 +898,11 @@ Only used in lossy mode</source>
 • 3: Balanced speed/compression
 • 6: Slowest encoding, best compression
 Higher values take more time but produce smaller files</source>
-        <translation type="unfinished"></translation>
+        <translation>Metodo di compressione WebP (0-6):
+• 0: Codifica più veloce, file più grande
+• 3: Equilibrio fra velocità e compressione
+• 6: Codifica più lenta, migliore compressione
+Valori più alte prendono più di tempo ma producono file più piccoli.</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="230"/>
@@ -838,7 +911,11 @@ Controls transparency compression quality
 • 0: Maximum alpha compression
 • 100: Best alpha quality
 Only used in lossy mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Qualità del canale alfa WebP (0-100):
+Controlla la qualità di compressione della trasparenza
+• 0: Compressione alfa massima
+• 100: Migliore qualità alfa
+Soltanto utilizata nella modalità &apos;con perta di qualità&apos;</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="242"/>
@@ -846,7 +923,10 @@ Only used in lossy mode</source>
 • Enabled: Preserves RGB values in transparent areas
 • Disabled: Allows optimization of transparent pixels
 Enable for better quality when transparency matters</source>
-        <translation type="unfinished"></translation>
+        <translation>Modalità &apos;esatta&apos; WebP:
+• Attivata: Preserva i valori RVB nelle zone trasparenti
+• Disattivata: Permette l&apos;ottimizzazione dei pixel trasparenti
+Attiva per una qualità migliore se la trasparenza importa.</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="83"/>
@@ -856,22 +936,22 @@ Enable for better quality when transparency matters</source>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="103"/>
         <source>No compression settings available for {format} format.</source>
-        <translation>Nessuna impostazione di compressione disponibile per il formato {format}.</translation>
+        <translation>Nessun impostazioni di compressione disponibile per il formato {format}.</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="133"/>
         <source>PNG Compression Settings</source>
-        <translation>Impostazioni di compressione PNG</translation>
+        <translation>Impostazioni di compressione dei PNGs</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="180"/>
         <source>WebP Compression Settings</source>
-        <translation>Impostazioni di compressione WebP</translation>
+        <translation>Impostazioni di compressione dei WebPs</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="272"/>
         <source>AVIF Compression Settings</source>
-        <translation>Impostazioni di compressione AVIF</translation>
+        <translation>Impostazioni di compressione dei AVIFs</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="278"/>
@@ -879,7 +959,10 @@ Enable for better quality when transparency matters</source>
 • Enabled: Perfect quality preservation, larger file size
 • Disabled: Lossy compression with adjustable quality
 When enabled, quality slider is disabled</source>
-        <translation type="unfinished"></translation>
+        <translation>Modalità &apos;senza perta di qualità&apos; AVIF:
+• Attivata: Conservazione perfetta della qualità, file più grande
+• Disattivata: Compressione con perta di qualità, con qualità ajustabile.
+Se attivata, il cursore di qualità sarà disattivato</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="292"/>
@@ -887,7 +970,10 @@ When enabled, quality slider is disabled</source>
 • 0: Lowest quality, smallest file
 • 100: Highest quality, largest file
 Only used in lossy mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Qualità AVIF (0-100):
+• 0: Scarsa qualità, file molti piccoli
+• 100: Qualità eccelente, file più grandi
+Soltanto usata nella modalità &apos;con perta di qualità&apos;</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="306"/>
@@ -897,12 +983,17 @@ Only used in lossy mode</source>
 • 10: Fastest encoding, larger file
 Higher values encode faster but produce larger files.
 AVIF may take much longer to encode than other formats.</source>
-        <translation type="unfinished"></translation>
+        <translation>Velocità della codifica AVIF (0-10):
+• 0: Codifica più lenta, migliore compressione
+• 5: Equilibro fra velocità e compressione (predefinita)
+• 10: Codifica più veloce, file più grande
+Valori più alte prendono meno di tempo ma producono file più grandi.
+AVIF richiede più di tempo per la codifica che altri formatti</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="334"/>
         <source>TIFF Compression Settings</source>
-        <translation>Impostazioni di compressione TIFF</translation>
+        <translation>Impostazioni di compressione dei TIFFs</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="343"/>
@@ -911,14 +1002,20 @@ AVIF may take much longer to encode than other formats.</source>
 • LZW: Lossless compression (good for graphics)
 • ZIP: Lossless compression (good for photos)
 • JPEG: Lossy compression (smallest files, adjustable quality)</source>
-        <translation type="unfinished"></translation>
+        <translation>Tipo di compressione TIFF:
+• None: Senza compressione (file più grande, più veloce)
+• LZW: Senza perta di qualità (buono per le grafiche)
+• ZIP: Senza perta di qualità (buono per le foto)
+• JPEG: Compressione con perta di qualità (file più piccolo, qualità aggiustabile)</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="358"/>
         <source>TIFF JPEG quality (0-100):
 Only used when compression type is JPEG
 • 100: Highest quality, largest file</source>
-        <translation type="unfinished"></translation>
+        <translation>Qualità &apos;JPEG&apos; TIFF (0-100):
+Utilizata soltando con la compressione JPEG
+• 100: Qualità più alta, file più grande</translation>
     </message>
     <message>
         <location filename="../gui/extractor/compression_settings_window.py" line="368"/>
@@ -926,7 +1023,10 @@ Only used when compression type is JPEG
 • Enabled: Use additional optimization techniques
 Results in better compression but slower processing
 Not available when compression type is &apos;None&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Ottimizzazione TIFF:
+• Attivata: Usa delle tecniche di compressione in più
+Causera in un trattamento più lento ma una migliore compressione
+Non disponibile se il tipo di compressione è &apos;None&apos;</translation>
     </message>
 </context>
 <context>
@@ -937,16 +1037,16 @@ Not available when compression type is &apos;None&apos;</source>
         <translation>Contributori</translation>
     </message>
     <message>
+        <location filename="../gui/contributors_window.py" line="65"/>
+        <source>Close</source>
+        <translation>Chiudi</translation>
+    </message>
+    <message>
         <location filename="../gui/contributors_window.py" line="45"/>
         <source>TextureAtlas Toolbox
 Contributors</source>
         <translation>Contributori del
 TextureAtlas Toolbox</translation>
-    </message>
-    <message>
-        <location filename="../gui/contributors_window.py" line="65"/>
-        <source>Close</source>
-        <translation>Chiudi</translation>
     </message>
 </context>
 <context>
@@ -1000,34 +1100,39 @@ TextureAtlas Toolbox</translation>
         <translation>Fotogramma fantasma</translation>
     </message>
     <message>
-        <location filename="../gui/editor_tab_widget.py" line="838"/>
-        <source>px</source>
-        <translation>p</translation>
-    </message>
-    <message>
         <location filename="../gui/editor_tab_widget.py" line="840"/>
         <source>Snapping</source>
         <translation>Effeto calamita</translation>
     </message>
     <message>
+        <location filename="../gui/editor_tab_widget.py" line="2416"/>
+        <source>Export composite</source>
+        <translation>Esporta il composito</translation>
+    </message>
+    <message>
+        <location filename="../gui/editor_tab_widget.py" line="838"/>
+        <source>px</source>
+        <translation>px</translation>
+    </message>
+    <message>
         <location filename="../gui/editor_tab_widget.py" line="934"/>
         <source>Centered</source>
-        <translation>Centro</translation>
+        <translation>Centrato</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="935"/>
         <source>Top-left (FlxSprite)</source>
-        <translation>Top-left (FlxSprite)</translation>
+        <translation>In alto, a sinistra (FlxSprite)</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="938"/>
         <source>Choose how the editor canvas positions frames when offsets are zero.</source>
-        <translation>Scegle come la tela dell&apos;editore posiziona i fotogrammi quando gli offset sono zero.</translation>
+        <translation>Scegli come la tela dell&apos;editore posiziona i fotogrammi quando gli offset sono zero.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1018"/>
         <source>FlxSprite origin mode enabled so imported offsets match the preview.</source>
-        <translation>La modalità di origine FlxSprite abilitata così gli offset importati corrispondono all&apos;anteprima.</translation>
+        <translation>La modalità di origine FlxSprite attivata così gli offset importati corrispondono all&apos;anteprima.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1074"/>
@@ -1037,27 +1142,27 @@ TextureAtlas Toolbox</translation>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1311"/>
         <source>Pillow is required to load animations.</source>
-        <translation>Il cuscino è necessario per caricare animazioni.</translation>
+        <translation>Pillow è necessario per caricare le animazioni.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1343"/>
         <source>Frame {index}</source>
-        <translation>Cornice {index}</translation>
+        <translation>Fotogramma {index}</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1354"/>
         <source>{file} did not contain any frames.</source>
-        <translation>{file} non contiene cornici.</translation>
+        <translation>{file} non contiene nessun fotogrammi</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1376"/>
         <source>Could not load {file}: {error}</source>
-        <translation>{file} {error}]</translation>
+        <translation>Non poteva caricare {file}: {error}</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1403"/>
         <source>Loaded {animation} from {sheet}.</source>
-        <translation>Caricato {animation} da {sheet}.</translation>
+        <translation>{animation} caricata da {sheet}.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1413"/>
@@ -1067,17 +1172,17 @@ TextureAtlas Toolbox</translation>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1625"/>
         <source>Select at least two animations to build a composite entry.</source>
-        <translation>Selezionare almeno due animazioni per costruire un ingresso composito.</translation>
+        <translation>Seleziona almeno due animazioni per creare un composito.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1688"/>
         <source>Could not build the composite entry. Ensure the selected animations have frames.</source>
-        <translation>Non poteva costruire l&apos;ingresso composito. Assicurarsi che le animazioni selezionate abbiano cornici.</translation>
+        <translation>Non poteva creare il composito di entrata. Assicurati che l&apos;animazione selezionata abbia fotogrammi.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1694"/>
         <source>Composite ({count} animations)</source>
-        <translation>Animazioni composite ({count})</translation>
+        <translation>Composito ({count} animazioni)</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1698"/>
@@ -1087,57 +1192,57 @@ TextureAtlas Toolbox</translation>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1738"/>
         <source>Composite entry created with {count} frames.</source>
-        <translation>Ingresso composito creato con cornici {count}.</translation>
+        <translation>Composito di entrata creato con {count} fotogrammi.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="1884"/>
         <source>Applied ({x}, {y}) to {count} animations.</source>
-        <translation>Applicato ({x}, {y}]) alle animazioni {count}.</translation>
+        <translation>Applicato ({x}, {y}) a {count} animazioni.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2076"/>
         <source>Root selected: offset changes now apply to every frame in this animation.</source>
-        <translation>Root selezionato: i cambiamenti di offset ora si applicano a ogni frame in questa animazione.</translation>
+        <translation>Root selezionato: i cambiamenti di offset ora si applicano a ogni fotogramma in questa animazione.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2221"/>
         <source>Applied ({x}, {y}) to every frame.</source>
-        <translation>Applicato ({x}, {y}]) ad ogni cornice.</translation>
+        <translation>Applicato ({x}, {y}) a tutti i fotogrammi.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2311"/>
         <source>Offsets stored for &apos;{name}&apos;. They will be used on the next extraction run.</source>
-        <translation>Disturbi memorizzati per &apos;{name}&apos;. Saranno utilizzati sulla prossima estrazione.</translation>
+        <translation>Offset salvati per &apos;{name}&apos;. Sarrano utilizati durante la prossima estrazione.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2327"/>
         <source>Select a composite entry generated from multiple animations.</source>
-        <translation>Selezionare una voce composita generata da più animazioni.</translation>
+        <translation>Seleziona un composito di entra generato da diverse animazioni.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2337"/>
         <source>Could not determine the source animations for this composite.</source>
-        <translation>Non poteva determinare le animazioni di origine per questo composito.</translation>
+        <translation>Non poteva determinare le animazione originali di questo composito.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2357"/>
         <source>Composite export currently supports animations loaded from the extractor only.</source>
-        <translation>L&apos;esportazione composita supporta attualmente le animazioni caricate dall&apos;estrattore.</translation>
+        <translation>L&apos;esportazione di composito supporta solo le animazioni caricate dall&apos;estrattore.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2372"/>
         <source>All combined animations must belong to the same spritesheet and originate from the extractor.</source>
-        <translation>Tutte le animazioni combinate devono appartenere allo stesso foglio e provengono dall&apos;estrattore.</translation>
+        <translation>Tutte le animazioni combinate devono appartenere allo stesso sprite sheet e provenire dall&apos;estrattore.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2390"/>
         <source>Source animations were removed and no export metadata was stored. Recreate the composite while source animations are present.</source>
-        <translation>Le animazioni di origine sono state rimosse e non sono stati memorizzati metadati di esportazione. Ricreare il composito mentre le animazioni di sorgente sono presenti.</translation>
+        <translation>Le animazioni originali sono state rimosse e i metadati di esportazione non sono stati memorizzati. Ricrea il composito mentre le animazioni originali sono presenti.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2399"/>
         <source>Composite_{count}</source>
-        <translation>Composite {count}</translation>
+        <translation>Composito_{count}</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2403"/>
@@ -1145,19 +1250,14 @@ TextureAtlas Toolbox</translation>
         <translation>Inserisci un nome per l&apos;animazione esportata</translation>
     </message>
     <message>
-        <location filename="../gui/editor_tab_widget.py" line="2416"/>
-        <source>Export composite</source>
-        <translation>Esportazione composito</translation>
-    </message>
-    <message>
         <location filename="../gui/editor_tab_widget.py" line="2417"/>
         <source>Unable to capture composite definition for export.</source>
-        <translation>Incapace di catturare la definizione composito per l&apos;esportazione.</translation>
+        <translation>Impossibile di catturare la definizione del composito per l&apos;esportazione.</translation>
     </message>
     <message>
         <location filename="../gui/editor_tab_widget.py" line="2461"/>
         <source>Exported composite to {name}.</source>
-        <translation>Esportato composito a {name}.</translation>
+        <translation>Composito esportato a {name}.</translation>
     </message>
 </context>
 <context>
@@ -1171,36 +1271,21 @@ TextureAtlas Toolbox</translation>
 <context>
     <name>ExtractTabWidget</name>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1298"/>
-        <source>Composite created in the Editor tab</source>
-        <translation>Composito creato nella scheda Edizione</translation>
-    </message>
-    <message>
-        <location filename="../gui/extract_tab_widget.py" line="286"/>
-        <source>Compression Settings</source>
-        <translation>Impostazioni di compressione</translation>
-    </message>
-    <message>
-        <location filename="../gui/extract_tab_widget.py" line="362"/>
-        <source>Select input directory</source>
-        <translation>Seleziona la directory di entrata</translation>
+        <location filename="../gui/extract_tab_widget.py" line="2604"/>
+        <source>Processing...</source>
+        <translation>Trattamento...</translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="366"/>
         <location filename="../gui/extract_tab_widget.py" line="1529"/>
-        <location filename="../gui/extract_tab_widget.py" line="2420"/>
+        <location filename="../gui/extract_tab_widget.py" line="2426"/>
         <source>No input directory selected</source>
         <translation>Nessuna directory di entrata selezionata</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="372"/>
-        <source>Select output directory</source>
-        <translation>Seleziona la directory di uscita</translation>
-    </message>
-    <message>
         <location filename="../gui/extract_tab_widget.py" line="376"/>
         <location filename="../gui/extract_tab_widget.py" line="1530"/>
-        <location filename="../gui/extract_tab_widget.py" line="2423"/>
+        <location filename="../gui/extract_tab_widget.py" line="2429"/>
         <source>No output directory selected</source>
         <translation>Nessuna directory di uscita selezionata</translation>
     </message>
@@ -1217,17 +1302,32 @@ TextureAtlas Toolbox</translation>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="592"/>
         <source>Override spritesheet settings</source>
-        <translation>Override impostazioni di sostituzione dei sprite sheets</translation>
+        <translation>Sostituisci le impostazioni dello sprite sheet</translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="597"/>
         <source>Override animation settings</source>
-        <translation>Impostazioni di sostituzione dell&apos;animazioni</translation>
+        <translation>Sostituisci le impostazioni dell&apos;animazione</translation>
+    </message>
+    <message>
+        <location filename="../gui/extract_tab_widget.py" line="362"/>
+        <source>Select input directory</source>
+        <translation>Seleziona una directory di entrata</translation>
+    </message>
+    <message>
+        <location filename="../gui/extract_tab_widget.py" line="372"/>
+        <source>Select output directory</source>
+        <translation>Seleziona una directory di uscita</translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="604"/>
         <source>Start process</source>
-        <translation>Avvia</translation>
+        <translation>Avvia il trattamento</translation>
+    </message>
+    <message>
+        <location filename="../gui/extract_tab_widget.py" line="286"/>
+        <source>Compression Settings</source>
+        <translation>Impostazioni di compressione</translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="904"/>
@@ -1235,106 +1335,106 @@ TextureAtlas Toolbox</translation>
         <translation>Selezione manuale ({count} file)</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1702"/>
-        <location filename="../gui/extract_tab_widget.py" line="1796"/>
-        <location filename="../gui/extract_tab_widget.py" line="2060"/>
-        <location filename="../gui/extract_tab_widget.py" line="2125"/>
-        <source>Please select a spritesheet first.</source>
-        <translation>Si prega di selezionare uno sprite sheet prima.</translation>
+        <location filename="../gui/extract_tab_widget.py" line="1298"/>
+        <source>Composite created in the Editor tab</source>
+        <translation>Composito creato nella scheda Edizione</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1738"/>
-        <location filename="../gui/extract_tab_widget.py" line="2096"/>
+        <location filename="../gui/extract_tab_widget.py" line="1708"/>
+        <location filename="../gui/extract_tab_widget.py" line="1802"/>
+        <location filename="../gui/extract_tab_widget.py" line="2066"/>
+        <location filename="../gui/extract_tab_widget.py" line="2131"/>
+        <source>Please select a spritesheet first.</source>
+        <translation>Si prega di prima selezionare uno sprite sheet.</translation>
+    </message>
+    <message>
+        <location filename="../gui/extract_tab_widget.py" line="1744"/>
+        <location filename="../gui/extract_tab_widget.py" line="2102"/>
         <source>Could not open animation settings: {error}</source>
         <translation>Non poteva aprire le impostazioni di animazione: {error}</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1781"/>
-        <location filename="../gui/extract_tab_widget.py" line="1828"/>
+        <location filename="../gui/extract_tab_widget.py" line="1787"/>
+        <location filename="../gui/extract_tab_widget.py" line="1834"/>
         <source>Could not open spritesheet settings: {error}</source>
         <translation>Non poteva aprire le impostazioni del sprite sheet: {error}</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1852"/>
+        <location filename="../gui/extract_tab_widget.py" line="1858"/>
         <source>Load animations for this spritesheet before sending it to the editor.</source>
         <translation>Carica le animazioni per questo sprite sheet prima di inviarlo all&apos;editore.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1872"/>
+        <location filename="../gui/extract_tab_widget.py" line="1878"/>
         <source>No animations were found for this spritesheet.</source>
         <translation>Non sono state trovate animazioni per questo sprite sheet.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1905"/>
-        <location filename="../gui/extract_tab_widget.py" line="1945"/>
+        <location filename="../gui/extract_tab_widget.py" line="1911"/>
+        <location filename="../gui/extract_tab_widget.py" line="1951"/>
         <source>Select a spritesheet first.</source>
-        <translation>Selezionare prima uno sprite sheet.</translation>
+        <translation>Seleziona uno sprite sheet prima.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1929"/>
+        <location filename="../gui/extract_tab_widget.py" line="1935"/>
         <source>Unable to locate the exported composite in the editor.</source>
-        <translation>Non è possibile trovato il composito esportato nell&apos;editore.</translation>
+        <translation>Impossibile trovare il composito esportato nell&apos;editore.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1971"/>
+        <location filename="../gui/extract_tab_widget.py" line="1977"/>
         <source>The spritesheet path could not be determined.</source>
-        <translation>Il percorso dello spritesheet non poteva essere determinato.</translation>
+        <translation>Il percorso dello sprite sheet non poteva essere determinato.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1990"/>
+        <location filename="../gui/extract_tab_widget.py" line="1996"/>
         <source>No metadata was located for this spritesheet.</source>
-        <translation>Nessun metadati era situato per questo foglio di sprite.</translation>
+        <translation>Nessun metadati erano situati per questo sprite sheet.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2051"/>
-        <location filename="../gui/extract_tab_widget.py" line="2116"/>
+        <location filename="../gui/extract_tab_widget.py" line="2057"/>
+        <location filename="../gui/extract_tab_widget.py" line="2122"/>
         <source>Please select an animation first.</source>
-        <translation>Si prega di selezionare un&apos;animazione prima.</translation>
+        <translation>Si prega di prima selezionare un&apos;animazione.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2138"/>
+        <location filename="../gui/extract_tab_widget.py" line="2144"/>
         <source>Could not find spritesheet file path.</source>
-        <translation>Non è possibile trovare il percorso del file spritesheet.</translation>
+        <translation>Non poteva trovare il percorso del file dello sprite sheet.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2177"/>
+        <location filename="../gui/extract_tab_widget.py" line="2183"/>
         <source>Preview error</source>
         <translation>Errore di anteprima</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2178"/>
+        <location filename="../gui/extract_tab_widget.py" line="2184"/>
         <source>Could not preview animation: {error}</source>
         <translation>Non poteva visualizzare in anteprima l&apos;animazione: {error}</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2421"/>
+        <location filename="../gui/extract_tab_widget.py" line="2427"/>
         <source>Please select an input directory first.</source>
-        <translation>Si prega di selezionare prima una directory di input.</translation>
+        <translation>Si prega di prima selezionare una directory di entrata.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2424"/>
+        <location filename="../gui/extract_tab_widget.py" line="2430"/>
         <source>Please select an output directory first.</source>
-        <translation>Si prega di selezionare prima una directory di output.</translation>
+        <translation>Si prega di prima selezionare una directory di uscita.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2431"/>
+        <location filename="../gui/extract_tab_widget.py" line="2437"/>
         <source>Please enable at least one export option (Animation or Frame).</source>
-        <translation>Si prega di abilitare almeno un&apos;opzione di esportazione (Animation o Frame).</translation>
+        <translation>Si prega di attivare almeno un&apos;opzione di esportazione (Animation o Fotogramma).</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2436"/>
+        <location filename="../gui/extract_tab_widget.py" line="2442"/>
         <source>No spritesheets found. Please select a directory with images.</source>
-        <translation>Nessun foglio di sprite trovato. Seleziona una directory con le immagini.</translation>
+        <translation>Nessun sprite sheet trovato. Seleziona una directory con le immagini.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2598"/>
+        <location filename="../gui/extract_tab_widget.py" line="2604"/>
         <source>Start Process</source>
-        <translation>Avviare il processo</translation>
-    </message>
-    <message>
-        <location filename="../gui/extract_tab_widget.py" line="2598"/>
-        <source>Processing...</source>
-        <translation>Trattamento...</translation>
+        <translation>Avviare</translation>
     </message>
     <message>
         <location filename="../utils/duration_utils.py" line="198"/>
@@ -1387,51 +1487,19 @@ TextureAtlas Toolbox</translation>
         <translation>Trova e sostituisci</translation>
     </message>
     <message>
-        <location filename="../gui/extractor/find_replace_window.py" line="64"/>
-        <source>Find and Replace Rules</source>
-        <translation>Trovare e sostituire le regole</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/find_replace_window.py" line="70"/>
-        <source>Create rules to find and replace text in exported filenames.
-Use $sprite or $anim placeholders to match actual names.
-Example: Find &apos;$sprite&apos; → Replace &apos;&apos; removes the sprite name from filename.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../gui/extractor/find_replace_window.py" line="94"/>
         <source>Add Rule</source>
-        <translation>Aggiungi la regola</translation>
+        <translation>Aggiungi una regola</translation>
     </message>
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="98"/>
         <source>Add Preset Rule</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/find_replace_window.py" line="101"/>
-        <source>Remove sprite name</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/find_replace_window.py" line="104"/>
-        <source>Shorten frame numbers</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/find_replace_window.py" line="158"/>
-        <source>Find:</source>
-        <translation>Trova:</translation>
+        <translation>Aggiungi una regola predefinita</translation>
     </message>
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="162"/>
         <source>Text to find...</source>
-        <translation>Testo per trovare...</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/find_replace_window.py" line="168"/>
-        <source>Replace:</source>
-        <translation>Sostituire:</translation>
+        <translation>Testo da trovare...</translation>
     </message>
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="172"/>
@@ -1441,27 +1509,45 @@ Example: Find &apos;$sprite&apos; → Replace &apos;&apos; removes the sprite na
     <message>
         <location filename="../gui/extractor/find_replace_window.py" line="178"/>
         <source>Regular Expression</source>
-        <translation>Espressione regolare</translation>
+        <translation>Espressione regulare</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/find_replace_window.py" line="64"/>
+        <source>Find and Replace Rules</source>
+        <translation>Trova e sostituisci le regole</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/find_replace_window.py" line="70"/>
+        <source>Create rules to find and replace text in exported filenames.
+Use $sprite or $anim placeholders to match actual names.
+Example: Find &apos;$sprite&apos; → Replace &apos;&apos; removes the sprite name from filename.</source>
+        <translation>Crea regole per trovare e sostituire testo nei nomi dei file esportati.
+Usa le variabili $sprite o $anim per corrispondere ai nomi attuali.
+Esempio: Trova &apos;$sprite&apos; → Sostituice con &apos;&apos; rimuove il nome dello sprite dal nome del file.</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/find_replace_window.py" line="101"/>
+        <source>Remove sprite name</source>
+        <translation>Rimuovi il nome dello sprite</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/find_replace_window.py" line="104"/>
+        <source>Shorten frame numbers</source>
+        <translation>Riduci il numero di fotogrammi</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/find_replace_window.py" line="158"/>
+        <source>Find:</source>
+        <translation>Trova:</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/find_replace_window.py" line="168"/>
+        <source>Replace:</source>
+        <translation>Sostituici:</translation>
     </message>
 </context>
 <context>
     <name>FirstStartDialog</name>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="183"/>
-        <location filename="../gui/first_start_dialog.py" line="316"/>
-        <source>Update Preferences</source>
-        <translation>Preferenze di aggiornamento</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="56"/>
-        <source>GitHub issues page</source>
-        <translation>Pagina problemi GitHub</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="61"/>
-        <source>translation guide</source>
-        <translation>guida alla traduzione</translation>
-    </message>
     <message>
         <location filename="../gui/first_start_dialog.py" line="91"/>
         <location filename="../gui/first_start_dialog.py" line="288"/>
@@ -1469,61 +1555,10 @@ Example: Find &apos;$sprite&apos; → Replace &apos;&apos; removes the sprite na
         <translation>Benvenuti a TextureAtlas Toolbox</translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="102"/>
-        <location filename="../gui/first_start_dialog.py" line="290"/>
-        <source>Welcome to {app_name} {app_version}</source>
-        <translation>{app_name} {app_version}</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="114"/>
-        <location filename="../gui/first_start_dialog.py" line="294"/>
-        <source>Language</source>
-        <translation>Lingua</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="121"/>
-        <location filename="../gui/first_start_dialog.py" line="295"/>
-        <source>Select language:</source>
-        <translation>Seleziona la lingua:</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="147"/>
-        <location filename="../gui/first_start_dialog.py" line="298"/>
-        <source>Note: Some text may not update until the application is restarted.</source>
-        <translation>Nota: Alcuni testi potrebbero non essere aggiornati fino al riavvio dell&apos;applicazione.</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="158"/>
-        <location filename="../gui/first_start_dialog.py" line="301"/>
-        <source>New Feature Notice</source>
-        <translation>Nuovo avviso di funzionalità</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="162"/>
-        <location filename="../gui/first_start_dialog.py" line="304"/>
-        <source>Language selection is a new feature. You may encounter UI issues such as text not fitting properly in some areas. These will be improved over time.
-</source>
-        <translation>La selezione linguistica è una nuova caratteristica. È possibile incontrare problemi dell&apos;interfaccia utente come il testo non si adatta correttamente in alcune aree. Questi saranno migliorati nel tempo.</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="172"/>
-        <location filename="../gui/first_start_dialog.py" line="312"/>
-        <source>Version 2 introduces many new features and changes from version 1.
-There may be unfound bugs. Please report issues on the {issues_link}.</source>
-        <translation>La versione 2 introduce molte nuove funzionalità e modifiche dalla versione 1.
-Potrebbero esserci insetti infondati. Si prega di segnalare i problemi sul {issues_link}.</translation>
-    </message>
-    <message>
-        <location filename="../gui/first_start_dialog.py" line="188"/>
-        <location filename="../gui/first_start_dialog.py" line="319"/>
-        <source>Would you like the application to check for updates automatically when it starts?</source>
-        <translation>Vuoi che l&apos;applicazione controlli gli aggiornamenti automaticamente quando inizia?</translation>
-    </message>
-    <message>
         <location filename="../gui/first_start_dialog.py" line="196"/>
         <location filename="../gui/first_start_dialog.py" line="324"/>
         <source>Check for updates on startup (recommended)</source>
-        <translation>Controllare gli aggiornamenti sull&apos;avvio (consigliato)</translation>
+        <translation>Controlla gli aggiornamenti sull&apos;avvio (consigliato)</translation>
     </message>
     <message>
         <location filename="../gui/first_start_dialog.py" line="202"/>
@@ -1538,29 +1573,101 @@ Potrebbero esserci insetti infondati. Si prega di segnalare i problemi sul {issu
         <translation>Continua</translation>
     </message>
     <message>
+        <location filename="../gui/first_start_dialog.py" line="359"/>
+        <source>Machine Translation Warning</source>
+        <translation>Avviso della traduzione automatica</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="183"/>
+        <location filename="../gui/first_start_dialog.py" line="316"/>
+        <source>Update Preferences</source>
+        <translation>Preferenze di aggiornamento</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="102"/>
+        <location filename="../gui/first_start_dialog.py" line="290"/>
+        <source>Welcome to {app_name} {app_version}</source>
+        <translation>Benvenuti a {app_name} {app_version}</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="114"/>
+        <location filename="../gui/first_start_dialog.py" line="294"/>
+        <source>Language</source>
+        <translation>Lingua</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="121"/>
+        <location filename="../gui/first_start_dialog.py" line="295"/>
+        <source>Select language:</source>
+        <translation>Scegli una lingua:</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="147"/>
+        <location filename="../gui/first_start_dialog.py" line="298"/>
+        <source>Note: Some text may not update until the application is restarted.</source>
+        <translation>Nota: Alcuni testi potrebbero non essere aggiornati fino al riavvio dell&apos;applicazione.</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="158"/>
+        <location filename="../gui/first_start_dialog.py" line="301"/>
+        <source>New Feature Notice</source>
+        <translation>Nuovo avviso di funzionalità</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="56"/>
+        <source>GitHub issues page</source>
+        <translation>Pagina di problemi su GitHub</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="61"/>
+        <source>translation guide</source>
+        <translation>guida di traduzione</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="162"/>
+        <location filename="../gui/first_start_dialog.py" line="304"/>
+        <source>Language selection is a new feature. You may encounter UI issues such as text not fitting properly in some areas. These will be improved over time.
+</source>
+        <translation>La selezione linguistica è una nuova caratteristica. È possibile incontrare problemi dell&apos;interfaccia utente come il testo che non si adatta correttamente in alcune aree. Questi saranno migliorati col tempo.</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="172"/>
+        <location filename="../gui/first_start_dialog.py" line="312"/>
+        <source>Version 2 introduces many new features and changes from version 1.
+There may be unfound bugs. Please report issues on the {issues_link}.</source>
+        <translation>La versione 2 introduce molte nuove funzionalità e modifiche dalla versione 1.
+Potrebbero esserci bugs infondati. Si prega di segnalare i problemi sul {issues_link}.</translation>
+    </message>
+    <message>
+        <location filename="../gui/first_start_dialog.py" line="188"/>
+        <location filename="../gui/first_start_dialog.py" line="319"/>
+        <source>Would you like the application to check for updates automatically when it starts?</source>
+        <translation>Vuoi che l&apos;applicazione controlli gli aggiornamenti automaticamente quando inizia?</translation>
+    </message>
+    <message>
         <location filename="../gui/first_start_dialog.py" line="336"/>
         <source>Native</source>
-        <translation>Nativo</translation>
+        <translation>Nativa</translation>
     </message>
     <message>
         <location filename="../gui/first_start_dialog.py" line="337"/>
         <source>Reviewed</source>
-        <translation>Recensione</translation>
+        <translation>Verificata</translation>
     </message>
     <message>
         <location filename="../gui/first_start_dialog.py" line="338"/>
         <source>Unreviewed</source>
-        <translation>Non vista</translation>
+        <translation>Non verificata</translation>
     </message>
     <message>
         <location filename="../gui/first_start_dialog.py" line="339"/>
         <source>Machine Translated</source>
-        <translation>Macchina</translation>
+        <translation>Tradutta con una macchina</translation>
     </message>
     <message>
         <location filename="../gui/first_start_dialog.py" line="340"/>
         <source>Unknown</source>
-        <translation>Sconosciuto</translation>
+        <translation>Sconosciuta</translation>
     </message>
     <message>
         <location filename="../gui/first_start_dialog.py" line="344"/>
@@ -1568,18 +1675,18 @@ Potrebbero esserci insetti infondati. Si prega di segnalare i problemi sul {issu
         <translation>Qualità della traduzione: {quality}</translation>
     </message>
     <message>
-        <location filename="../gui/first_start_dialog.py" line="359"/>
-        <source>Machine Translation Warning</source>
-        <translation>Avviso di traduzione automatica</translation>
-    </message>
-    <message>
         <location filename="../gui/first_start_dialog.py" line="361"/>
         <source>This language was machine translated (automated). Some text may be inaccurate or awkward. You can help improve it by contributing translations. See the {guide_link} for how to contribute.</source>
-        <translation>Questa lingua è stata tradotta in automatico. Qualche testo può essere inesatto o innaturali. Puoi aiutare a migliorla contribuendo traduzioni. Vedere il {guide_link} per come contribuire.</translation>
+        <translation>Questa lingua è stata tradotta automaticamente. Alcune frase potrebbero essere inesatte o imbarazzante. Si può aiutare a migliorare contribuendo traduzioni. Vedere il {guide_link} per come contribuire.</translation>
     </message>
 </context>
 <context>
     <name>GenerateTabWidget</name>
+    <message>
+        <location filename="../gui/generate_tab_widget.py" line="1267"/>
+        <source>No frames loaded</source>
+        <translation>Nessun fotogramma caricato</translation>
+    </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1193"/>
         <source>New animation</source>
@@ -1593,10 +1700,10 @@ Potrebbero esserci insetti infondati. Si prega di segnalare i problemi sul {issu
 • Manual: Enter exact resolution manually
 
 Automatic is recommended.</source>
-        <translation>Metodo di dimensionamento Atlas:
+        <translation>Metodo di dimensionamento dell&apos;atlas:
 • Automatico: Rileva la dimensione di pixel più piccola necessaria
-• MinMax: Limiti di dimensione tra risoluzione min e max
-• Manuale: inserire manualmente la risoluzione esatta
+• MinMax: Limita le dimensione tra risoluzione min. e max.
+• Manuale: Inserisci manualmente la risoluzione esatta
 
 Automatico è raccomandato.</translation>
     </message>
@@ -1629,65 +1736,65 @@ texture wrapping, o compressione del GPU.</translation>
 
 Padding helps prevent texture bleeding during rendering,
 especially when using texture filtering or mipmaps.</source>
-        <translation>Pixel di imbottitura tra sprite.
+        <translation>Pixel di spaziatura tra sprites.
 
-L&apos;imbottitura aiuta a prevenire l&apos;emorragia della texture durante il rendering,
+La spaziatura aiuta a prevenire la presenza di una parte di un sprite in un altro durante il trattamento,
 soprattutto quando si utilizza il filtraggio delle texture o mipmaps.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="489"/>
         <source>Created {0} animation(s) from subfolders.</source>
-        <translation>Creato {0} animazione(s) da sottocartelle.</translation>
+        <translation>Creato {0} animazione(i) da sottocartelle.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="497"/>
         <source>No image files found in any subfolders.</source>
-        <translation>Nessun file di immagine trovato in qualsiasi sottocartelle.</translation>
+        <translation>Nessuna immagine trovata in qualsiasi sottocartelle.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="511"/>
         <source>No image files found in the selected directory.</source>
-        <translation>Nessun file di immagine trovato nella directory selezionata.</translation>
+        <translation>Nessuna immagine trovata nella directory selezionata.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="564"/>
         <source>Both atlas image and data files are required to import an atlas.</source>
-        <translation>Sia l&apos;immagine atlante che i file di dati sono necessari per importare un atlante.</translation>
+        <translation>Per importare un atlas, si prega di selezionare sia l&apos;immagine che il file di dati dell&apos;atlas.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="578"/>
         <source>No frames found in the selected atlas data file.</source>
-        <translation>Nessun frame trovato nel file di dati atlanti selezionato.</translation>
+        <translation>Nessun fotogramma trovato nel file di dati dell&apos;atlas selezionato.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="588"/>
         <source>PIL (Pillow) is required to extract frames from atlas files.</source>
-        <translation>PIL (Pillow) è necessario estrarre cornici da file atlanti.</translation>
+        <translation>PIL (Pillow) è necessario per estrarre i fotogrammi da file d&apos;atlas.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="721"/>
         <source>Successfully imported {0} frames from atlas &apos;{1}&apos; into {2} animations.</source>
-        <translation>Con successo importato {0} cornici da atlanti &apos;{1}&quot; in {2} animazioni.</translation>
+        <translation>Importati con successo {0} fotogrammi dell&apos;atlas &apos;{1}&apos; in {2} animazioni.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="736"/>
         <source>All frames from this atlas were already added.</source>
-        <translation>Tutte le cornici di questo atlante sono state già aggiunte.</translation>
+        <translation>Tutti i fotogrammi di questo atlas sono già aggiunti.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="747"/>
         <source>Error importing atlas: {0}</source>
-        <translation>Errore di importazione atlante: {0}</translation>
+        <translation>Errore di importazione dell&apos;atlas: {0}</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="869"/>
         <source>Configure format-specific compression options for the output image</source>
-        <translation>Configurare le opzioni di compressione specifiche del formato per l&apos;immagine di uscita</translation>
+        <translation>Configura le impostazioni di compressione specifiche del formato per l&apos;immagine di uscita</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="922"/>
         <source>Auto (Best Result)</source>
-        <translation>Auto (migliore risultato)</translation>
+        <translation>Auto (Migliore Risultato)</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="944"/>
@@ -1702,21 +1809,21 @@ soprattutto quando si utilizza il filtraggio delle texture o mipmaps.</translati
 When enabled, transparent pixels around each sprite are removed,
 and offset metadata is stored so the original position can be
 reconstructed during playback.</source>
-        <translation>Trim bordi trasparenti da sprite per l&apos;imballaggio più stretto.
+        <translation>Ritaglia i bordi trasparenti di sprite per un imballaggio più stretto.
 
-Quando abilitato, i pixel trasparenti intorno a ogni sprite vengono rimossi,
+Se attivato, i pixels trasparenti intorno a ogni sprite vengono rimossi,
 e i metadati offset vengono memorizzati in modo che la posizione originale possa essere
 ricostruito durante la riproduzione.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1073"/>
         <source>Allow the packer to rotate sprites 90° clockwise for tighter packing.</source>
-        <translation>Consenti al confezionatore di ruotare sprites 90° in senso orario per l&apos;imballaggio più stretto.</translation>
+        <translation>Consenti al packer di ruotare sprites 90° in senso orario per un imballaggio più stretto.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1079"/>
         <source>Rotation is not supported by {0} format.</source>
-        <translation>La rotazione non è supportata dal formato {0}.</translation>
+        <translation>La rotazione non è supportata per il formato {0}.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1088"/>
@@ -1731,14 +1838,14 @@ include mirrored variants (e.g., character facing left/right).
 
 Warning: This is a non-standard extension only supported by HaxeFlixel.
 Most Starling/Sparrow implementations will ignore flip attributes.</source>
-        <translation>Rileva e deduplica le varianti di sprite capovolte.
+        <translation>Rileva e deduplica le varianti di sprite invertiti.
 
-Quando abilitato, sprite che sono orizzontalmente o verticalmente
-versioni capovolte di altri sprite vengono memorizzate solo una volta,
+Se attivato, i sprites che sono orizzontalmente o verticalmente
+invertiti di altri sprite vengono memorizzate solo una volta,
 con i metadati flip in modo che i motori possano ricostruirli.
 
-Questo può ridurre significativamente le dimensioni degli atlanti quando i tuoi sprite
-includono varianti a specchio (ad esempio, carattere rivolto a sinistra/destra).
+Questo può ridurre significativamente le dimensioni degli atlas quando i sprites
+includono varianti capovolte (ad es., personaggio rivolto a sinistra/destra).
 
 Attenzione: Si tratta di un&apos;estensione non standard supportata solo da HaxeFlixel.
 La maggior parte delle implementazioni Starling/Sparrow ignorerà attributi flip.</translation>
@@ -1747,7 +1854,7 @@ La maggior parte delle implementazioni Starling/Sparrow ignorerà attributi flip
         <location filename="../gui/generate_tab_widget.py" line="1102"/>
         <source>Flip is not supported by {0} format.
 Only Sparrow/Starling XML with HaxeFlixel supports flip attributes.</source>
-        <translation>Flip non è supportato dal formato {0}.
+        <translation>L&apos;inversione non è supportato dal formato {0}.
 Solo Sparrow/Starling XML con HaxeFlixel supporta attributi flip.</translation>
     </message>
     <message>
@@ -1756,10 +1863,10 @@ Solo Sparrow/Starling XML con HaxeFlixel supporta attributi flip.</translation>
 
 This format cannot store the offset metadata required
 to reconstruct sprite positions after trimming.</source>
-        <translation>Trim non è supportato dal formato {0}.
+        <translation>Il ritaglio non è supportato dal formato {0}.
 
 Questo formato non può memorizzare i metadati offset richiesti
-per ricostruire posizioni di sprite dopo la rifilatura.</translation>
+per ricostruire le posizioni di sprite dopo il ritaglio.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1169"/>
@@ -1767,29 +1874,24 @@ per ricostruire posizioni di sprite dopo la rifilatura.</translation>
         <translation>Non poteva aprire le impostazioni di compressione: {0}</translation>
     </message>
     <message>
-        <location filename="../gui/generate_tab_widget.py" line="1267"/>
-        <source>No frames loaded</source>
-        <translation>Nessun fotogramma caricato</translation>
-    </message>
-    <message>
         <location filename="../gui/generate_tab_widget.py" line="1270"/>
         <source>{0} animation(s), {1} frame(s) total</source>
-        <translation>{0} animazione(s), {1} frame(s) totale</translation>
+        <translation>{0} animazione(i), {1} frame(s) in totale</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1290"/>
         <source>Please add frames before generating atlas.</source>
-        <translation>Si prega di aggiungere cornici prima di generare atlanti.</translation>
+        <translation>Si prega di aggiungere i fotogrammi prima di generare l&apos;atlas.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1434"/>
         <source>Generating atlas...</source>
-        <translation>Generando atlanti...</translation>
+        <translation>Generando l&apos;atlas...</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1444"/>
         <source>Progress: {0}/{1} - {2}</source>
-        <translation>{0}/{1} - {2}</translation>
+        <translation>Progresso: {0}/{1} - {2}</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1454"/>
@@ -1799,17 +1901,17 @@ per ricostruire posizioni di sprite dopo la rifilatura.</translation>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1455"/>
         <source>Atlas: {0}</source>
-        <translation>{0}</translation>
+        <translation>Atlas: {0}</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1457"/>
         <source>Size: {0}x{1}</source>
-        <translation>Dimensione: {0}x{1}</translation>
+        <translation>Dimensioni: {0}x{1}</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1462"/>
         <source>Frames: {0}</source>
-        <translation>Cornici: {0}</translation>
+        <translation>Fotogrammi: {0}</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1463"/>
@@ -1819,12 +1921,12 @@ per ricostruire posizioni di sprite dopo la rifilatura.</translation>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1465"/>
         <source>Format: {0}</source>
-        <translation>{0}</translation>
+        <translation>Formato: {0}</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1467"/>
         <source>Metadata files: {0}</source>
-        <translation>File dei metadati: {0}</translation>
+        <translation>File di metadati: {0}</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1469"/>
@@ -1834,7 +1936,7 @@ per ricostruire posizioni di sprite dopo la rifilatura.</translation>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1471"/>
         <source>GENERATION COMPLETED SUCCESSFULLY!</source>
-        <translation>GENERAZIONE COMPLETATA SUCCESSFULLE!</translation>
+        <translation>GENERAZIONE COMPLETATA CON SUCCESSO!</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1482"/>
@@ -1852,7 +1954,7 @@ per ricostruire posizioni di sprite dopo la rifilatura.</translation>
         <source>Atlas generation failed:
 
 {0}</source>
-        <translation>La generazione dell&apos;Atlante fallì:
+        <translation>La generazione dell&apos;Atlas è fallita:
 
 {0}</translation>
     </message>
@@ -1871,27 +1973,27 @@ per ricostruire posizioni di sprite dopo la rifilatura.</translation>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1505"/>
         <source>Atlas sizing: Automatic mode selected.</source>
-        <translation>Atlas sizing: modalità automatica selezionata.</translation>
+        <translation>Dimensionamento dell&apos;atlas: modalità automatica selezionata.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1513"/>
         <source>Min size</source>
-        <translation>Dimensione minima</translation>
+        <translation>Dimensione min.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1514"/>
         <source>Max size</source>
-        <translation>Dimensione massima</translation>
+        <translation>Dimensione max.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1524"/>
         <source>Atlas sizing: MinMax mode enabled - atlas will be constrained between min and max sizes</source>
-        <translation>Atlante dimensionamento: MinMax modalità abilitata - atlante sarà limitato tra dimensioni min e max</translation>
+        <translation>Dimensionamento dell&apos;atlas: modalità MinMax attivata - atlas sarà costretto tra dimensioni min. e max.</translation>
     </message>
     <message>
         <location filename="../gui/generate_tab_widget.py" line="1545"/>
         <source>Atlas sizing: Manual mode enabled - exact dimensions will be forced (warning will be shown if frames don&apos;t fit)</source>
-        <translation>Atlante dimensionamento: modalità manuale abilitata - dimensioni esatte saranno forzate (avvertimento verrà mostrato se i frame non si adattano)</translation>
+        <translation>Dimensionamento dell&apos;atlas: modalità manuale attivata - dimensioni esatte saranno forzate (avvertimento sarà mostrato se le dimensioni non vanno giusto per i sprites)</translation>
     </message>
 </context>
 <context>
@@ -1909,9 +2011,14 @@ per ricostruire posizioni di sprite dopo la rifilatura.</translation>
         <translation>Impostazioni di lingua</translation>
     </message>
     <message>
+        <location filename="../gui/language_selection_window.py" line="352"/>
+        <source>Could not open language selection: {error}</source>
+        <translation>Non poteva aprire la selezione della lingua: {error}</translation>
+    </message>
+    <message>
         <location filename="../gui/language_selection_window.py" line="139"/>
         <source>Select Application Language</source>
-        <translation>Seleziona la lingua di applicazione</translation>
+        <translation>Seleziona la lingua dell&apos;applicazione</translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="145"/>
@@ -1923,29 +2030,24 @@ per ricostruire posizioni di sprite dopo la rifilatura.</translation>
         <source>Note: The application may need to be restarted to fully apply the language change.
 Auto detects your system language and falls back to English if unavailable.
 Quality indicators: {native} Native, {reviewed} Reviewed, {unreviewed} Unreviewed, {machine} Machine, {unknown} Unknown</source>
-        <translation>Nota: l&apos;applicazione può essere riavviata per applicare pienamente il cambiamento di lingua.
-Auto rileva la lingua del sistema e rientra in inglese se non disponibile.
-Indicatori di qualità: {native} Nativo, {reviewed} Recensito, {unreviewed} Non visualizzato, {machine} Macchina, {unknown} Sconosciuto</translation>
+        <translation>Nota: l&apos;applicazione può necessitare di riavviare per applicare pienamente il cambiamento di lingua.
+Auto rileva la lingua del sistema e cambia in inglese se non disponibile.
+Indicatori di qualità: {native} Nativo, {reviewed} Verificato, {unreviewed} Non verificato, {machine} Macchina, {unknown} Sconosciuto</translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="235"/>
         <source>Auto (System Default): {language}</source>
-        <translation>Auto (System Default): {language}</translation>
+        <translation>Auto (Predefinita dal sistema): {language}</translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="316"/>
         <source>Could not change language: Parent window not available</source>
-        <translation>Non poteva cambiare lingua: finestra principale non disponibile</translation>
+        <translation>Non poteva cambiare la lingua: la finestra principale non disponibile</translation>
     </message>
     <message>
         <location filename="../gui/language_selection_window.py" line="323"/>
         <source>Failed to change language: {}</source>
-        <translation>Non ha cambiato lingua: {}</translation>
-    </message>
-    <message>
-        <location filename="../gui/language_selection_window.py" line="352"/>
-        <source>Could not open language selection: {error}</source>
-        <translation>Non poteva aprire la selezione della lingua: {error}</translation>
+        <translation>Non è riuscto a cambiare la lingua: {}</translation>
     </message>
 </context>
 <context>
@@ -1953,12 +2055,12 @@ Indicatori di qualità: {native} Nativo, {reviewed} Recensito, {unreviewed} Non 
     <message>
         <location filename="../utils/translation_manager.py" line="476"/>
         <source>Machine Translation Notice</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Machine Translation Notice</translation>
     </message>
     <message>
         <location filename="../utils/translation_manager.py" line="479"/>
         <source>This language was automatically translated and may contain inaccuracies. If you would like to contribute better translations, please visit our GitHub repository.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">This language was automatically translated and may contain inaccuracies. If you would like to contribute better translations, please visit our GitHub repository.</translation>
     </message>
 </context>
 <context>
@@ -1966,30 +2068,38 @@ Indicatori di qualità: {native} Nativo, {reviewed} Recensito, {unreviewed} Non 
     <message>
         <location filename="../gui/machine_translation_disclaimer_dialog.py" line="96"/>
         <source>Don&apos;t show this disclaimer again for this language</source>
-        <translation>Non mostrare di nuovo questo disclaimer per questa lingua</translation>
+        <translation>Non monstrare di nuovo questo disclaimer per questa lingua</translation>
     </message>
     <message>
         <location filename="../gui/machine_translation_disclaimer_dialog.py" line="103"/>
         <source>View on GitHub</source>
-        <translation>Vista su GitHub</translation>
+        <translation>Vedi su Github</translation>
     </message>
 </context>
 <context>
     <name>OverrideSettingsWindow</name>
     <message>
+        <location filename="../gui/extractor/override_settings_window.py" line="672"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="693"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="716"/>
+        <location filename="../gui/extractor/override_settings_window.py" line="730"/>
+        <source>Preview Error</source>
+        <translation>Errore d&apos;anteprima</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/override_settings_window.py" line="660"/>
+        <source>Info</source>
+        <translation>Informazione</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/override_settings_window.py" line="282"/>
+        <source>Leave empty for auto-generated filename</source>
+        <translation>Lascia vuoto per generare automaticamente il nome di file</translation>
+    </message>
+    <message>
         <location filename="../gui/extractor/override_settings_window.py" line="116"/>
         <source>{prefix} Settings Override - {name}</source>
         <translation>Sostituzione delle impostazioni {prefix} - {name}</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="208"/>
-        <source>Animation Settings Override</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="210"/>
-        <source>Spritesheet Settings Override</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../gui/extractor/override_settings_window.py" line="263"/>
@@ -2007,9 +2117,9 @@ Indicatori di qualità: {native} Nativo, {reviewed} Recensito, {unreviewed} Non 
         <translation>Nome del file:</translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="282"/>
-        <source>Leave empty for auto-generated filename</source>
-        <translation type="unfinished"></translation>
+        <location filename="../gui/extractor/override_settings_window.py" line="358"/>
+        <source>e.g., 0,1,2,3 or leave empty for all</source>
+        <translation>ad es., 0,1,2,3 o lascia vuoto per tutti</translation>
     </message>
     <message>
         <location filename="../gui/extractor/override_settings_window.py" line="355"/>
@@ -2017,27 +2127,19 @@ Indicatori di qualità: {native} Nativo, {reviewed} Recensito, {unreviewed} Non 
         <translation>Indici (separati da virgole):</translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="358"/>
-        <source>e.g., 0,1,2,3 or leave empty for all</source>
-        <translation>ad es., 0,1,2,3 o lascia vuoto per tutti</translation>
+        <location filename="../gui/extractor/override_settings_window.py" line="208"/>
+        <source>Animation Settings Override</source>
+        <translation>Impostazioni di sostituzione dell&apos;animazione</translation>
     </message>
     <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="660"/>
-        <source>Info</source>
-        <translation>Informazione</translation>
+        <location filename="../gui/extractor/override_settings_window.py" line="210"/>
+        <source>Spritesheet Settings Override</source>
+        <translation>Impostazioni di sostituzione dello sprite sheet</translation>
     </message>
     <message>
         <location filename="../gui/extractor/override_settings_window.py" line="662"/>
         <source>Preview is only available for animations, not spritesheets.</source>
         <translation>L&apos;anteprima è disponibile solo per le animazioni, non gli sprite sheet.</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/override_settings_window.py" line="672"/>
-        <location filename="../gui/extractor/override_settings_window.py" line="693"/>
-        <location filename="../gui/extractor/override_settings_window.py" line="716"/>
-        <location filename="../gui/extractor/override_settings_window.py" line="730"/>
-        <source>Preview Error</source>
-        <translation>Errore di anteprima</translation>
     </message>
     <message>
         <location filename="../gui/extractor/override_settings_window.py" line="673"/>
@@ -2073,28 +2175,53 @@ Indicatori di qualità: {native} Nativo, {reviewed} Recensito, {unreviewed} Non 
         <translation>Errore</translation>
     </message>
     <message>
+        <location filename="../gui/extractor/parse_error_dialog.py" line="260"/>
+        <source>Warning</source>
+        <translation>Attenzione</translation>
+    </message>
+    <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="81"/>
         <source>Parse Issues Detected</source>
-        <translation>Questioni generali</translation>
+        <translation>Problemi sul parsing trovati</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/parse_error_dialog.py" line="172"/>
+        <source>Skip all files with errors</source>
+        <translation>Salta tutti i file con errori</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/parse_error_dialog.py" line="185"/>
+        <source>Continue Anyway</source>
+        <translation>Continua comunque</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/parse_error_dialog.py" line="192"/>
+        <source>Skip Selected</source>
+        <translation>Salta quelli selezionati</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/parse_error_dialog.py" line="194"/>
+        <source>Skip files that are checked in the Skip column</source>
+        <translation>Salta i file spuntati nella colonna Salta</translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="129"/>
         <source>Found {errors} error(s) and {warnings} warning(s) in {files} file(s).
 Some sprites may not extract correctly.</source>
-        <translation>Trovato {errors} errore(i) e {warnings} avviso(i) nel {files} file(i).
-Alcuni sprite potrebbero non estrarre correttamente.</translation>
+        <translation>{errors} errore(i) e {warnings} avviso(i) trovato(i) nel(i) {files} file.
+Alcuni sprite potrebbero non essere estratti correttamente.</translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="137"/>
         <source>Found {warnings} warning(s) in {files} file(s).
 Extraction can proceed but results may be affected.</source>
-        <translation>{warnings} avviso(i) nel file {files}.
-L&apos;estrazione può procedere ma i risultati possono essere colpiti.</translation>
+        <translation>{warnings} avviso(i) trovato(i) nel(i) file {files}.
+L&apos;estrazione può procedere ma i risultati possono essere toccati.</translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="142"/>
         <source>All files parsed successfully.</source>
-        <translation>Tutti i file parsed con successo.</translation>
+        <translation>Tutti i file trattati dal parsing con succceso.</translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="155"/>
@@ -2112,39 +2239,14 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Salta</translation>
     </message>
     <message>
-        <location filename="../gui/extractor/parse_error_dialog.py" line="172"/>
-        <source>Skip all files with errors</source>
-        <translation>Salta tutti i file con errori</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/parse_error_dialog.py" line="185"/>
-        <source>Continue Anyway</source>
-        <translation>Continua</translation>
-    </message>
-    <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="187"/>
         <source>Process all files, including those with errors</source>
-        <translation>Elaborare tutti i file, compresi quelli con errori</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/parse_error_dialog.py" line="192"/>
-        <source>Skip Selected</source>
-        <translation>Salta selezionato</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/parse_error_dialog.py" line="194"/>
-        <source>Skip files that are checked in the Skip column</source>
-        <translation>Salta i file che vengono controllati nella colonna Skip</translation>
+        <translation>Tratta tutti i file, compresi quelli con errori</translation>
     </message>
     <message>
         <location filename="../gui/extractor/parse_error_dialog.py" line="235"/>
         <source>Skip this file during extraction</source>
         <translation>Salta questo file durante l&apos;estrazione</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/parse_error_dialog.py" line="260"/>
-        <source>Warning</source>
-        <translation>Avvertenza</translation>
     </message>
 </context>
 <context>
@@ -2155,6 +2257,12 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Trattamento...</translation>
     </message>
     <message>
+        <location filename="../gui/extractor/processing_window.py" line="109"/>
+        <location filename="../gui/extractor/processing_window.py" line="549"/>
+        <source>Initializing...</source>
+        <translation>Inizializzazione...</translation>
+    </message>
+    <message>
         <location filename="../gui/extractor/processing_window.py" line="94"/>
         <source>Extracting TextureAtlas Files</source>
         <translation>Estrazione di file TextureAtlas</translation>
@@ -2163,12 +2271,6 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <location filename="../gui/extractor/processing_window.py" line="106"/>
         <source>Current File:</source>
         <translation>File attuale:</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/processing_window.py" line="109"/>
-        <location filename="../gui/extractor/processing_window.py" line="549"/>
-        <source>Initializing...</source>
-        <translation>Inizializzazione...</translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="119"/>
@@ -2199,7 +2301,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../gui/extractor/processing_window.py" line="177"/>
         <source>Animations Generated: 0</source>
-        <translation>Animazione Generate: 0</translation>
+        <translation>Animazioni Generate: 0</translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="178"/>
@@ -2238,6 +2340,26 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Durata: {minutes:02d}:{seconds:02d}</translation>
     </message>
     <message>
+        <location filename="../gui/extractor/processing_window.py" line="415"/>
+        <source>Forcing cancellation due to timeout...</source>
+        <translation>Forzando cancellazione a causa di timeout...</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/processing_window.py" line="450"/>
+        <source>Frames Generated: {count}</source>
+        <translation>Fotogrammi Generati: {count}</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/processing_window.py" line="453"/>
+        <source>Animations Generated: {count}</source>
+        <translation>Animazioni Generate: {count}</translation>
+    </message>
+    <message>
+        <location filename="../gui/extractor/processing_window.py" line="458"/>
+        <source>Sprites Failed: {count}</source>
+        <translation>Sprites non riusciti: {count}</translation>
+    </message>
+    <message>
         <location filename="../gui/extractor/processing_window.py" line="368"/>
         <source>Processing completed successfully!</source>
         <translation>Trattamento completato con successo!</translation>
@@ -2273,26 +2395,6 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Cancellazione richiesta...</translation>
     </message>
     <message>
-        <location filename="../gui/extractor/processing_window.py" line="415"/>
-        <source>Forcing cancellation due to timeout...</source>
-        <translation>Forzando cancellazione a causa di timeout...</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/processing_window.py" line="450"/>
-        <source>Frames Generated: {count}</source>
-        <translation>Fotogrammi generati: {count}</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/processing_window.py" line="453"/>
-        <source>Animations Generated: {count}</source>
-        <translation>Animazione Generate: {count}</translation>
-    </message>
-    <message>
-        <location filename="../gui/extractor/processing_window.py" line="458"/>
-        <source>Sprites Failed: {count}</source>
-        <translation>Sprites non riusciti: {count}</translation>
-    </message>
-    <message>
         <location filename="../gui/extractor/processing_window.py" line="481"/>
         <source>Hide worker details</source>
         <translation>Nascondi i dettagli del worker</translation>
@@ -2311,7 +2413,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <location filename="../gui/extractor/processing_window.py" line="520"/>
         <location filename="../gui/extractor/processing_window.py" line="528"/>
         <source>Idle</source>
-        <translation>Idle</translation>
+        <translation>In attesa</translation>
     </message>
     <message>
         <location filename="../gui/extractor/processing_window.py" line="544"/>
@@ -2327,11 +2429,6 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Chiudi</translation>
     </message>
     <message>
-        <location filename="../utils/update_installer.py" line="125"/>
-        <source>Initializing...</source>
-        <translation>Inizializzazione...</translation>
-    </message>
-    <message>
         <location filename="../utils/update_installer.py" line="109"/>
         <source>TextureAtlas Toolbox Updater</source>
         <translation>TextureAtlas Toolbox Updater</translation>
@@ -2341,18 +2438,23 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <source>Restart Application</source>
         <translation>Riavvia l&apos;applicazione</translation>
     </message>
+    <message>
+        <location filename="../utils/update_installer.py" line="125"/>
+        <source>Initializing...</source>
+        <translation>Inizializzazione...</translation>
+    </message>
 </context>
 <context>
     <name>SettingsWindow</name>
     <message>
+        <location filename="../gui/settings_window.py" line="79"/>
+        <source>Animation Settings</source>
+        <translation>Impostazioni d&apos;animazione</translation>
+    </message>
+    <message>
         <location filename="../gui/settings_window.py" line="42"/>
         <source>Current Settings Overview</source>
         <translation>Panoramica delle impostazioni attuali</translation>
-    </message>
-    <message>
-        <location filename="../gui/settings_window.py" line="79"/>
-        <source>Animation Settings</source>
-        <translation>Impostazioni di animazione</translation>
     </message>
     <message>
         <location filename="../gui/settings_window.py" line="89"/>
@@ -2368,260 +2470,270 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../gui/settings_window.py" line="108"/>
         <source>Spritesheet Settings</source>
-        <translation>Impostazioni dei sprite sheets</translation>
+        <translation>Impostazioni dello sprite sheet</translation>
     </message>
     <message>
         <location filename="../gui/settings_window.py" line="124"/>
         <source>  No spritesheet-specific settings configured</source>
-        <translation>  Nessuna impostazione specifica dei sprite sheets configurata</translation>
+        <translation>  Nessuna impostazione specifica dello sprite sheet configurata</translation>
     </message>
 </context>
 <context>
     <name>SpritesheetFileDialog</name>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="119"/>
-        <source>Path or filenames</source>
-        <translation>Percorso o nomi di file</translation>
-    </message>
-    <message>
         <location filename="../gui/extract_tab_widget.py" line="142"/>
         <source>Paste a path or space-separated files</source>
-        <translation>Incolla un percorso o file separati dallo spazio</translation>
+        <translation>Incolla un percorso o file separati con spazi</translation>
     </message>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="174"/>
         <source>Type a path and press Enter</source>
-        <translation>Digitare un percorso e premere Invio</translation>
+        <translation>Scrvi un percorso e premi Invio</translation>
+    </message>
+    <message>
+        <location filename="../gui/extract_tab_widget.py" line="119"/>
+        <source>Path or filenames</source>
+        <translation>Percorso o nomi del file</translation>
     </message>
 </context>
 <context>
     <name>TextureAtlasExtractorApp</name>
     <message>
-        <location filename="../Main.py" line="434"/>
-        <location filename="../Main.py" line="464"/>
-        <location filename="../Main.py" line="475"/>
-        <location filename="../Main.py" line="486"/>
-        <location filename="../Main.py" line="506"/>
-        <location filename="../Main.py" line="584"/>
-        <location filename="../Main.py" line="800"/>
-        <location filename="../Main.py" line="1032"/>
-        <location filename="../Main.py" line="1041"/>
+        <location filename="../Main.py" line="460"/>
+        <location filename="../Main.py" line="490"/>
+        <location filename="../Main.py" line="501"/>
+        <location filename="../Main.py" line="512"/>
+        <location filename="../Main.py" line="532"/>
+        <location filename="../Main.py" line="610"/>
+        <location filename="../Main.py" line="826"/>
+        <location filename="../Main.py" line="1058"/>
+        <location filename="../Main.py" line="1067"/>
         <source>Error</source>
         <translation>Errore</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="319"/>
+        <location filename="../Main.py" line="345"/>
         <source>No input directory selected</source>
         <translation>Nessuna directory di entrata selezionata</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="320"/>
+        <location filename="../Main.py" line="346"/>
         <source>No output directory selected</source>
         <translation>Nessuna directory di uscita selezionata</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="435"/>
-        <source>Could not open language selection: {error}</source>
-        <translation>Non poteva aprire la selezione della lingua: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="1102"/>
-        <location filename="../Main.py" line="1180"/>
-        <location filename="../Main.py" line="1189"/>
-        <source>Preview Error</source>
-        <translation>Errore di anteprima</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="453"/>
-        <location filename="../Main.py" line="522"/>
-        <location filename="../Main.py" line="536"/>
-        <source>Warning</source>
-        <translation>Avvertenza</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="241"/>
-        <location filename="../Main.py" line="244"/>
-        <location filename="../Main.py" line="247"/>
-        <location filename="../Main.py" line="255"/>
+        <location filename="../Main.py" line="1128"/>
         <location filename="../Main.py" line="1206"/>
-        <source>Editor</source>
-        <translation>Edizione</translation>
+        <location filename="../Main.py" line="1215"/>
+        <source>Preview Error</source>
+        <translation>Errore d&apos;anteprima</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="186"/>
+        <location filename="../Main.py" line="479"/>
+        <location filename="../Main.py" line="548"/>
+        <location filename="../Main.py" line="562"/>
+        <source>Warning</source>
+        <translation>Attenzione</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="212"/>
         <source>Variable delay</source>
         <translation>Ritardo variabile</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="190"/>
-        <source>Enable variable delay between frames for more accurate timing</source>
-        <translation>Abilitare il ritardo variabile tra i frame per tempi più precisi</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="195"/>
-        <source>FNF: Set loop delay on idle animations to 0</source>
-        <translation>FNF: Impostare il ritardo del loop sulle animazioni inattivo a 0</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="200"/>
-        <source>Automatically set loop delay to 0 for animations with &apos;idle&apos; in their name</source>
-        <translation>Imposta automaticamente il ritardo del loop a 0 per le animazioni con &apos;idle&apos; nel loro nome</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="209"/>
-        <source>Language...</source>
-        <translation>Lingua...</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="210"/>
-        <source>Change application language</source>
-        <translation>Cambia la lingua di applicazione</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="307"/>
-        <source>TextureAtlas Toolbox v{version}</source>
-        <translation>TextureAtlas Toolbox v{version}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="454"/>
-        <source>Could not open preferences: {error}</source>
-        <translation>Non poteva aprire preferenze: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="465"/>
-        <source>Could not open help window: {error}</source>
-        <translation>Non poteva aprire la finestra di aiuto: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="476"/>
-        <source>Could not open FNF help window: {error}</source>
-        <translation>Non poteva aprire la finestra di aiuto FNF: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="487"/>
-        <source>Could not open contributors window: {error}</source>
-        <translation>Non poteva aprire la finestra dei contribuenti: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="507"/>
-        <source>Could not open compression settings window: {error}</source>
-        <translation>Non poteva aprire le impostazioni di compressione finestra: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="523"/>
-        <source>Could not open find/replace window: {error}</source>
-        <translation>Non poteva aprire trovare/sostituire la finestra: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="537"/>
-        <source>Could not open settings window: {error}</source>
-        <translation>Non poteva aprire la finestra delle impostazioni: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="551"/>
-        <source>Select FNF Character Data File</source>
-        <translation>Selezionare FNF Character Data File</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="553"/>
-        <source>JSON files (*.json);;All files (*.*)</source>
-        <translation>File JSON (*.json);; Tutti i file (*.*)</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="570"/>
-        <location filename="../Main.py" line="1027"/>
-        <source>Success</source>
-        <translation>Successo</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="571"/>
-        <source>FNF settings imported successfully!</source>
-        <translation>Impostazioni FNF importate con successo!</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="585"/>
-        <source>Failed to import FNF settings: {error}</source>
-        <translation>Non importare le impostazioni FNF: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="616"/>
-        <source>Up to Date</source>
-        <translation>Fino a data</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="618"/>
-        <source>You are already running the latest version ({version}).</source>
-        <translation>È già in esecuzione l&apos;ultima versione ({version}).</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="653"/>
-        <source>Update Check Failed</source>
-        <translation>Controllare l&apos;aggiornamento</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="654"/>
-        <source>Could not check for updates: {error}</source>
-        <translation>Non poteva controllare gli aggiornamenti: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="662"/>
-        <source>latest</source>
-        <translation>più recente</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="665"/>
-        <source>Launching Updater</source>
-        <translation>Avvio aggiornamento</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="667"/>
-        <source>The updater for version {version} will launch in a new window. The application will now close.</source>
-        <translation>L&apos;aggiornamento per la versione {version} verrà lanciato in una nuova finestra. L&apos;applicazione si chiuderà.</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="1024"/>
-        <source>Language changed successfully!</source>
-        <translation>La lingua è cambiata con successo!</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="1033"/>
-        <source>Could not load language &apos;{language}&apos;</source>
-        <translation>Non poteva caricare la lingua &apos;{language}&apos;</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="1042"/>
-        <source>Failed to change language: {error}</source>
-        <translation>Non ha cambiato lingua: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="1103"/>
-        <source>Could not open animation preview: {error}</source>
-        <translation>Non poteva aprire l&apos;anteprima dell&apos;animazione: {error}</translation>
-    </message>
-    <message>
-        <location filename="../Main.py" line="1134"/>
+        <location filename="../Main.py" line="1160"/>
         <source>Settings Saved</source>
         <translation>Impostazioni salvate</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1135"/>
+        <location filename="../Main.py" line="267"/>
+        <location filename="../Main.py" line="270"/>
+        <location filename="../Main.py" line="273"/>
+        <location filename="../Main.py" line="281"/>
+        <location filename="../Main.py" line="1232"/>
+        <source>Editor</source>
+        <translation>Edizione</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="596"/>
+        <location filename="../Main.py" line="1053"/>
+        <source>Success</source>
+        <translation>Successo</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="642"/>
+        <source>Up to Date</source>
+        <translation>Aggiornato</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="691"/>
+        <source>Launching Updater</source>
+        <translation>Avviando l&apos;aggiornamento</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="577"/>
+        <source>Select FNF Character Data File</source>
+        <translation>Seleziona il file di data del personaggio FNF</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="679"/>
+        <source>Update Check Failed</source>
+        <translation>Controllo dell&apos;aggiornamento fallito.</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="461"/>
+        <source>Could not open language selection: {error}</source>
+        <translation>Non poteva aprire la selezione della lingua: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="186"/>
+        <source>Start Extraction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="190"/>
+        <source>Start the extraction process (Ctrl+Enter)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="216"/>
+        <source>Enable variable delay between frames for more accurate timing</source>
+        <translation>Attivare il ritardo variabile tra i fotogrammi per tempi più precisi</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="221"/>
+        <source>FNF: Set loop delay on idle animations to 0</source>
+        <translation>FNF: Impostare il ritardo del loop sulle animazioni &apos;in attesa&apos; a 0</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="226"/>
+        <source>Automatically set loop delay to 0 for animations with &apos;idle&apos; in their name</source>
+        <translation>Imposta automaticamente il ritardo del loop a 0 per le animazioni con &apos;idle&apos; nel loro nome</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="235"/>
+        <source>Language...</source>
+        <translation>Lingua...</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="236"/>
+        <source>Change application language</source>
+        <translation>Cambia la lingua dell&apos;applicazione</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="333"/>
+        <source>TextureAtlas Toolbox v{version}</source>
+        <translation>TextureAtlas Toolbox v{version}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="480"/>
+        <source>Could not open preferences: {error}</source>
+        <translation>Non poteva aprire le preferenze: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="491"/>
+        <source>Could not open help window: {error}</source>
+        <translation>Non poteva aprire la finestra di aiuto: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="502"/>
+        <source>Could not open FNF help window: {error}</source>
+        <translation>Non poteva aprire la finestra di aiuto FNF: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="513"/>
+        <source>Could not open contributors window: {error}</source>
+        <translation>Non poteva aprire la finestra dei contributori: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="549"/>
+        <source>Could not open find/replace window: {error}</source>
+        <translation>Non poteva aprire la finestra trovare/sostituire: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="563"/>
+        <source>Could not open settings window: {error}</source>
+        <translation>Non poteva aprire la finestra delle impostazioni: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="579"/>
+        <source>JSON files (*.json);;All files (*.*)</source>
+        <translation>File JSON (*.json);;Tutti i file (*.*)</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="644"/>
+        <source>You are already running the latest version ({version}).</source>
+        <translation>È già in esecuzione l&apos;ultima versione ({version}).</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="688"/>
+        <source>latest</source>
+        <translation>più recente</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="693"/>
+        <source>The updater for version {version} will launch in a new window. The application will now close.</source>
+        <translation>L&apos;aggiornamento per la versione {version} verrà lanciato in una nuova finestra. L&apos;applicazione si chiuderà.</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="1059"/>
+        <source>Could not load language &apos;{language}&apos;</source>
+        <translation>Non poteva caricare la lingua &apos;{language}&apos;</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="1068"/>
+        <source>Failed to change language: {error}</source>
+        <translation>Non è riuscito a cambiare la lingua: {error}.</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="1129"/>
+        <source>Could not open animation preview: {error}</source>
+        <translation>Non poteva aprire l&apos;anteprima dell&apos;animazione: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="1161"/>
         <source>Animation override settings have been saved for &apos;{name}&apos;.</source>
         <translation>Le impostazioni di sostituzione dell&apos;animazione sono state salvate per &apos;{name}&apos;.</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1181"/>
+        <location filename="../Main.py" line="1207"/>
         <source>Could not generate animation preview.</source>
-        <translation>Non poteva generare l&apos;anteprima di animazione.</translation>
+        <translation>Non poteva generare l&apos;anteprima dell&apos;animazione.</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1190"/>
+        <location filename="../Main.py" line="1216"/>
         <source>Failed to preview animation: {error}</source>
         <translation>Non è possibile visualizzare in anteprima l&apos;animazione: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1207"/>
+        <location filename="../Main.py" line="1233"/>
         <source>The editor tab is not available in this session.</source>
         <translation>La scheda Edizione non è disponibile in questa sessione.</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="597"/>
+        <source>FNF settings imported successfully!</source>
+        <translation>Impostazioni FNF importate con successo!</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="533"/>
+        <source>Could not open compression settings window: {error}</source>
+        <translation>Non poteva aprire la finestra delle impostazioni di compressione: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="611"/>
+        <source>Failed to import FNF settings: {error}</source>
+        <translation>Non è riuscto a importare le impostazioni FNF: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="680"/>
+        <source>Could not check for updates: {error}</source>
+        <translation>Non poteva controllare gli aggiornamenti: {error}</translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="1050"/>
+        <source>Language changed successfully!</source>
+        <translation>Language changed successfully!</translation>
     </message>
 </context>
 <context>
@@ -2639,7 +2751,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="207"/>
         <source>Choose Background Color</source>
-        <translation>Scegli il colore di sfondo</translation>
+        <translation>Scegli il colore dello sfondo</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1659"/>
@@ -2654,7 +2766,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="333"/>
         <source>Rename animation</source>
-        <translation>Rinominare l&apos;animazione</translation>
+        <translation>Rinomina l&apos;animazione</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="334"/>
@@ -2664,12 +2776,12 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="335"/>
         <source>Remove frame</source>
-        <translation>Rimuovi il telaio</translation>
+        <translation>Rimuovi il fotogramma</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="158"/>
         <source>Name conflict</source>
-        <translation>Nome conflitto</translation>
+        <translation>Conflitto di nome</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1527"/>
@@ -2684,7 +2796,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../gui/app_ui.py" line="1617"/>
         <source>Max atlas size</source>
-        <translation>Dimensione max. dell&apos;atlas</translation>
+        <translation>Dimensioni max. dell&apos;atlas</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1629"/>
@@ -2707,24 +2819,24 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Formato dell&apos;immagine</translation>
     </message>
     <message>
+        <location filename="../utils/ui_constants.py" line="104"/>
+        <source>Cancel</source>
+        <translation>Annulla</translation>
+    </message>
+    <message>
         <location filename="../utils/ui_constants.py" line="176"/>
         <source>Background Color Options</source>
-        <translation>Opzioni di colore di sfondo</translation>
+        <translation>Opzioni di colore dello sfondo</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="338"/>
         <source>Select All</source>
-        <translation>Seleziona tutto</translation>
+        <translation>Tutto selezionare</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="339"/>
         <source>Select None</source>
-        <translation>Selezionare Nessuno</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="104"/>
-        <source>Cancel</source>
-        <translation>Annulla</translation>
+        <translation>Niente selezionare</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1782"/>
@@ -2785,22 +2897,17 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="154"/>
         <source>Export composite</source>
-        <translation>Esportazione composito</translation>
+        <translation>Esporta il composito</translation>
     </message>
     <message>
-        <location filename="../gui/app_ui.py" line="1103"/>
-        <source>Select input directory</source>
-        <translation>Seleziona la directory di entrata</translation>
+        <location filename="../utils/ui_constants.py" line="178"/>
+        <source>Processing...</source>
+        <translation>Trattamento...</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1113"/>
         <source>No input directory selected</source>
         <translation>Nessuna directory di entrata selezionata</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1108"/>
-        <source>Select output directory</source>
-        <translation>Seleziona la directory di uscita</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1118"/>
@@ -2820,22 +2927,27 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../gui/app_ui.py" line="1423"/>
         <source>Override spritesheet settings</source>
-        <translation>Override impostazioni di sostituzione dei sprite sheets</translation>
+        <translation>Sostituisci le impostazioni dello sprite sheet</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1449"/>
         <source>Override animation settings</source>
-        <translation>Impostazioni di sostituzione dell&apos;animazioni</translation>
+        <translation>Sostituisci le impostazioni dell&apos;animazione</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1103"/>
+        <source>Select input directory</source>
+        <translation>Seleziona una directory di entrata</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1108"/>
+        <source>Select output directory</source>
+        <translation>Seleziona una directory di uscita</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1397"/>
         <source>Start process</source>
-        <translation>Avvia</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="178"/>
-        <source>Processing...</source>
-        <translation>Trattamento...</translation>
+        <translation>Avvia il trattamento</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="173"/>
@@ -2845,17 +2957,17 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="336"/>
         <source>Add Rule</source>
-        <translation>Aggiungi la regola</translation>
+        <translation>Aggiungi una regola</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="337"/>
         <source>Add Preset Rule</source>
-        <translation type="unfinished"></translation>
+        <translation>Aggiungi una regola predefinita</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="315"/>
         <source>Text to find...</source>
-        <translation>Testo per trovare...</translation>
+        <translation>Testo da trovare...</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="316"/>
@@ -2865,7 +2977,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="304"/>
         <source>Regular Expression</source>
-        <translation>Espressione regolare</translation>
+        <translation>Espressione regulare</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="179"/>
@@ -2875,7 +2987,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="307"/>
         <source>Check for updates on startup (recommended)</source>
-        <translation>Controllare gli aggiornamenti sull&apos;avvio (consigliato)</translation>
+        <translation>Controlla gli aggiornamenti sull&apos;avvio (consigliato)</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="308"/>
@@ -2890,7 +3002,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="164"/>
         <source>Machine Translation Warning</source>
-        <translation>Avviso di traduzione automatica</translation>
+        <translation>Avviso della traduzione automatica</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1522"/>
@@ -2903,9 +3015,9 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Impostazioni di lingua</translation>
     </message>
     <message>
-        <location filename="../utils/ui_constants.py" line="318"/>
-        <source>Leave empty for auto-generated filename</source>
-        <translation type="unfinished"></translation>
+        <location filename="../utils/ui_constants.py" line="150"/>
+        <source>Preview Error</source>
+        <translation>Errore d&apos;anteprima</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="146"/>
@@ -2913,14 +3025,19 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Informazione</translation>
     </message>
     <message>
-        <location filename="../utils/ui_constants.py" line="150"/>
-        <source>Preview Error</source>
-        <translation>Errore di anteprima</translation>
+        <location filename="../utils/ui_constants.py" line="318"/>
+        <source>Leave empty for auto-generated filename</source>
+        <translation>Lascia vuoto per generare automaticamente il nome di file</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="142"/>
+        <source>Warning</source>
+        <translation>Attenzione</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="159"/>
         <source>Parse Issues Detected</source>
-        <translation>Questioni generali</translation>
+        <translation>Problemi sul parsing trovati</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="306"/>
@@ -2930,17 +3047,12 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="340"/>
         <source>Continue Anyway</source>
-        <translation>Continua</translation>
+        <translation>Continua comunque</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="341"/>
         <source>Skip Selected</source>
-        <translation>Salta selezionato</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="142"/>
-        <source>Warning</source>
-        <translation>Avvertenza</translation>
+        <translation>Salta quelli selezionati</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="181"/>
@@ -2953,30 +3065,24 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Riavvia l&apos;applicazione</translation>
     </message>
     <message>
+        <location filename="../utils/ui_constants.py" line="88"/>
+        <source>Animation Settings</source>
+        <translation>Impostazioni d&apos;animazione</translation>
+    </message>
+    <message>
         <location filename="../utils/ui_constants.py" line="175"/>
         <source>Current Settings Overview</source>
         <translation>Panoramica delle impostazioni attuali</translation>
     </message>
     <message>
-        <location filename="../utils/ui_constants.py" line="88"/>
-        <source>Animation Settings</source>
-        <translation>Impostazioni di animazione</translation>
-    </message>
-    <message>
         <location filename="../utils/ui_constants.py" line="320"/>
         <source>Paste a path or space-separated files</source>
-        <translation>Incolla un percorso o file separati dallo spazio</translation>
+        <translation>Incolla un percorso o file separati con spazi</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="319"/>
         <source>Type a path and press Enter</source>
-        <translation>Digitare un percorso e premere Invio</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1770"/>
-        <location filename="../utils/ui_constants.py" line="192"/>
-        <source>Editor</source>
-        <translation>Edizione</translation>
+        <translation>Scrvi un percorso e premi Invio</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="56"/>
@@ -2984,9 +3090,15 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Ritardo variabile</translation>
     </message>
     <message>
-        <location filename="../utils/ui_constants.py" line="206"/>
-        <source>Select FNF Character Data File</source>
-        <translation>Selezionare FNF Character Data File</translation>
+        <location filename="../utils/ui_constants.py" line="148"/>
+        <source>Settings Saved</source>
+        <translation>Impostazioni salvate</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1770"/>
+        <location filename="../utils/ui_constants.py" line="192"/>
+        <source>Editor</source>
+        <translation>Edizione</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="143"/>
@@ -2996,174 +3108,28 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="160"/>
         <source>Up to Date</source>
-        <translation>Fino a data</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="161"/>
-        <source>Update Check Failed</source>
-        <translation>Controllare l&apos;aggiornamento</translation>
+        <translation>Aggiornato</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="162"/>
         <source>Launching Updater</source>
-        <translation>Avvio aggiornamento</translation>
+        <translation>Avviando l&apos;aggiornamento</translation>
     </message>
     <message>
-        <location filename="../utils/ui_constants.py" line="148"/>
-        <source>Settings Saved</source>
-        <translation>Impostazioni salvate</translation>
+        <location filename="../utils/ui_constants.py" line="206"/>
+        <source>Select FNF Character Data File</source>
+        <translation>Seleziona il file di data del personaggio FNF</translation>
     </message>
     <message>
-        <location filename="../utils/ui_constants.py" line="66"/>
-        <source>Edit selected frame only</source>
-        <translation>Modifica solo il fotogramma selezionato</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="135"/>
-        <source>Load GIF/WebP/APNG/PNG files into the editor</source>
-        <translation>Carica i file GIF/WebP/APNG/PNG nell&apos;editore</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="325"/>
-        <source>Add to Editor Tab</source>
-        <translation>Aggiungi alla scheda Edizione</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="327"/>
-        <source>Override Settings</source>
-        <translation>Impostazioni di sostituzione</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="109"/>
-        <source>Delete</source>
-        <translation>Cancella</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="38"/>
-        <source>Format</source>
-        <translation>Formato</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="42"/>
-        <source>Frame scale</source>
-        <translation>Scala del fotogramma</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="44"/>
-        <source>Frame Selection</source>
-        <translation>Selezione di fotogramma</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="49"/>
-        <source>Resampling</source>
-        <translation>Ricampionamento</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="326"/>
-        <source>Focus in Editor Tab</source>
-        <translation>Focus sulla scheda Edizione</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="328"/>
-        <source>Preview Animation</source>
-        <translation>Anteprima dell&apos;animazione</translation>
-    </message>
-    <message>
-        <location filename="../utils/ui_constants.py" line="329"/>
-        <source>Remove from List</source>
-        <translation>Rimuovi dalla lista</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1041"/>
-        <source>Select directory</source>
-        <translation>Seleziona la directory</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1046"/>
-        <source>Select files</source>
-        <translation>Seleziona i file</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1049"/>
-        <source>Clear export list</source>
-        <translation>Svuota la lista delle esportazioni</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1054"/>
-        <source>FNF: Import settings from character data file</source>
-        <translation>FNF: Importare le impostazioni dal file di dati del personaggio</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1061"/>
-        <source>Preferences</source>
-        <translation>Preferenze</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1064"/>
-        <source>User Manual</source>
-        <translation>Manuale utente</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1067"/>
-        <source>FNF Guide</source>
-        <translation>Guida FNF</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1070"/>
-        <source>Show Contributors</source>
-        <translation>Mostra contributi</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1079"/>
-        <source>Extract frames from TextureAtlases. Extraction supports exporting as frames or animations.</source>
-        <translation>Estra fotogrammi da TextureAtlases. L&apos;estrazione supporta l&apos;esportazione come fotogrammi o animazioni.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1088"/>
-        <source>List of all spritesheets to extract</source>
-        <translation>Lista di tutti i sprite sheets da estrarre</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1095"/>
-        <source>List of all the animations of the currently selected spritesheet</source>
-        <translation>Lista di tutte le animazioni del sprite sheet attualmente selezionato</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1124"/>
-        <location filename="../utils/ui_constants.py" line="87"/>
-        <source>Animation export settings</source>
-        <translation>Impostazioni di esportazione d&apos;animazione</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1130"/>
-        <source>Export as animations</source>
-        <translation>Esporta come animazioni</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1140"/>
-        <source>Sets the format of animated images</source>
-        <translation>Imposta il formato delle immagini animate</translation>
+        <location filename="../utils/ui_constants.py" line="161"/>
+        <source>Update Check Failed</source>
+        <translation>Controllo dell&apos;aggiornamento fallito.</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1147"/>
         <location filename="../utils/ui_constants.py" line="39"/>
         <source>Animation format</source>
-        <translation>Formato di animazione</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1153"/>
-        <source>Sets the playback rate of animated images</source>
-        <translation>Imposta la velocità di riproduzione delle immagini animate</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1164"/>
-        <source>Time to wait before looping the animation</source>
-        <translation>Tempo di attesa prima di ricominciare l&apos;animazione</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1174"/>
-        <source>Forces animated images to be played for at least the set amount of time.</source>
-        <translation>Forza le immagini animate da riprodurre per almeno la quantità di tempo impostata.</translation>
+        <translation>Formato d&apos;animazione</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1183"/>
@@ -3191,10 +3157,218 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Scala</translation>
     </message>
     <message>
+        <location filename="../gui/app_ui.py" line="1292"/>
+        <location filename="../utils/ui_constants.py" line="46"/>
+        <source>Cropping method</source>
+        <translation>Metodo di ritaglio</translation>
+    </message>
+    <message>
         <location filename="../gui/app_ui.py" line="1195"/>
         <location filename="../utils/ui_constants.py" line="50"/>
         <source>Alpha threshold</source>
         <translation>Soglia Alpha</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1246"/>
+        <location filename="../utils/ui_constants.py" line="40"/>
+        <source>Frame format</source>
+        <translation>Formato del fotogramma</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1273"/>
+        <location filename="../utils/ui_constants.py" line="43"/>
+        <source>Frame selection</source>
+        <translation>Selezione del fotogramma</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1310"/>
+        <location filename="../utils/ui_constants.py" line="48"/>
+        <source>Resampling method</source>
+        <translation>Metodo di ricampionamento</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1371"/>
+        <location filename="../utils/ui_constants.py" line="47"/>
+        <source>Filename format</source>
+        <translation>Formato del nome del file</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1331"/>
+        <location filename="../utils/ui_constants.py" line="78"/>
+        <source>Filename prefix</source>
+        <translation>Prefisso dei nomi di file</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1344"/>
+        <location filename="../utils/ui_constants.py" line="79"/>
+        <source>Filename suffix</source>
+        <translation>Suffiso dei nomi di file</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1582"/>
+        <location filename="../utils/ui_constants.py" line="292"/>
+        <source>Use &quot;Power of 2&quot; sizes</source>
+        <translation>Utilizza dimensioni &quot;Poteri di 2&quot; </translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1594"/>
+        <location filename="../utils/ui_constants.py" line="293"/>
+        <source>Allow rotation (90°)</source>
+        <translation>Consenti la rotazione (90°)</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1599"/>
+        <location filename="../utils/ui_constants.py" line="294"/>
+        <source>Allow flip X/Y (non-standard)</source>
+        <translation>Consentire l&apos;inversione (non standard) X/Y </translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1219"/>
+        <location filename="../utils/ui_constants.py" line="92"/>
+        <source>Frame export settings</source>
+        <translation>Impostazioni dell&apos;esportazione dei fotogrammi</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1287"/>
+        <location filename="../utils/ui_constants.py" line="119"/>
+        <location filename="../utils/ui_constants.py" line="170"/>
+        <source>Compression settings</source>
+        <translation>Impostazioni di compressione</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1667"/>
+        <location filename="../utils/ui_constants.py" line="110"/>
+        <source>Remove</source>
+        <translation>Rimuovi</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1691"/>
+        <location filename="../utils/ui_constants.py" line="126"/>
+        <source>Reset Zoom</source>
+        <translation>Ripristina il zoom</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1685"/>
+        <location filename="../utils/ui_constants.py" line="127"/>
+        <source>Center View</source>
+        <translation>Centra la vista</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1688"/>
+        <location filename="../utils/ui_constants.py" line="128"/>
+        <source>Fit Canvas</source>
+        <translation>Addata alla tela</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1727"/>
+        <location filename="../utils/ui_constants.py" line="133"/>
+        <source>Save Alignment to Extract Tab</source>
+        <translation>Salva allineamento alla sceda Estrazione</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1764"/>
+        <location filename="../utils/ui_constants.py" line="134"/>
+        <source>Export Composite to Sprites</source>
+        <translation>Esporta dal composito a sprites</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1748"/>
+        <location filename="../gui/app_ui.py" line="1754"/>
+        <location filename="../utils/ui_constants.py" line="305"/>
+        <source>Enable</source>
+        <translation>Attiva</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1323"/>
+        <location filename="../utils/ui_constants.py" line="373"/>
+        <source>Resampling algorithm for scaling images.</source>
+        <translation>Algorithmo di ricampionamento per ridimensionare le immagini.</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1124"/>
+        <location filename="../utils/ui_constants.py" line="87"/>
+        <source>Animation export settings</source>
+        <translation>Impostazioni di esportazione d&apos;animazione</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1041"/>
+        <source>Select directory</source>
+        <translation>Seleziona la directory</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1046"/>
+        <source>Select files</source>
+        <translation>Seleziona i file</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1049"/>
+        <source>Clear export list</source>
+        <translation>Cancella la lista d&apos;esportazione</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1054"/>
+        <source>FNF: Import settings from character data file</source>
+        <translation>FNF: Importa le impostazioni del file di dati del personnagio</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1061"/>
+        <source>Preferences</source>
+        <translation>Preferenze</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1064"/>
+        <source>User Manual</source>
+        <translation>Manuale utente</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1067"/>
+        <source>FNF Guide</source>
+        <translation>Guida FNF</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1070"/>
+        <source>Show Contributors</source>
+        <translation>Mostra i contributori</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1079"/>
+        <source>Extract frames from TextureAtlases. Extraction supports exporting as frames or animations.</source>
+        <translation>Estrai fotogrammi da TextureAtlas. L&apos;estrazione supporta l&apos;esportazione come fotogrammi o animazioni.</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1088"/>
+        <source>List of all spritesheets to extract</source>
+        <translation>Lista di tutti gli sprite sheet da estrarre</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1095"/>
+        <source>List of all the animations of the currently selected spritesheet</source>
+        <translation>Lista di tutte le animazioni dello sprite sheet attualmente selezionato</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1130"/>
+        <source>Export as animations</source>
+        <translation>Esporta come animazioni</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1140"/>
+        <source>Sets the format of animated images</source>
+        <translation>Imposta il formato delle immagini animate</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1153"/>
+        <source>Sets the playback rate of animated images</source>
+        <translation>Imposta la velocità di riproduzione delle immagini animate</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1164"/>
+        <source>Time to wait before looping the animation</source>
+        <translation>Tempo di attesa prima di ricominciare l&apos;animazione</translation>
+    </message>
+    <message>
+        <location filename="../gui/app_ui.py" line="1174"/>
+        <source>Forces animated images to be played for at least the set amount of time.</source>
+        <translation>Forza le immagini animate da riprodurre per almeno la quantità di tempo impostata.</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1201"/>
@@ -3207,12 +3381,6 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Imposta la scala delle immagini animate</translation>
     </message>
     <message>
-        <location filename="../gui/app_ui.py" line="1219"/>
-        <location filename="../utils/ui_constants.py" line="92"/>
-        <source>Frame export settings</source>
-        <translation>Impostazioni dell&apos;esportazione dei fotogrammi</translation>
-    </message>
-    <message>
         <location filename="../gui/app_ui.py" line="1225"/>
         <source>Export as frames</source>
         <translation>Esporta come fotogrammi</translation>
@@ -3223,15 +3391,59 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Imposta il formato delle immagini frame</translation>
     </message>
     <message>
-        <location filename="../gui/app_ui.py" line="1246"/>
-        <location filename="../utils/ui_constants.py" line="40"/>
-        <source>Frame format</source>
-        <translation>Formato del fotogramma</translation>
-    </message>
-    <message>
         <location filename="../gui/app_ui.py" line="1253"/>
         <source>Sets the scale of frames images</source>
         <translation>Imposta la scala delle immagini frames</translation>
+    </message>
+    <message>
+        <location filename="../utils/combo_options.py" line="50"/>
+        <source>All</source>
+        <translation>Tutti</translation>
+    </message>
+    <message>
+        <location filename="../utils/combo_options.py" line="51"/>
+        <source>No duplicates</source>
+        <translation>Senza duplicati</translation>
+    </message>
+    <message>
+        <location filename="../utils/combo_options.py" line="52"/>
+        <source>First</source>
+        <translation>Primo</translation>
+    </message>
+    <message>
+        <location filename="../utils/combo_options.py" line="53"/>
+        <source>Last</source>
+        <translation>Ultimo</translation>
+    </message>
+    <message>
+        <location filename="../utils/combo_options.py" line="54"/>
+        <source>First, Last</source>
+        <translation>Primo, Ultimo</translation>
+    </message>
+    <message>
+        <location filename="../utils/combo_options.py" line="55"/>
+        <source>Custom</source>
+        <translation>Personale</translation>
+    </message>
+    <message>
+        <location filename="../utils/combo_options.py" line="60"/>
+        <source>Frame based</source>
+        <translation>Basato sul fotogramma</translation>
+    </message>
+    <message>
+        <location filename="../utils/combo_options.py" line="63"/>
+        <source>Standardized</source>
+        <translation>Standardizzato</translation>
+    </message>
+    <message>
+        <location filename="../utils/combo_options.py" line="64"/>
+        <source>No spaces</source>
+        <translation>Senza spazio</translation>
+    </message>
+    <message>
+        <location filename="../utils/combo_options.py" line="65"/>
+        <source>No special characters</source>
+        <translation>Senza caratteri speciali</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1265"/>
@@ -3239,28 +3451,14 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Quali fotogrammi da esportare. &quot;Tutti&quot; esporta tutti i fotogrammi, &quot;Senza duplicati&quot; solo esporta i fotogrammi unici, &quot;Primo, Ultimo&quot; esporta il primo e ultimo fotogramma dell&apos;animazione.</translation>
     </message>
     <message>
-        <location filename="../gui/app_ui.py" line="1273"/>
-        <location filename="../utils/ui_constants.py" line="43"/>
-        <source>Frame selection</source>
-        <translation>Selezione del fotogramma</translation>
-    </message>
-    <message>
         <location filename="../gui/app_ui.py" line="1279"/>
         <source>Controls compression settings for frame images</source>
         <translation>Controlla le impostazioni di compressione per i fotogrammi</translation>
     </message>
     <message>
-        <location filename="../gui/app_ui.py" line="1287"/>
-        <location filename="../utils/ui_constants.py" line="119"/>
-        <location filename="../utils/ui_constants.py" line="170"/>
-        <source>Compression settings</source>
-        <translation>Impostazioni di compressione</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1292"/>
-        <location filename="../utils/ui_constants.py" line="46"/>
-        <source>Cropping method</source>
-        <translation>Metodo di ritaglio</translation>
+        <location filename="../utils/combo_options.py" line="59"/>
+        <source>Animation based</source>
+        <translation>Basato sull&apos;animazione</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1302"/>
@@ -3268,33 +3466,9 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Come si deve fare il ritaglio. Nota: &quot;Basato sul fotogramma&quot; funziona solo sui fotogrammi, le animazioni useranno automaticamente &quot;Basato sull&apos;animazione&quot; se &quot;Basato sul fotogramma&quot; è stato scelto.</translation>
     </message>
     <message>
-        <location filename="../gui/app_ui.py" line="1310"/>
-        <location filename="../utils/ui_constants.py" line="48"/>
-        <source>Resampling method</source>
-        <translation>Metodo di ricampionamento</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1323"/>
-        <location filename="../utils/ui_constants.py" line="373"/>
-        <source>Resampling algorithm for scaling images.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1331"/>
-        <location filename="../utils/ui_constants.py" line="78"/>
-        <source>Filename prefix</source>
-        <translation>Prefisso dei nomi di file</translation>
-    </message>
-    <message>
         <location filename="../gui/app_ui.py" line="1337"/>
         <source>Adds a prefix to the filename</source>
         <translation>Aggiunge un prefisso al nome del file</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1344"/>
-        <location filename="../utils/ui_constants.py" line="79"/>
-        <source>Filename suffix</source>
-        <translation>Suffiso dei nomi di file</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1350"/>
@@ -3305,12 +3479,6 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <location filename="../gui/app_ui.py" line="1363"/>
         <source>How filenames should be formatted. Standardized exports names as &quot;Spritesheet name - animation name&quot;.</source>
         <translation>Come i nomi dei file devono essere formattati. Esportazioni standardizzati sarrano chiamate &quot;Nome dello sprite sheet - nome di animazione&quot;.</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1371"/>
-        <location filename="../utils/ui_constants.py" line="47"/>
-        <source>Filename format</source>
-        <translation>Formato del nome del file</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1377"/>
@@ -3330,12 +3498,12 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../gui/app_ui.py" line="1415"/>
         <source>Overrides the global settings for the selected spritesheet</source>
-        <translation>Sovrascrive le impostazioni globali per il sprite sheet selezionato</translation>
+        <translation>Sovrascrive le impostazioni globali per lo sprite sheet selezionato</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1429"/>
         <source>Resets the filelist and override settings</source>
-        <translation>Ripristina le impostazioni della lista di file e sostituisce</translation>
+        <translation>Ripristina la lista di file e sostituisce le impostazioni</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1437"/>
@@ -3351,7 +3519,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../gui/app_ui.py" line="1455"/>
         <source>Extract</source>
-        <translation>Estrazione</translation>
+        <translation>Estrai</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1458"/>
@@ -3406,13 +3574,13 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../gui/app_ui.py" line="1519"/>
         <source>New Animation</source>
-        <translation>Nuova Animazione</translation>
+        <translation>Nuova animazione</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1535"/>
         <location filename="../gui/app_ui.py" line="1560"/>
         <source>Choose how the atlas size is determined</source>
-        <translation>Sceglie come la dimensione dell&apos;atlas è determinata</translation>
+        <translation>Sceglie come le dimensione dell&apos;atlas sono determinate</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1568"/>
@@ -3425,27 +3593,9 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Mette le dimensioni de l&apos;atlas al numero di poteri di 2 piu vicino (ad esempio, 512, 1024, 4096). Migliora la compatibilità con hardware più vecchio.</translation>
     </message>
     <message>
-        <location filename="../gui/app_ui.py" line="1582"/>
-        <location filename="../utils/ui_constants.py" line="292"/>
-        <source>Use &quot;Power of 2&quot; sizes</source>
-        <translation>Utilizza &quot;Poteri di 2&quot; taglie</translation>
-    </message>
-    <message>
         <location filename="../gui/app_ui.py" line="1590"/>
         <source>Min atlas size</source>
         <translation>Dimensioni min. dell&apos;atlas</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1594"/>
-        <location filename="../utils/ui_constants.py" line="293"/>
-        <source>Allow rotation (90°)</source>
-        <translation>Consenti la rotazione (90°)</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1599"/>
-        <location filename="../utils/ui_constants.py" line="294"/>
-        <source>Allow flip X/Y (non-standard)</source>
-        <translation>Consentire l&apos;inversione (non standard) X/Y </translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1621"/>
@@ -3470,18 +3620,12 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../gui/app_ui.py" line="1656"/>
         <source>Generate</source>
-        <translation>Generazione</translation>
+        <translation>Genera</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1664"/>
         <source>Load</source>
         <translation>Carica</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1667"/>
-        <location filename="../utils/ui_constants.py" line="110"/>
-        <source>Remove</source>
-        <translation>Rimuovi</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1670"/>
@@ -3509,24 +3653,6 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>50%</translation>
     </message>
     <message>
-        <location filename="../gui/app_ui.py" line="1685"/>
-        <location filename="../utils/ui_constants.py" line="127"/>
-        <source>Center View</source>
-        <translation>Centra la vista</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1688"/>
-        <location filename="../utils/ui_constants.py" line="128"/>
-        <source>Fit Canvas</source>
-        <translation>Addata alla tela</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1691"/>
-        <location filename="../utils/ui_constants.py" line="126"/>
-        <source>Reset Zoom</source>
-        <translation>Ripristina il zoom</translation>
-    </message>
-    <message>
         <location filename="../gui/app_ui.py" line="1694"/>
         <source>Zoom: 100%</source>
         <translation>Zoom: 100%</translation>
@@ -3547,33 +3673,14 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Applica a tutti i fotogrammi</translation>
     </message>
     <message>
-        <location filename="../gui/app_ui.py" line="1727"/>
-        <location filename="../utils/ui_constants.py" line="133"/>
-        <source>Save Alignment to Extract Tab</source>
-        <translation>Salva allineamento alla sceda Estrazione</translation>
-    </message>
-    <message>
         <location filename="../gui/app_ui.py" line="1732"/>
         <source>Canvas controls</source>
         <translation>Controlli della tela</translation>
     </message>
     <message>
-        <location filename="../gui/app_ui.py" line="1748"/>
-        <location filename="../gui/app_ui.py" line="1754"/>
-        <location filename="../utils/ui_constants.py" line="305"/>
-        <source>Enable</source>
-        <translation>Attiva</translation>
-    </message>
-    <message>
         <location filename="../gui/app_ui.py" line="1761"/>
         <source>Detach canvas</source>
         <translation>Distacca la tela</translation>
-    </message>
-    <message>
-        <location filename="../gui/app_ui.py" line="1764"/>
-        <location filename="../utils/ui_constants.py" line="134"/>
-        <source>Export Composite to Sprites</source>
-        <translation>Esporta dal composito a sprites</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1773"/>
@@ -3593,7 +3700,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../gui/app_ui.py" line="1785"/>
         <source>Advanced</source>
-        <translation>Avanzato</translation>
+        <translation>Avanzata</translation>
     </message>
     <message>
         <location filename="../gui/app_ui.py" line="1788"/>
@@ -3601,34 +3708,54 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <translation>Opzioni</translation>
     </message>
     <message>
+        <location filename="../utils/ui_constants.py" line="38"/>
+        <source>Format</source>
+        <translation>Formato</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="42"/>
+        <source>Frame scale</source>
+        <translation>Scala del fotogramma</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="44"/>
+        <source>Frame Selection</source>
+        <translation>Selezione dei fotogrammi</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="49"/>
+        <source>Resampling</source>
+        <translation>Ricampionamento</translation>
+    </message>
+    <message>
         <location filename="../utils/ui_constants.py" line="51"/>
         <source>Delay</source>
-        <translation type="unfinished"></translation>
+        <translation>Ritardo</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="53"/>
         <source>Period</source>
-        <translation type="unfinished"></translation>
+        <translation>Perioda</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="55"/>
         <source>Min period</source>
-        <translation>Periodo minimo</translation>
+        <translation>Perioda min.</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="57"/>
         <source>Indices</source>
-        <translation type="unfinished"></translation>
+        <translation>Indici</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="58"/>
         <source>Frames</source>
-        <translation type="unfinished"></translation>
+        <translation>Fotogrammi</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="59"/>
         <source>Filename</source>
-        <translation type="unfinished"></translation>
+        <translation>Nome di file</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="60"/>
@@ -3653,12 +3780,17 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="64"/>
         <source>Enable frame export:</source>
-        <translation>Attiva l&apos;esportazione dei fotogrammi:</translation>
+        <translation>Attiva l&apos;esportazione del fotogramma:</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="65"/>
         <source>Loop preview</source>
         <translation>Anteprima Loop</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="66"/>
+        <source>Edit selected frame only</source>
+        <translation>Modifica solo il fotogramma selezionato</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="68"/>
@@ -3693,7 +3825,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="75"/>
         <source>Heuristic</source>
-        <translation>Euristica</translation>
+        <translation>Euristico</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="76"/>
@@ -3708,17 +3840,17 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="84"/>
         <source>Animation export</source>
-        <translation>Esportazione d&apos;animazione</translation>
+        <translation>Esportazione dell&apos;animazione</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="85"/>
         <source>Animation Export</source>
-        <translation type="unfinished"></translation>
+        <translation>Esportazione dell&apos;animazione</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="86"/>
         <source>Animation Export Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Esportazione dell&apos;animazione predefinita</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="89"/>
@@ -3728,17 +3860,17 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="90"/>
         <source>Frame Export</source>
-        <translation type="unfinished"></translation>
+        <translation>Esportazione di fotogramma</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="91"/>
         <source>Frame Export Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Esportazione di fotogramma predefinita</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="93"/>
         <source>General Export Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Impostazioni generali predefinite</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="94"/>
@@ -3748,7 +3880,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="95"/>
         <source>Export Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Impostazioni di esportazione</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="96"/>
@@ -3763,12 +3895,12 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="98"/>
         <source>Display &amp; snapping</source>
-        <translation>Visualizzazione e scatto</translation>
+        <translation>Visualizzazione e usa l&apos;effeto calamita</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="103"/>
         <source>OK</source>
-        <translation>OK</translation>
+        <translation>Okay</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="106"/>
@@ -3778,7 +3910,12 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="107"/>
         <source>Apply</source>
-        <translation>Applicare</translation>
+        <translation>Applica</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="109"/>
+        <source>Delete</source>
+        <translation>Cancella</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="112"/>
@@ -3813,7 +3950,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="118"/>
         <source>Preview animation</source>
-        <translation>Animazione di anteprima</translation>
+        <translation>Anteprima dell&apos;animazione</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="120"/>
@@ -3833,22 +3970,22 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="124"/>
         <source>Load Animation Files</source>
-        <translation>Caricare i file di animazione</translation>
+        <translation>Carica le animazioni</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="125"/>
         <source>Combine Selected</source>
-        <translation>Combinare Selezionato</translation>
+        <translation>Combina quelli selezionati</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="129"/>
         <source>Detach Canvas</source>
-        <translation>Tela del distacco</translation>
+        <translation>Distacca la tela</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="130"/>
         <source>Reattach Canvas</source>
-        <translation>Reattacca tela</translation>
+        <translation>Reattaca la tela</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="131"/>
@@ -3858,27 +3995,32 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="132"/>
         <source>Apply to All Frames</source>
-        <translation>Applica a tutte le cornici</translation>
+        <translation>Applica a tutti i fotogrammi</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="135"/>
+        <source>Load GIF/WebP/APNG/PNG files into the editor</source>
+        <translation>Carica i file GIF/WebP/APNG/PNG nell&apos;editore</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="136"/>
         <source>Create a composite entry from all selected animations for group alignment</source>
-        <translation>Creare un ingresso composito da tutte le animazioni selezionate per l&apos;allineamento di gruppo</translation>
+        <translation>Crea un composito d&apos;entra da tutte le animazion selezionate per l&apos;allineamento in gruppo</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="144"/>
         <source>Information</source>
-        <translation type="unfinished"></translation>
+        <translation>Informazione</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="145"/>
         <source>Confirm</source>
-        <translation type="unfinished"></translation>
+        <translation>Confirma</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="147"/>
         <source>Reset to Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Azzerare</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="149"/>
@@ -3903,12 +4045,12 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="155"/>
         <source>Composite name</source>
-        <translation>Nome composito</translation>
+        <translation>Nome del composito</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="156"/>
         <source>Need more animations</source>
-        <translation>Bisogno di più animazioni</translation>
+        <translation>Serve più animazioni</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="157"/>
@@ -3928,42 +4070,42 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="177"/>
         <source>Unknown Atlas Warning</source>
-        <translation>Avviso Atlante sconosciuto</translation>
+        <translation>Avvertimento sul Atlas sconosciuto</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="180"/>
         <source>Alignment Canvas</source>
-        <translation>Allineamento tela</translation>
+        <translation>Allineamento della tela</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="186"/>
         <source>System Resources</source>
-        <translation type="unfinished"></translation>
+        <translation>Risorse del sistema</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="187"/>
         <source>Interface</source>
-        <translation type="unfinished"></translation>
+        <translation>Interfaccia</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="188"/>
         <source>Extraction Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Estrazione predefinita</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="189"/>
         <source>Generator Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Generatore predefinito</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="190"/>
         <source>Compression Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Compressione predefinita</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="191"/>
         <source>Updates</source>
-        <translation type="unfinished"></translation>
+        <translation>Aggiornamenti</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="197"/>
@@ -3983,27 +4125,27 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="200"/>
         <source>Select frames</source>
-        <translation>Seleziona cornici</translation>
+        <translation>Seleziona i fotogrammi</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="201"/>
         <source>Select directory with frame images</source>
-        <translation>Seleziona directory con immagini frame</translation>
+        <translation>Seleziona una directory con fotogrammi</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="202"/>
         <source>Select Atlas Image File</source>
-        <translation>Selezionare Atlas Image File</translation>
+        <translation>Seleziona l&apos;immagine dell&apos;Atlas</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="203"/>
         <source>Select Atlas Data File</source>
-        <translation>Selezionare Atlas Data File</translation>
+        <translation>Seleziona il file di data dell&apos;Atlas</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="204"/>
         <source>Select animation files</source>
-        <translation>Selezionare i file di animazione</translation>
+        <translation>Seleziona i file di animazione</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="205"/>
@@ -4013,27 +4155,27 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="249"/>
         <source>Image files ({0})</source>
-        <translation>File di immagini ({0})</translation>
+        <translation>Immagini ({0})</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="250"/>
         <source>Atlas image files ({0})</source>
-        <translation>File di immagini dell&apos;Atlante ({0})</translation>
+        <translation>Immagini di atlas ({0})</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="251"/>
         <source>Spritesheet data files ({0})</source>
-        <translation>File di dati del foglio di calcolo ({0})</translation>
+        <translation>File di data sprite sheet ({0})</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="252"/>
         <source>Animation files (*.gif *.apng *.png *.webp);;All files (*.*)</source>
-        <translation>File di animazione (*.gif *.apng *.png *.webp);; Tutti i file (*.*)</translation>
+        <translation>File di animazione (*.gif *.apng *.png *.webp);;Tutti i file (*.*)</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="287"/>
         <source>Optimize PNG</source>
-        <translation>Ottimizzare il PNG</translation>
+        <translation>Ottimizza il PNG</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="288"/>
@@ -4053,22 +4195,22 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="291"/>
         <source>Optimize TIFF</source>
-        <translation>Ottimizzare il TIFF</translation>
+        <translation>Ottimizza il TIFF</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="295"/>
         <source>Trim transparent edges</source>
-        <translation>Ritaglia bordi trasparenti</translation>
+        <translation>Ritaglia i bordi trasparenti</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="296"/>
         <source>Check for updates on startup</source>
-        <translation>Controllare gli aggiornamenti sull&apos;avvio</translation>
+        <translation>Controlla gli aggiornamenti sull&apos;avvio</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="297"/>
         <source>Auto-download and install updates</source>
-        <translation>Carica e installa aggiornamenti</translation>
+        <translation>Carica e installa aggiornamenti automaticamente</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="298"/>
@@ -4098,7 +4240,7 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="303"/>
         <source>Trim Sprites</source>
-        <translation>Trim Sprites</translation>
+        <translation>Ritaglia i sprites</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="313"/>
@@ -4113,7 +4255,32 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="317"/>
         <source>e.g., 0,2,4 or 0-5 (leave empty for all frames)</source>
-        <translation>ad es., 0,2,4 o 0-5 (vuoto per tutti i fotogrammi)</translation>
+        <translation>ad es., 0,2,4 o 0-5 (lascia vuoto per tutti i fotogrammi)</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="325"/>
+        <source>Add to Editor Tab</source>
+        <translation>Aggiungi alla scheda Edizione</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="326"/>
+        <source>Focus in Editor Tab</source>
+        <translation>Focus sulla scheda Edizione</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="327"/>
+        <source>Override Settings</source>
+        <translation>Impostazioni di sostituzione</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="328"/>
+        <source>Preview Animation</source>
+        <translation>Anteprima dell&apos;animazione</translation>
+    </message>
+    <message>
+        <location filename="../utils/ui_constants.py" line="329"/>
+        <source>Remove from List</source>
+        <translation>Rimuovi dalla lista</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="330"/>
@@ -4123,17 +4290,17 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="331"/>
         <source>Remove selected frame(s)</source>
-        <translation>Rimuovi cornici selezionate</translation>
+        <translation>Rimuovi il/i fotogramma(i) selezionato(i)</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="342"/>
         <source>Proceed anyway</source>
-        <translation>Procedere comunque</translation>
+        <translation>Procedi comunque</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="343"/>
         <source>Skip unknown</source>
-        <translation>Skip sconosciuto</translation>
+        <translation>Salta quelli sconosciuti</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="344"/>
@@ -4147,9 +4314,9 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
 • 50%: Default, balanced transparency
 • 100%: Only fully opaque pixels visible</source>
         <translation>Soglia alfa per la trasparenza di GIF (0-100%):
-• 0%: tutti i pixels sono visibili
+• 0%: Tutti i pixel sono visibili
 • 50%: Predefinito, trasparenza equilibrata
-• 100%: Solo i pixels completamente opaci sono visibili</translation>
+• 100%: Solo i pixel completamente opaci sono visibili</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="356"/>
@@ -4180,72 +4347,17 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
     <message>
         <location filename="../utils/ui_constants.py" line="370"/>
         <source>Resampling filter used when scaling the animation</source>
-        <translation type="unfinished"></translation>
+        <translation>Filtro di ricampionamento per ridimensionare le immagini.</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="376"/>
         <source>Image format for the atlas texture.</source>
-        <translation>Formato immagine per la texture atlas.</translation>
+        <translation>Formato dell&apos;immagine per la texture atlas.</translation>
     </message>
     <message>
         <location filename="../utils/ui_constants.py" line="382"/>
         <source>Hold Ctrl and use mouse wheel to zoom in/out</source>
         <translation>Tenere premuto Ctrl e utilizzare la rotellina del mouse per ingrandire/rimpicciolire</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="50"/>
-        <source>All</source>
-        <translation>Tutti</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="51"/>
-        <source>No duplicates</source>
-        <translation>Nessun duplicato</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="52"/>
-        <source>First</source>
-        <translation>Primo</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="53"/>
-        <source>Last</source>
-        <translation>Ultimo</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="54"/>
-        <source>First, Last</source>
-        <translation>Primo, Ultimo</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="55"/>
-        <source>Custom</source>
-        <translation>Personale</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="59"/>
-        <source>Animation based</source>
-        <translation>Basato sull&apos;animazione</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="60"/>
-        <source>Frame based</source>
-        <translation>Basato sul fotogramma</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="63"/>
-        <source>Standardized</source>
-        <translation>Standardizzato</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="64"/>
-        <source>No spaces</source>
-        <translation>Senza spazio</translation>
-    </message>
-    <message>
-        <location filename="../utils/combo_options.py" line="65"/>
-        <source>No special characters</source>
-        <translation>Senza carattere speciale</translation>
     </message>
 </context>
 <context>
@@ -4259,17 +4371,17 @@ L&apos;estrazione può procedere ma i risultati possono essere colpiti.</transla
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="61"/>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="80"/>
         <source>Unknown Atlas Warning</source>
-        <translation>Avviso Atlante sconosciuto</translation>
+        <translation>Avvertimento sul Atlas sconosciuto</translation>
     </message>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="114"/>
         <source>Proceed anyway</source>
-        <translation>Procedere comunque</translation>
+        <translation>Procedi comunque</translation>
     </message>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="120"/>
         <source>Skip unknown</source>
-        <translation>Skip sconosciuto</translation>
+        <translation>Salta quelli sconosciuti</translation>
     </message>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="88"/>
@@ -4284,14 +4396,14 @@ The tool can attempt to extract the unknown atlas(es) but has these limitations:
 • Output may not be usable in rare cases
 
 What would you like to do?</source>
-        <translation>Avvertenza: {count} sconosciuto atlante tipo(i) rilevato:
+        <translation>Attenzione: {count} tipo(i) di atlas sconosciuto(i) rilevato(i):
 
 Ciò significa che o il file metadati manca o non è supportato.
 
-Lo strumento può tentare di estrarre gli atlanti sconosciuti, ma ha queste limitazioni:
+L&apos;applicazione può provare di estrarre gli atlas sconosciuti, ma ha queste limitazioni:
 • L&apos;esportazione di animazione non è supportata
-• La cattura può essere incoerente
-• Il rilevamento di Sprite può mancare o identificare erroneamente sprite
+• Retagliare può essere incoerente
+• Il rilevamento di sprite può mancare o identificare erroneamente sprites
 • La produzione non può essere utilizzabile in rari casi
 
 Cosa vorresti fare?</translation>
@@ -4299,7 +4411,7 @@ Cosa vorresti fare?</translation>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="105"/>
         <source>Affected files:</source>
-        <translation>File interessati:</translation>
+        <translation>File colpiti:</translation>
     </message>
     <message>
         <location filename="../gui/extractor/unknown_atlas_warning_window.py" line="167"/>

@@ -1183,7 +1183,7 @@ Beiträge</translation>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="366"/>
         <location filename="../gui/extract_tab_widget.py" line="1529"/>
-        <location filename="../gui/extract_tab_widget.py" line="2420"/>
+        <location filename="../gui/extract_tab_widget.py" line="2426"/>
         <source>No input directory selected</source>
         <translation>Kein Eingabeverzeichnis ausgewählt</translation>
     </message>
@@ -1195,7 +1195,7 @@ Beiträge</translation>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="376"/>
         <location filename="../gui/extract_tab_widget.py" line="1530"/>
-        <location filename="../gui/extract_tab_widget.py" line="2423"/>
+        <location filename="../gui/extract_tab_widget.py" line="2429"/>
         <source>No output directory selected</source>
         <translation>Keine Ausgabeverzeichnis ausgewählt</translation>
     </message>
@@ -1235,104 +1235,104 @@ Beiträge</translation>
         <translation>Composite erstellt im Editor Tab</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1702"/>
-        <location filename="../gui/extract_tab_widget.py" line="1796"/>
-        <location filename="../gui/extract_tab_widget.py" line="2060"/>
-        <location filename="../gui/extract_tab_widget.py" line="2125"/>
+        <location filename="../gui/extract_tab_widget.py" line="1708"/>
+        <location filename="../gui/extract_tab_widget.py" line="1802"/>
+        <location filename="../gui/extract_tab_widget.py" line="2066"/>
+        <location filename="../gui/extract_tab_widget.py" line="2131"/>
         <source>Please select a spritesheet first.</source>
         <translation>Bitte wählen Sie zuerst ein Schreibblatt aus.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1738"/>
-        <location filename="../gui/extract_tab_widget.py" line="2096"/>
+        <location filename="../gui/extract_tab_widget.py" line="1744"/>
+        <location filename="../gui/extract_tab_widget.py" line="2102"/>
         <source>Could not open animation settings: {error}</source>
         <translation>Konnte keine Animationseinstellungen öffnen: {error}</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1781"/>
-        <location filename="../gui/extract_tab_widget.py" line="1828"/>
+        <location filename="../gui/extract_tab_widget.py" line="1787"/>
+        <location filename="../gui/extract_tab_widget.py" line="1834"/>
         <source>Could not open spritesheet settings: {error}</source>
         <translation>Konnte keine Tabelleneinstellungen öffnen: {error}</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1852"/>
+        <location filename="../gui/extract_tab_widget.py" line="1858"/>
         <source>Load animations for this spritesheet before sending it to the editor.</source>
         <translation>Laden Sie Animationen für dieses Schreibblatt, bevor Sie es an den Editor senden.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1872"/>
+        <location filename="../gui/extract_tab_widget.py" line="1878"/>
         <source>No animations were found for this spritesheet.</source>
         <translation>Für dieses Schreibblatt wurden keine Animationen gefunden.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1905"/>
-        <location filename="../gui/extract_tab_widget.py" line="1945"/>
+        <location filename="../gui/extract_tab_widget.py" line="1911"/>
+        <location filename="../gui/extract_tab_widget.py" line="1951"/>
         <source>Select a spritesheet first.</source>
         <translation>Wählen Sie zuerst ein Schreibblatt aus.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1929"/>
+        <location filename="../gui/extract_tab_widget.py" line="1935"/>
         <source>Unable to locate the exported composite in the editor.</source>
         <translation>Unfähig, den exportierten Verbund im Editor zu lokalisieren.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1971"/>
+        <location filename="../gui/extract_tab_widget.py" line="1977"/>
         <source>The spritesheet path could not be determined.</source>
         <translation>Der Spritesheet-Pfad konnte nicht ermittelt werden.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1990"/>
+        <location filename="../gui/extract_tab_widget.py" line="1996"/>
         <source>No metadata was located for this spritesheet.</source>
         <translation>Für dieses Schreibblatt wurden keine Metadaten gefunden.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2051"/>
-        <location filename="../gui/extract_tab_widget.py" line="2116"/>
+        <location filename="../gui/extract_tab_widget.py" line="2057"/>
+        <location filename="../gui/extract_tab_widget.py" line="2122"/>
         <source>Please select an animation first.</source>
         <translation>Bitte wählen Sie zuerst eine Animation aus.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2138"/>
+        <location filename="../gui/extract_tab_widget.py" line="2144"/>
         <source>Could not find spritesheet file path.</source>
         <translation>Konnte nicht finden spritesheet Dateipfad.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2177"/>
+        <location filename="../gui/extract_tab_widget.py" line="2183"/>
         <source>Preview error</source>
         <translation>Fehler anzeigen</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2178"/>
+        <location filename="../gui/extract_tab_widget.py" line="2184"/>
         <source>Could not preview animation: {error}</source>
         <translation>Konnte keine Vorschau Animation: {error}</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2421"/>
+        <location filename="../gui/extract_tab_widget.py" line="2427"/>
         <source>Please select an input directory first.</source>
         <translation>Wählen Sie zuerst ein Eingabeverzeichnis aus.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2424"/>
+        <location filename="../gui/extract_tab_widget.py" line="2430"/>
         <source>Please select an output directory first.</source>
         <translation>Wählen Sie zuerst ein Ausgabeverzeichnis aus.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2431"/>
+        <location filename="../gui/extract_tab_widget.py" line="2437"/>
         <source>Please enable at least one export option (Animation or Frame).</source>
         <translation>Bitte aktivieren Sie mindestens eine Exportoption (Animation oder Frame).</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2436"/>
+        <location filename="../gui/extract_tab_widget.py" line="2442"/>
         <source>No spritesheets found. Please select a directory with images.</source>
         <translation>Keine Spritblätter gefunden. Bitte wählen Sie ein Verzeichnis mit Bildern.</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2598"/>
+        <location filename="../gui/extract_tab_widget.py" line="2604"/>
         <source>Processing...</source>
         <translation>Verarbeitung...</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2598"/>
+        <location filename="../gui/extract_tab_widget.py" line="2604"/>
         <source>Start Process</source>
         <translation>Startprozess</translation>
     </message>
@@ -1953,12 +1953,12 @@ Qualitätsindikatoren: {native} Native, {reviewed} Reviewed, {unreviewed} Unrevi
     <message>
         <location filename="../utils/translation_manager.py" line="476"/>
         <source>Machine Translation Notice</source>
-        <translation>Automatische Übersetzungshinweise</translation>
+        <translation type="unfinished">Machine Translation Notice</translation>
     </message>
     <message>
         <location filename="../utils/translation_manager.py" line="479"/>
         <source>This language was automatically translated and may contain inaccuracies. If you would like to contribute better translations, please visit our GitHub repository.</source>
-        <translation>Diese Sprache wurde automatisch übersetzt und kann Ungenauigkeiten enthalten. Wenn Sie bessere Übersetzungen beitragen möchten, besuchen Sie bitte unser GitHub-Repository.</translation>
+        <translation type="unfinished">This language was automatically translated and may contain inaccuracies. If you would like to contribute better translations, please visit our GitHub repository.</translation>
     </message>
 </context>
 <context>
@@ -2398,228 +2398,238 @@ Extraktion kann erfolgen, aber die Ergebnisse können betroffen sein.</translati
     <name>TextureAtlasExtractorApp</name>
     <message>
         <location filename="../Main.py" line="186"/>
+        <source>Start Extraction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="190"/>
+        <source>Start the extraction process (Ctrl+Enter)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="212"/>
         <source>Variable delay</source>
         <translation>Variable Verzögerung</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="190"/>
+        <location filename="../Main.py" line="216"/>
         <source>Enable variable delay between frames for more accurate timing</source>
         <translation>Ermöglichen Sie variable Verzögerung zwischen Frames für genaueres Timing</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="195"/>
+        <location filename="../Main.py" line="221"/>
         <source>FNF: Set loop delay on idle animations to 0</source>
         <translation>FNF: Loop-Verzögerung auf idle-Animationen auf 0 einstellen</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="200"/>
+        <location filename="../Main.py" line="226"/>
         <source>Automatically set loop delay to 0 for animations with &apos;idle&apos; in their name</source>
         <translation>Automatische Einstellung Schleifenverzögerung auf 0 für Animationen mit &apos;Idee&apos; in ihrem Namen</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="209"/>
+        <location filename="../Main.py" line="235"/>
         <source>Language...</source>
         <translation>Sprache...</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="210"/>
+        <location filename="../Main.py" line="236"/>
         <source>Change application language</source>
         <translation>Änderung der Bewerbungssprache</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="241"/>
-        <location filename="../Main.py" line="244"/>
-        <location filename="../Main.py" line="247"/>
-        <location filename="../Main.py" line="255"/>
-        <location filename="../Main.py" line="1206"/>
+        <location filename="../Main.py" line="267"/>
+        <location filename="../Main.py" line="270"/>
+        <location filename="../Main.py" line="273"/>
+        <location filename="../Main.py" line="281"/>
+        <location filename="../Main.py" line="1232"/>
         <source>Editor</source>
         <translation>Herausgeber</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="307"/>
+        <location filename="../Main.py" line="333"/>
         <source>TextureAtlas Toolbox v{version}</source>
         <translation>TexturAtlas Toolbox v{version}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="319"/>
+        <location filename="../Main.py" line="345"/>
         <source>No input directory selected</source>
         <translation>Kein Eingabeverzeichnis ausgewählt</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="320"/>
+        <location filename="../Main.py" line="346"/>
         <source>No output directory selected</source>
         <translation>Keine Ausgabeverzeichnis ausgewählt</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="434"/>
-        <location filename="../Main.py" line="464"/>
-        <location filename="../Main.py" line="475"/>
-        <location filename="../Main.py" line="486"/>
-        <location filename="../Main.py" line="506"/>
-        <location filename="../Main.py" line="584"/>
-        <location filename="../Main.py" line="800"/>
-        <location filename="../Main.py" line="1032"/>
-        <location filename="../Main.py" line="1041"/>
+        <location filename="../Main.py" line="460"/>
+        <location filename="../Main.py" line="490"/>
+        <location filename="../Main.py" line="501"/>
+        <location filename="../Main.py" line="512"/>
+        <location filename="../Main.py" line="532"/>
+        <location filename="../Main.py" line="610"/>
+        <location filename="../Main.py" line="826"/>
+        <location filename="../Main.py" line="1058"/>
+        <location filename="../Main.py" line="1067"/>
         <source>Error</source>
         <translation>Fehler</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="435"/>
+        <location filename="../Main.py" line="461"/>
         <source>Could not open language selection: {error}</source>
         <translation>Sprachauswahl nicht öffnen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="453"/>
-        <location filename="../Main.py" line="522"/>
-        <location filename="../Main.py" line="536"/>
+        <location filename="../Main.py" line="479"/>
+        <location filename="../Main.py" line="548"/>
+        <location filename="../Main.py" line="562"/>
         <source>Warning</source>
         <translation>Warnung</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="454"/>
+        <location filename="../Main.py" line="480"/>
         <source>Could not open preferences: {error}</source>
         <translation>Vorlieben nicht öffnen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="465"/>
+        <location filename="../Main.py" line="491"/>
         <source>Could not open help window: {error}</source>
         <translation>Hilffenster nicht öffnen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="476"/>
+        <location filename="../Main.py" line="502"/>
         <source>Could not open FNF help window: {error}</source>
         <translation>FNF-Hilfefenster nicht öffnen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="487"/>
+        <location filename="../Main.py" line="513"/>
         <source>Could not open contributors window: {error}</source>
         <translation>Fügefenster nicht öffnen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="507"/>
+        <location filename="../Main.py" line="533"/>
         <source>Could not open compression settings window: {error}</source>
         <translation>Druckeinstellungen nicht öffnen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="523"/>
+        <location filename="../Main.py" line="549"/>
         <source>Could not open find/replace window: {error}</source>
         <translation>Fenster finden/ersetzen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="537"/>
+        <location filename="../Main.py" line="563"/>
         <source>Could not open settings window: {error}</source>
         <translation>Fenster Einstellungen nicht öffnen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="551"/>
+        <location filename="../Main.py" line="577"/>
         <source>Select FNF Character Data File</source>
         <translation>Wählen Sie FNF Character Data File</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="553"/>
+        <location filename="../Main.py" line="579"/>
         <source>JSON files (*.json);;All files (*.*)</source>
         <translation>JSON-Dateien (*.json);;Alle Dateien (*.*)</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="570"/>
-        <location filename="../Main.py" line="1027"/>
+        <location filename="../Main.py" line="596"/>
+        <location filename="../Main.py" line="1053"/>
         <source>Success</source>
         <translation>Erfolg</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="571"/>
+        <location filename="../Main.py" line="597"/>
         <source>FNF settings imported successfully!</source>
         <translation>FNF-Einstellungen erfolgreich importiert!</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="585"/>
+        <location filename="../Main.py" line="611"/>
         <source>Failed to import FNF settings: {error}</source>
         <translation>Nicht importiert FNF-Einstellungen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="616"/>
+        <location filename="../Main.py" line="642"/>
         <source>Up to Date</source>
         <translation>Bis zum Datum</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="618"/>
+        <location filename="../Main.py" line="644"/>
         <source>You are already running the latest version ({version}).</source>
         <translation>Sie haben bereits die neueste Version ({version}) ausgeführt.</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="653"/>
+        <location filename="../Main.py" line="679"/>
         <source>Update Check Failed</source>
         <translation>Aktualisieren Sie den Fehler</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="654"/>
+        <location filename="../Main.py" line="680"/>
         <source>Could not check for updates: {error}</source>
         <translation>Konnte nicht nach Updates suchen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="662"/>
+        <location filename="../Main.py" line="688"/>
         <source>latest</source>
         <translation>spätestens</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="665"/>
+        <location filename="../Main.py" line="691"/>
         <source>Launching Updater</source>
         <translation>Starten von Updater</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="667"/>
+        <location filename="../Main.py" line="693"/>
         <source>The updater for version {version} will launch in a new window. The application will now close.</source>
         <translation>Der Updater für die Version {version} startet in einem neuen Fenster. Die Anwendung wird jetzt geschlossen.</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1024"/>
+        <location filename="../Main.py" line="1050"/>
         <source>Language changed successfully!</source>
         <translation>Sprache erfolgreich geändert!</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1033"/>
+        <location filename="../Main.py" line="1059"/>
         <source>Could not load language &apos;{language}&apos;</source>
         <translation>Sprache nicht laden &apos;{language}&quot;</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1042"/>
+        <location filename="../Main.py" line="1068"/>
         <source>Failed to change language: {error}</source>
         <translation>Sprache nicht ändern: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1102"/>
-        <location filename="../Main.py" line="1180"/>
-        <location filename="../Main.py" line="1189"/>
+        <location filename="../Main.py" line="1128"/>
+        <location filename="../Main.py" line="1206"/>
+        <location filename="../Main.py" line="1215"/>
         <source>Preview Error</source>
         <translation>Zurück zur Übersicht</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1103"/>
+        <location filename="../Main.py" line="1129"/>
         <source>Could not open animation preview: {error}</source>
         <translation>Konnte keine Animationsvorschau öffnen: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1134"/>
+        <location filename="../Main.py" line="1160"/>
         <source>Settings Saved</source>
         <translation>Einstellungen gespeichert</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1135"/>
+        <location filename="../Main.py" line="1161"/>
         <source>Animation override settings have been saved for &apos;{name}&apos;.</source>
         <translation>Animation Override-Einstellungen wurden für &apos;{name}&quot; gespeichert.</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1181"/>
+        <location filename="../Main.py" line="1207"/>
         <source>Could not generate animation preview.</source>
         <translation>Konnte keine Animationsvorschau erstellen.</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1190"/>
+        <location filename="../Main.py" line="1216"/>
         <source>Failed to preview animation: {error}</source>
         <translation>Nicht auf Vorschau Animation: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1207"/>
+        <location filename="../Main.py" line="1233"/>
         <source>The editor tab is not available in this session.</source>
         <translation>Der Editor-Tab ist in dieser Sitzung nicht verfügbar.</translation>
     </message>

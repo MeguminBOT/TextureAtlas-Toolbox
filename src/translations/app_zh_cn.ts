@@ -1183,7 +1183,7 @@ Contributors</source>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="366"/>
         <location filename="../gui/extract_tab_widget.py" line="1529"/>
-        <location filename="../gui/extract_tab_widget.py" line="2420"/>
+        <location filename="../gui/extract_tab_widget.py" line="2426"/>
         <source>No input directory selected</source>
         <translation>未选择输入目录</translation>
     </message>
@@ -1195,7 +1195,7 @@ Contributors</source>
     <message>
         <location filename="../gui/extract_tab_widget.py" line="376"/>
         <location filename="../gui/extract_tab_widget.py" line="1530"/>
-        <location filename="../gui/extract_tab_widget.py" line="2423"/>
+        <location filename="../gui/extract_tab_widget.py" line="2429"/>
         <source>No output directory selected</source>
         <translation>未选择输出目录</translation>
     </message>
@@ -1235,104 +1235,104 @@ Contributors</source>
         <translation>编辑器标签中创建的综合</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1702"/>
-        <location filename="../gui/extract_tab_widget.py" line="1796"/>
-        <location filename="../gui/extract_tab_widget.py" line="2060"/>
-        <location filename="../gui/extract_tab_widget.py" line="2125"/>
+        <location filename="../gui/extract_tab_widget.py" line="1708"/>
+        <location filename="../gui/extract_tab_widget.py" line="1802"/>
+        <location filename="../gui/extract_tab_widget.py" line="2066"/>
+        <location filename="../gui/extract_tab_widget.py" line="2131"/>
         <source>Please select a spritesheet first.</source>
         <translation>请先选择一个图示表 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1738"/>
-        <location filename="../gui/extract_tab_widget.py" line="2096"/>
+        <location filename="../gui/extract_tab_widget.py" line="1744"/>
+        <location filename="../gui/extract_tab_widget.py" line="2102"/>
         <source>Could not open animation settings: {error}</source>
         <translation>无法打开动画设置 : {error}</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1781"/>
-        <location filename="../gui/extract_tab_widget.py" line="1828"/>
+        <location filename="../gui/extract_tab_widget.py" line="1787"/>
+        <location filename="../gui/extract_tab_widget.py" line="1834"/>
         <source>Could not open spritesheet settings: {error}</source>
         <translation>无法打开图示表设置 : {error}</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1852"/>
+        <location filename="../gui/extract_tab_widget.py" line="1858"/>
         <source>Load animations for this spritesheet before sending it to the editor.</source>
         <translation>发送到编辑器前, 装入此图示表的动画 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1872"/>
+        <location filename="../gui/extract_tab_widget.py" line="1878"/>
         <source>No animations were found for this spritesheet.</source>
         <translation>未找到此图案表的动画 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1905"/>
-        <location filename="../gui/extract_tab_widget.py" line="1945"/>
+        <location filename="../gui/extract_tab_widget.py" line="1911"/>
+        <location filename="../gui/extract_tab_widget.py" line="1951"/>
         <source>Select a spritesheet first.</source>
         <translation>先选择一个图示表 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1929"/>
+        <location filename="../gui/extract_tab_widget.py" line="1935"/>
         <source>Unable to locate the exported composite in the editor.</source>
         <translation>无法在编辑器中找到导出复合件 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1971"/>
+        <location filename="../gui/extract_tab_widget.py" line="1977"/>
         <source>The spritesheet path could not be determined.</source>
         <translation>无法确定图示表路径 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="1990"/>
+        <location filename="../gui/extract_tab_widget.py" line="1996"/>
         <source>No metadata was located for this spritesheet.</source>
         <translation>没有找到此图示表的元数据 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2051"/>
-        <location filename="../gui/extract_tab_widget.py" line="2116"/>
+        <location filename="../gui/extract_tab_widget.py" line="2057"/>
+        <location filename="../gui/extract_tab_widget.py" line="2122"/>
         <source>Please select an animation first.</source>
         <translation>请先选择一个动画 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2138"/>
+        <location filename="../gui/extract_tab_widget.py" line="2144"/>
         <source>Could not find spritesheet file path.</source>
         <translation>找不到图示表文件路径 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2177"/>
+        <location filename="../gui/extract_tab_widget.py" line="2183"/>
         <source>Preview error</source>
         <translation>预览出错</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2178"/>
+        <location filename="../gui/extract_tab_widget.py" line="2184"/>
         <source>Could not preview animation: {error}</source>
         <translation>无法预览动画 : {error}</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2421"/>
+        <location filename="../gui/extract_tab_widget.py" line="2427"/>
         <source>Please select an input directory first.</source>
         <translation>请先选择一个输入目录 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2424"/>
+        <location filename="../gui/extract_tab_widget.py" line="2430"/>
         <source>Please select an output directory first.</source>
         <translation>请先选择一个输出目录 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2431"/>
+        <location filename="../gui/extract_tab_widget.py" line="2437"/>
         <source>Please enable at least one export option (Animation or Frame).</source>
         <translation>请启用至少一个导出选项( 动画或框架) .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2436"/>
+        <location filename="../gui/extract_tab_widget.py" line="2442"/>
         <source>No spritesheets found. Please select a directory with images.</source>
         <translation>找不到图示表 。 请选择带有图像的目录 .</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2598"/>
+        <location filename="../gui/extract_tab_widget.py" line="2604"/>
         <source>Processing...</source>
         <translation>正在处理...</translation>
     </message>
     <message>
-        <location filename="../gui/extract_tab_widget.py" line="2598"/>
+        <location filename="../gui/extract_tab_widget.py" line="2604"/>
         <source>Start Process</source>
         <translation>启动进程</translation>
     </message>
@@ -1953,12 +1953,12 @@ Quality indicators: {native} Native, {reviewed} Reviewed, {unreviewed} Unreviewe
     <message>
         <location filename="../utils/translation_manager.py" line="476"/>
         <source>Machine Translation Notice</source>
-        <translation>机器翻译通知</translation>
+        <translation type="unfinished">Machine Translation Notice</translation>
     </message>
     <message>
         <location filename="../utils/translation_manager.py" line="479"/>
         <source>This language was automatically translated and may contain inaccuracies. If you would like to contribute better translations, please visit our GitHub repository.</source>
-        <translation>这一语言是自动翻译的,可能含有不准确之处。 如果您想提供更好的翻译, 请访问 GitHub 仓库 .</translation>
+        <translation type="unfinished">This language was automatically translated and may contain inaccuracies. If you would like to contribute better translations, please visit our GitHub repository.</translation>
     </message>
 </context>
 <context>
@@ -2398,228 +2398,238 @@ Extraction can proceed but results may be affected.</source>
     <name>TextureAtlasExtractorApp</name>
     <message>
         <location filename="../Main.py" line="186"/>
+        <source>Start Extraction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="190"/>
+        <source>Start the extraction process (Ctrl+Enter)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Main.py" line="212"/>
         <source>Variable delay</source>
         <translation>可变延迟</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="190"/>
+        <location filename="../Main.py" line="216"/>
         <source>Enable variable delay between frames for more accurate timing</source>
         <translation>为更准确的时间设定框架之间的可变延迟</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="195"/>
+        <location filename="../Main.py" line="221"/>
         <source>FNF: Set loop delay on idle animations to 0</source>
         <translation>FNF: 将空闲动画的循环延迟设置为 0</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="200"/>
+        <location filename="../Main.py" line="226"/>
         <source>Automatically set loop delay to 0 for animations with &apos;idle&apos; in their name</source>
         <translation>对名称有“ idle” 的动画, 自动将循环延迟设置为 0</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="209"/>
+        <location filename="../Main.py" line="235"/>
         <source>Language...</source>
         <translation>语言...</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="210"/>
+        <location filename="../Main.py" line="236"/>
         <source>Change application language</source>
         <translation>更改应用程序语言</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="241"/>
-        <location filename="../Main.py" line="244"/>
-        <location filename="../Main.py" line="247"/>
-        <location filename="../Main.py" line="255"/>
-        <location filename="../Main.py" line="1206"/>
+        <location filename="../Main.py" line="267"/>
+        <location filename="../Main.py" line="270"/>
+        <location filename="../Main.py" line="273"/>
+        <location filename="../Main.py" line="281"/>
+        <location filename="../Main.py" line="1232"/>
         <source>Editor</source>
         <translation>编辑器</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="307"/>
+        <location filename="../Main.py" line="333"/>
         <source>TextureAtlas Toolbox v{version}</source>
         <translation>纹理阿特拉斯工具箱 v {version}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="319"/>
+        <location filename="../Main.py" line="345"/>
         <source>No input directory selected</source>
         <translation>未选择输入目录</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="320"/>
+        <location filename="../Main.py" line="346"/>
         <source>No output directory selected</source>
         <translation>未选择输出目录</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="434"/>
-        <location filename="../Main.py" line="464"/>
-        <location filename="../Main.py" line="475"/>
-        <location filename="../Main.py" line="486"/>
-        <location filename="../Main.py" line="506"/>
-        <location filename="../Main.py" line="584"/>
-        <location filename="../Main.py" line="800"/>
-        <location filename="../Main.py" line="1032"/>
-        <location filename="../Main.py" line="1041"/>
+        <location filename="../Main.py" line="460"/>
+        <location filename="../Main.py" line="490"/>
+        <location filename="../Main.py" line="501"/>
+        <location filename="../Main.py" line="512"/>
+        <location filename="../Main.py" line="532"/>
+        <location filename="../Main.py" line="610"/>
+        <location filename="../Main.py" line="826"/>
+        <location filename="../Main.py" line="1058"/>
+        <location filename="../Main.py" line="1067"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="435"/>
+        <location filename="../Main.py" line="461"/>
         <source>Could not open language selection: {error}</source>
         <translation>无法打开语言选择: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="453"/>
-        <location filename="../Main.py" line="522"/>
-        <location filename="../Main.py" line="536"/>
+        <location filename="../Main.py" line="479"/>
+        <location filename="../Main.py" line="548"/>
+        <location filename="../Main.py" line="562"/>
         <source>Warning</source>
         <translation>3⁄4 ̄ ̧漯B</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="454"/>
+        <location filename="../Main.py" line="480"/>
         <source>Could not open preferences: {error}</source>
         <translation>无法打开首选项: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="465"/>
+        <location filename="../Main.py" line="491"/>
         <source>Could not open help window: {error}</source>
         <translation>无法打开帮助窗口 : {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="476"/>
+        <location filename="../Main.py" line="502"/>
         <source>Could not open FNF help window: {error}</source>
         <translation>无法打开 FNF 帮助窗口 : {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="487"/>
+        <location filename="../Main.py" line="513"/>
         <source>Could not open contributors window: {error}</source>
         <translation>无法打开贡献者窗口 : {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="507"/>
+        <location filename="../Main.py" line="533"/>
         <source>Could not open compression settings window: {error}</source>
         <translation>无法打开压缩设置窗口: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="523"/>
+        <location filename="../Main.py" line="549"/>
         <source>Could not open find/replace window: {error}</source>
         <translation>无法打开查找/替换窗口 : {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="537"/>
+        <location filename="../Main.py" line="563"/>
         <source>Could not open settings window: {error}</source>
         <translation>无法打开设置窗口 : {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="551"/>
+        <location filename="../Main.py" line="577"/>
         <source>Select FNF Character Data File</source>
         <translation>选择 FNF 字符数据文件</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="553"/>
+        <location filename="../Main.py" line="579"/>
         <source>JSON files (*.json);;All files (*.*)</source>
         <translation>JSON 文件 (*.json); 所有文件 (*. *)</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="570"/>
-        <location filename="../Main.py" line="1027"/>
+        <location filename="../Main.py" line="596"/>
+        <location filename="../Main.py" line="1053"/>
         <source>Success</source>
         <translation>成绩</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="571"/>
+        <location filename="../Main.py" line="597"/>
         <source>FNF settings imported successfully!</source>
         <translation>FNF 设置成功导入 !</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="585"/>
+        <location filename="../Main.py" line="611"/>
         <source>Failed to import FNF settings: {error}</source>
         <translation>导入 FNF 设置失败 : {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="616"/>
+        <location filename="../Main.py" line="642"/>
         <source>Up to Date</source>
         <translation>最新数据</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="618"/>
+        <location filename="../Main.py" line="644"/>
         <source>You are already running the latest version ({version}).</source>
         <translation>您已运行最新版本( {version} ) .</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="653"/>
+        <location filename="../Main.py" line="679"/>
         <source>Update Check Failed</source>
         <translation>更新检查失败</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="654"/>
+        <location filename="../Main.py" line="680"/>
         <source>Could not check for updates: {error}</source>
         <translation>无法检查更新: {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="662"/>
+        <location filename="../Main.py" line="688"/>
         <source>latest</source>
         <translation>最新消息</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="665"/>
+        <location filename="../Main.py" line="691"/>
         <source>Launching Updater</source>
         <translation>启动更新器</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="667"/>
+        <location filename="../Main.py" line="693"/>
         <source>The updater for version {version} will launch in a new window. The application will now close.</source>
         <translation>版本{version}的更新器将在一个新的窗口中启动. 申请现在结束.</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1024"/>
+        <location filename="../Main.py" line="1050"/>
         <source>Language changed successfully!</source>
         <translation>语言改变成功 !</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1033"/>
+        <location filename="../Main.py" line="1059"/>
         <source>Could not load language &apos;{language}&apos;</source>
         <translation>无法装入语言 “% {language} ”</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1042"/>
+        <location filename="../Main.py" line="1068"/>
         <source>Failed to change language: {error}</source>
         <translation>更改语言失败 : {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1102"/>
-        <location filename="../Main.py" line="1180"/>
-        <location filename="../Main.py" line="1189"/>
+        <location filename="../Main.py" line="1128"/>
+        <location filename="../Main.py" line="1206"/>
+        <location filename="../Main.py" line="1215"/>
         <source>Preview Error</source>
         <translation>预览出错</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1103"/>
+        <location filename="../Main.py" line="1129"/>
         <source>Could not open animation preview: {error}</source>
         <translation>无法打开动画预览 : {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1134"/>
+        <location filename="../Main.py" line="1160"/>
         <source>Settings Saved</source>
         <translation>已保存的设置</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1135"/>
+        <location filename="../Main.py" line="1161"/>
         <source>Animation override settings have been saved for &apos;{name}&apos;.</source>
         <translation>动画覆盖设置已被保存到“ {name} ” .</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1181"/>
+        <location filename="../Main.py" line="1207"/>
         <source>Could not generate animation preview.</source>
         <translation>无法生成动画预览 .</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1190"/>
+        <location filename="../Main.py" line="1216"/>
         <source>Failed to preview animation: {error}</source>
         <translation>预览动画失败 : {error}</translation>
     </message>
     <message>
-        <location filename="../Main.py" line="1207"/>
+        <location filename="../Main.py" line="1233"/>
         <source>The editor tab is not available in this session.</source>
         <translation>此会话中没有编辑器标签 .</translation>
     </message>
