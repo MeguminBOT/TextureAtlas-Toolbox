@@ -1,7 +1,8 @@
 """Dialog for customizing keyboard shortcuts.
 
-Allows users to configure keyboard shortcuts for editor actions such as
-Copy Source, Auto-Translate, Search, and list navigation.
+Allows users to configure shortcuts for editor actions (copy source,
+auto-translate, search, navigation) and translation markers. Validates
+against conflicts before saving.
 """
 
 from __future__ import annotations
@@ -30,6 +31,10 @@ DEFAULT_SHORTCUTS: Dict[str, str] = {
     "search": "Ctrl+F",
     "next_item": "Ctrl+Down",
     "prev_item": "Ctrl+Up",
+    "mark_none": "Ctrl+Shift+0",
+    "mark_unsure": "Ctrl+Shift+1",
+    "mark_machine": "Ctrl+Shift+2",
+    "mark_complete": "Ctrl+Shift+3",
 }
 
 # Human-readable labels for each shortcut
@@ -39,6 +44,10 @@ SHORTCUT_LABELS: Dict[str, str] = {
     "search": "Search Translations",
     "next_item": "Next Translation",
     "prev_item": "Previous Translation",
+    "mark_none": "Mark: None",
+    "mark_unsure": "Mark: Unsure",
+    "mark_machine": "Mark: Machine Translated",
+    "mark_complete": "Mark: Complete",
 }
 
 
@@ -74,7 +83,12 @@ class ShortcutsDialog(QDialog):
         self._build_ui()
 
     def _build_ui(self) -> None:
-        """Construct the dialog layout with shortcut editors."""
+        """Construct the dialog layout with grouped shortcut editors.
+
+        Creates two grouped sections (Editor Actions and Translation Markers)
+        with QKeySequenceEdit fields for each shortcut, plus Reset and OK/Cancel
+        buttons.
+        """
         layout = QVBoxLayout(self)
 
         info_label = QLabel(
@@ -85,10 +99,17 @@ class ShortcutsDialog(QDialog):
         info_label.setStyleSheet("color: #666666; margin-bottom: 10px;")
         layout.addWidget(info_label)
 
-        editor_group = QGroupBox("Editor Shortcuts")
-        form_layout = QFormLayout(editor_group)
-
-        for key in DEFAULT_SHORTCUTS:
+        # Editor actions group
+        editor_group = QGroupBox("Editor Actions")
+        editor_form = QFormLayout(editor_group)
+        editor_shortcuts = [
+            "copy_source",
+            "auto_translate",
+            "search",
+            "next_item",
+            "prev_item",
+        ]
+        for key in editor_shortcuts:
             label = SHORTCUT_LABELS.get(key, key)
             edit = QKeySequenceEdit()
             current_value = self.current_shortcuts.get(
@@ -97,9 +118,24 @@ class ShortcutsDialog(QDialog):
             if current_value:
                 edit.setKeySequence(QKeySequence(current_value))
             self.shortcut_edits[key] = edit
-            form_layout.addRow(f"{label}:", edit)
-
+            editor_form.addRow(f"{label}:", edit)
         layout.addWidget(editor_group)
+
+        # Marker shortcuts group
+        marker_group = QGroupBox("Translation Markers")
+        marker_form = QFormLayout(marker_group)
+        marker_shortcuts = ["mark_none", "mark_unsure", "mark_machine", "mark_complete"]
+        for key in marker_shortcuts:
+            label = SHORTCUT_LABELS.get(key, key)
+            edit = QKeySequenceEdit()
+            current_value = self.current_shortcuts.get(
+                key, DEFAULT_SHORTCUTS.get(key, "")
+            )
+            if current_value:
+                edit.setKeySequence(QKeySequence(current_value))
+            self.shortcut_edits[key] = edit
+            marker_form.addRow(f"{label}:", edit)
+        layout.addWidget(marker_group)
 
         # Reset to defaults button
         reset_btn = QPushButton("Reset to Defaults")

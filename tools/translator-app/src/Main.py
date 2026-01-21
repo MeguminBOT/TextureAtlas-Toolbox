@@ -39,6 +39,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
+from core import TranslationItem, TranslationMarker, MARKER_LABELS
 from core.translation_manager import TranslationManager
 from gui import apply_app_theme
 from gui.editor_tab import EditorTab
@@ -55,6 +56,10 @@ from gui.string_matching_dialog import (
 from gui.theme_options_dialog import ThemeOptionsDialog
 from gui.unused_strings_dialog import UnusedStringsDialog
 from localization import LocalizationOperations
+from utils.preferences import (
+    load_preferences,
+    save_preferences,
+    get_shortcuts,
 
 
 class TranslationEditor(QMainWindow):
@@ -224,6 +229,23 @@ class TranslationEditor(QMainWindow):
         options_menu.addSeparator()
         shortcuts_action = options_menu.addAction("Keyboard Shortcuts...")
         shortcuts_action.triggered.connect(self.show_shortcuts_dialog)
+        # Advanced menu for bulk operations
+        advanced_menu = menubar.addMenu("Advanced")
+
+        # Advanced menu - "Mark All Translations As..." sub-menu
+        mark_all_menu = advanced_menu.addMenu("Mark all translations as...")
+
+        mark_all_none = mark_all_menu.addAction("None (Clear Markers)")
+        mark_all_none.triggered.connect(self._mark_all_none)
+
+        mark_all_unsure = mark_all_menu.addAction("Unsure")
+        mark_all_unsure.triggered.connect(self._mark_all_unsure)
+
+        mark_all_machine = mark_all_menu.addAction("Machine Translated")
+        mark_all_machine.triggered.connect(self._mark_all_machine)
+
+        mark_all_complete = mark_all_menu.addAction("Complete")
+        mark_all_complete.triggered.connect(self._mark_all_complete)
 
         help_menu = menubar.addMenu("Help")
 
@@ -935,6 +957,57 @@ class TranslationEditor(QMainWindow):
 
         if self.editor_tab:
             self.editor_tab.update_translation_list()
+
+    def _mark_all_none(self) -> None:
+        """Mark all translations as None (clear markers)."""
+        self._mark_all_with_confirmation(TranslationMarker.NONE)
+
+    def _mark_all_unsure(self) -> None:
+        """Mark all translations as unsure."""
+        self._mark_all_with_confirmation(TranslationMarker.UNSURE)
+
+    def _mark_all_machine(self) -> None:
+        """Mark all translations as machine translated."""
+        self._mark_all_with_confirmation(TranslationMarker.MACHINE_TRANSLATED)
+
+    def _mark_all_complete(self) -> None:
+        """Mark all translations as complete."""
+        self._mark_all_with_confirmation(TranslationMarker.COMPLETE)
+
+    def _mark_all_with_confirmation(self, marker: TranslationMarker) -> None:
+        """Mark all translations with confirmation dialog.
+
+        Args:
+            marker: The TranslationMarker to apply to all items.
+        """
+
+        if not self.editor_tab or not self.editor_tab.translations:
+            QMessageBox.information(
+                self,
+                "Mark All Translations",
+                "Please load a translation file first.",
+            )
+            return
+
+        count = len(self.editor_tab.translations)
+        marker_label = MARKER_LABELS.get(marker, "None")
+
+        if marker == TranslationMarker.NONE:
+            action_text = "clear all markers from"
+        else:
+            action_text = f"mark as '{marker_label}'"
+
+        reply = QMessageBox.question(
+            self,
+            "Mark All Translations",
+            f"This will {action_text} {count} translation(s).\n\n"
+            "Are you sure you want to continue?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+
+        if reply == QMessageBox.Yes:
+            self.editor_tab.set_all_markers(marker)
 
     def _apply_shortcuts(self) -> None:
         """Apply saved keyboard shortcuts to the editor tab."""

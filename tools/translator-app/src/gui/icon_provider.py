@@ -40,6 +40,10 @@ class IconType(Enum):
 
     # Translation status markers
     MARKER_UNSURE = "marker_unsure"  # Translator is unsure
+    MARKER_MACHINE_TRANSLATED = (
+        "marker_machine_translated"  # Marked as machine translated
+    )
+    MARKER_COMPLETE = "marker_complete"  # Marked as complete/verified
     MACHINE_TRANSLATED = "machine_translated"  # Machine translated, not reviewed
 
     # Misc
@@ -57,6 +61,12 @@ SIMPLIFIED_COLORS: Dict[IconType, Tuple[int, int, int]] = {
     IconType.QUALITY_NATIVE: (33, 150, 243),  # Blue
     IconType.QUALITY_UNKNOWN: (158, 158, 158),  # Gray
     IconType.MARKER_UNSURE: (255, 193, 7),  # Amber
+    IconType.MARKER_MACHINE_TRANSLATED: (
+        156,
+        39,
+        176,
+    ),  # Purple (same as quality_machine)
+    IconType.MARKER_COMPLETE: (76, 175, 80),  # Green (same as success)
     IconType.MACHINE_TRANSLATED: (156, 39, 176),  # Purple (same as quality_machine)
     IconType.GROUP: (96, 125, 139),  # Blue Gray
 }
@@ -72,6 +82,8 @@ EMOJI_CHARS: Dict[IconType, str] = {
     IconType.QUALITY_NATIVE: "✅",
     IconType.QUALITY_UNKNOWN: "❓",
     IconType.MARKER_UNSURE: "❔",
+    IconType.MARKER_MACHINE_TRANSLATED: "🤖",
+    IconType.MARKER_COMPLETE: "✅",
     IconType.MACHINE_TRANSLATED: "🤖",
     IconType.GROUP: "📎",
 }
@@ -87,6 +99,8 @@ ASSET_FILENAMES: Dict[IconType, str] = {
     IconType.QUALITY_NATIVE: "icon_native.png",
     IconType.QUALITY_UNKNOWN: "icon_unknown.png",
     IconType.MARKER_UNSURE: "icon_unsure.png",
+    IconType.MARKER_MACHINE_TRANSLATED: "icon_machine.png",
+    IconType.MARKER_COMPLETE: "icon_complete.png",
     IconType.MACHINE_TRANSLATED: "icon_machine.png",
     IconType.GROUP: "icon_group.png",
 }

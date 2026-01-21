@@ -251,16 +251,22 @@ class EditorTab(QWidget):
         filter_layout = QHBoxLayout()
         filter_label = QLabel("Filter:")
         self.filter_input = QLineEdit()
-        self.filter_input.setPlaceholderText("Search or use is:missing, has:ph...")
+        self.filter_input.setPlaceholderText("Search or use is:missing, mark:unsure...")
         self.filter_input.setToolTip(
-            "Filter syntax:\n"
+            "Filter syntax:\n\n"
+            "Status filters (is: or status:):\n"
             "• is:translated / is:done - Translated items\n"
             "• is:missing / is:untranslated - Untranslated items\n"
             "• is:mt / is:machine - Machine translated\n"
-            "• is:unsure - Marked as unsure\n"
-            "• is:vanished - Obsolete/vanished items\n"
+            "• is:vanished - Obsolete/vanished items\n\n"
+            "Marker filters (mark: or marker:):\n"
+            "• mark:unsure - Marked as unsure\n"
+            "• mark:complete / mark:verified - Marked as complete\n"
+            "• mark:none / mark:unmarked - No marker set\n"
+            "• mark:mt / mark:machine - Marked as machine translated\n\n"
+            "Other filters:\n"
             "• has:placeholder / has:ph - Items with placeholders\n"
-            "• ctx:<name> - Items in specific context\n"
+            "• ctx:<name> / context:<name> - Items in specific context\n"
             "• Plain text searches in source and translation"
         )
         filter_layout.addWidget(filter_label)
@@ -347,10 +353,10 @@ class EditorTab(QWidget):
         self.marker_combo = QComboBox()
         self.marker_combo.setToolTip(
             "Mark this translation with a quality indicator:\n"
-            "• None: No marker\n"
+            "• None: No marker (default)\n"
             "• Unsure: You're not confident about this translation\n"
-            "• Needs Review: Should be reviewed by others\n"
-            "• Could Be Improved: Works but could be better"
+            "• Machine Translated: This was auto-translated\n"
+            "• Complete: Fully verified and finalized translation"
         )
         for marker in TranslationMarker:
             self.marker_combo.addItem(MARKER_LABELS[marker], marker)
@@ -521,13 +527,16 @@ class EditorTab(QWidget):
             item: The TranslationItem data.
             icon_provider: The icon provider instance.
         """
-        # Icon priority: not translated > unsure > machine translated > success
         if not item.is_translated:
             icon_type = IconType.ERROR
         elif item.marker == TranslationMarker.UNSURE:
             icon_type = IconType.MARKER_UNSURE
+        elif item.marker == TranslationMarker.MACHINE_TRANSLATED:
+            icon_type = IconType.MARKER_MACHINE_TRANSLATED
         elif item.is_machine_translated:
             icon_type = IconType.MACHINE_TRANSLATED
+        elif item.marker == TranslationMarker.COMPLETE:
+            icon_type = IconType.MARKER_COMPLETE
         else:
             icon_type = IconType.SUCCESS
 
@@ -892,6 +901,17 @@ class EditorTab(QWidget):
         self.translation_text.setPlainText(restored)
         if self.current_item:
             self.current_item.is_machine_translated = True
+            self.current_item.marker = TranslationMarker.MACHINE_TRANSLATED
+            self.marker_combo.blockSignals(True)
+            for i in range(self.marker_combo.count()):
+                if (
+                    self.marker_combo.itemData(i)
+                    == TranslationMarker.MACHINE_TRANSLATED
+                ):
+                    self.marker_combo.setCurrentIndex(i)
+                    break
+            self.marker_combo.blockSignals(False)
+            self._update_current_model_item()
         if self.status_bar:
             self.status_bar.showMessage(
                 f"Translated using {self.translation_manager.get_provider_name(provider_key)}"
@@ -989,6 +1009,7 @@ class EditorTab(QWidget):
             item.translation = restored or ""
             item.is_translated = bool(item.translation.strip())
             item.is_machine_translated = True
+            item.marker = TranslationMarker.MACHINE_TRANSLATED
             translated_count += 1
         QApplication.restoreOverrideCursor()
         if self.provider_combo:
@@ -1120,13 +1141,19 @@ class EditorTab(QWidget):
             model_item.setData(self.current_item.marker, TranslationRoles.MarkerRole)
 
     def _on_marker_changed(self) -> None:
-        """Handle marker combo box selection change."""
+        """Handle marker combo box selection change.
+
+        Updates the current item's marker and machine-translated flag,
+        syncs data to the model, and marks the file as modified.
+        """
         if not self.current_item:
             return
         new_marker = self.marker_combo.currentData()
         if new_marker != self.current_item.marker:
             self.current_item.marker = new_marker
-            self.current_item.is_machine_translated = False
+            self.current_item.is_machine_translated = (
+                new_marker == TranslationMarker.MACHINE_TRANSLATED
+            )
             self.is_modified = True
             self._update_current_model_item()
 
@@ -1203,6 +1230,96 @@ class EditorTab(QWidget):
         if self.current_item and self.current_item.translation:
             self.translation_text.setFocus()
 
+    def set_marker(self, marker: TranslationMarker) -> None:
+        """Set the marker for the current translation item.
+
+        Args:
+            marker: The TranslationMarker value to set.
+        """
+        if not self.current_item:
+            if self.status_bar:
+                self.status_bar.showMessage("No translation selected")
+            return
+        for i in range(self.marker_combo.count()):
+            if self.marker_combo.itemData(i) == marker:
+                self.marker_combo.setCurrentIndex(i)
+                break
+
+    def mark_as_none(self) -> None:
+        """Mark the current translation as having no special marker."""
+        self.set_marker(TranslationMarker.NONE)
+
+    def mark_as_unsure(self) -> None:
+        """Mark the current translation as unsure."""
+        self.set_marker(TranslationMarker.UNSURE)
+
+    def mark_as_machine_translated(self) -> None:
+        """Mark the current translation as machine translated."""
+        self.set_marker(TranslationMarker.MACHINE_TRANSLATED)
+
+    def mark_as_complete(self) -> None:
+        """Mark the current translation as complete/verified."""
+        self.set_marker(TranslationMarker.COMPLETE)
+
+    def set_all_markers(self, marker: TranslationMarker) -> None:
+        """Set the marker for all translations in the current file.
+
+        Skips items already marked as UNSURE or MACHINE_TRANSLATED to
+        preserve manual review indicators.
+
+        Args:
+            marker: The TranslationMarker value to apply to all items.
+        """
+        if not self.translations:
+            if self.status_bar:
+                self.status_bar.showMessage("No file loaded")
+            return
+
+        protected_markers = {
+            TranslationMarker.UNSURE,
+            TranslationMarker.MACHINE_TRANSLATED,
+        }
+
+        changed_count = 0
+        skipped_count = 0
+
+        for item in self.translations:
+            if marker != TranslationMarker.NONE and item.marker in protected_markers:
+                skipped_count += 1
+                continue
+
+            item.marker = marker
+            if marker != TranslationMarker.NONE:
+                item.is_machine_translated = False
+            changed_count += 1
+
+        self.is_modified = True
+        self.update_translation_list()
+
+        if self.current_file and hasattr(self.window, "setWindowTitle"):
+            filename = Path(self.current_file).name
+            self.window.setWindowTitle(f"Translation Editor - {filename} *")
+
+        if self.current_item:
+            self.marker_combo.blockSignals(True)
+            for i in range(self.marker_combo.count()):
+                if self.marker_combo.itemData(i) == self.current_item.marker:
+                    self.marker_combo.setCurrentIndex(i)
+                    break
+            self.marker_combo.blockSignals(False)
+
+        if self.status_bar:
+            marker_label = MARKER_LABELS.get(marker, "None")
+            if skipped_count > 0:
+                self.status_bar.showMessage(
+                    f"Set {changed_count} translation(s) to: {marker_label} "
+                    f"({skipped_count} skipped - marked unsure/machine)"
+                )
+            else:
+                self.status_bar.showMessage(
+                    f"Set {changed_count} translation(s) to: {marker_label}"
+                )
+
     def setup_shortcuts(self, shortcuts: Dict[str, str]) -> None:
         """Configure keyboard shortcuts for editor actions.
 
@@ -1220,6 +1337,10 @@ class EditorTab(QWidget):
             "search": self.focus_search,
             "next_item": self.select_next_item,
             "prev_item": self.select_prev_item,
+            "mark_none": self.mark_as_none,
+            "mark_unsure": self.mark_as_unsure,
+            "mark_machine": self.mark_as_machine_translated,
+            "mark_complete": self.mark_as_complete,
         }
 
         for key, action in shortcut_actions.items():

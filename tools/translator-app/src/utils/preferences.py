@@ -19,6 +19,12 @@ DEFAULT_SHORTCUTS: Dict[str, str] = {
     "search": "Ctrl+F",
     "next_item": "Ctrl+Down",
     "prev_item": "Ctrl+Up",
+    "mark_none": "Ctrl+Shift+0",
+    "mark_unsure": "Ctrl+Shift+1",
+    "mark_machine": "Ctrl+Shift+2",
+    "mark_complete": "Ctrl+Shift+3",
+}
+
 
 # Default theme/appearance settings
 DEFAULT_THEME: Dict[str, Any] = {

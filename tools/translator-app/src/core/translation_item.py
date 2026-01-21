@@ -21,6 +21,8 @@ class TranslationMarker(Enum):
 
     NONE = ""  # No marker (default)
     UNSURE = "unsure"  # Translator is unsure about this translation
+    MACHINE_TRANSLATED = "machine"  # Machine translated, needs human review
+    COMPLETE = "complete"  # Fully verified and complete translation
 
     @classmethod
     def from_string(cls, value: Optional[str]) -> "TranslationMarker":
@@ -44,6 +46,8 @@ class TranslationMarker(Enum):
 MARKER_LABELS: Dict[TranslationMarker, str] = {
     TranslationMarker.NONE: "None",
     TranslationMarker.UNSURE: "Unsure",
+    TranslationMarker.MACHINE_TRANSLATED: "Machine Translated",
+    TranslationMarker.COMPLETE: "Complete",
 }
 
 
@@ -85,6 +89,7 @@ class TranslationItem:
             line: Line number in the source file.
             marker: Quality marker for the translation.
             is_machine_translated: True if translated by machine translation.
+            is_vanished: True if this string was marked vanished/obsolete by lupdate.
         """
         self.source = source
         self.translation = translation or ""

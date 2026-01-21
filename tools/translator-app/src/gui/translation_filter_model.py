@@ -1,7 +1,9 @@
-"""Custom filter proxy model for translation list filtering.
+"""Filter proxy model for the translation list with keyword-based filtering.
 
-Provides efficient, stable filtering of translation items without
-destroying/recreating Qt widgets on each keystroke.
+Provides efficient, stable filtering of translation items. Supports a
+structured query syntax (is:missing, mark:unsure, has:ph, ctx:name) and
+pins matched items so they remain visible after edits until the filter
+text changes.
 """
 
 from __future__ import annotations
@@ -50,6 +52,8 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
     IS_MISSING = frozenset({"missing", "untranslated"})
     IS_MT = frozenset({"mt", "machine"})
     IS_UNSURE = frozenset({"unsure"})
+    IS_COMPLETE = frozenset({"complete", "verified"})
+    IS_NONE = frozenset({"none", "unmarked", "nomarker"})
     IS_VANISHED = frozenset({"vanished", "obsolete"})
     HAS_PLACEHOLDER = frozenset({"placeholder", "placeholders", "ph"})
 
@@ -68,9 +72,12 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
         self._require_translated: bool = False
         self._require_untranslated: bool = False
         self._require_unsure: bool = False
+        self._require_complete: bool = False
+        self._require_none: bool = False
         self._require_vanished: bool = False
         self._context_terms: List[str] = []
         self._search_text: str = ""
+        self._pinned_sources: set = set()
 
     def set_filter_text(self, text: str) -> None:
         """Set the filter text and re-parse keywords.
@@ -83,15 +90,23 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
 
         self._filter_text = text
         self._parse_filter(text)
+        self._pinned_sources.clear()
         self.invalidateFilter()
+        self._capture_pinned_items()
 
     def _parse_filter(self, raw_filter: str) -> None:
         """Parse the filter string into keyword flags and search text.
 
+        Recognizes prefixed keywords and plain text search terms.
+
+        Args:
+            raw_filter: The raw filter string entered by the user.
+
         Syntax:
-            is:<status>  - Filter by status (translated, missing, mt, unsure, vanished)
-            has:<feature> - Filter by feature (placeholder)
-            ctx:<name>   - Filter by context name
+            is:/status:  - Filter by translation status (translated, missing, mt, vanished)
+            mark:/marker: - Filter by marker (unsure, complete, none, mt)
+            has:         - Filter by feature (placeholder)
+            ctx:/context: - Filter by context name
             <text>       - Plain text search in source/translation
         """
         self._require_placeholders = False
@@ -99,6 +114,8 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
         self._require_translated = False
         self._require_untranslated = False
         self._require_unsure = False
+        self._require_complete = False
+        self._require_none = False
         self._require_vanished = False
         self._context_terms = []
         self._search_text = ""
@@ -110,24 +127,14 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
         remaining_parts: List[str] = []
 
         for token in tokens:
-            # Handle "is:" prefix for status filters
-            if token.startswith("is:"):
-                value = token[3:]  # Remove "is:" prefix
-                if value in self.IS_TRANSLATED:
-                    self._require_translated = True
-                elif value in self.IS_MISSING:
-                    self._require_untranslated = True
-                elif value in self.IS_MT:
-                    self._require_machine = True
-                elif value in self.IS_UNSURE:
-                    self._require_unsure = True
-                elif value in self.IS_VANISHED:
-                    self._require_vanished = True
-                # Unknown is: value - ignore silently
-
-            # Handle "has:" prefix for feature filters
+            if token.startswith("is:") or token.startswith("status:"):
+                value = token.split(":", 1)[1]
+                self._apply_status_filter(value)
+            elif token.startswith("mark:") or token.startswith("marker:"):
+                value = token.split(":", 1)[1]
+                self._apply_marker_filter(value)
             elif token.startswith("has:"):
-                value = token[4:]  # Remove "has:" prefix
+                value = token[4:]
                 if value in self.HAS_PLACEHOLDER:
                     self._require_placeholders = True
             elif token.startswith("ctx:") or token.startswith("context:"):
@@ -139,31 +146,67 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
 
         self._search_text = " ".join(remaining_parts).strip()
 
-    def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
-        """Determine if a row should be visible based on the current filter.
+    def _apply_status_filter(self, value: str) -> None:
+        """Apply a status filter value.
 
         Args:
-            source_row: Row index in the source model.
-            source_parent: Parent index (unused for flat lists).
-
-        Returns:
-            True if the row should be shown, False to hide it.
+            value: The status keyword (translated, missing, mt, vanished, etc.)
         """
-        # No filter = show all
-        if not self._filter_text.strip():
-            return True
+        if value in self.IS_TRANSLATED:
+            self._require_translated = True
+        elif value in self.IS_MISSING:
+            self._require_untranslated = True
+        elif value in self.IS_MT:
+            self._require_machine = True
+        elif value in self.IS_UNSURE:
+            self._require_unsure = True
+        elif value in self.IS_COMPLETE:
+            self._require_complete = True
+        elif value in self.IS_NONE:
+            self._require_none = True
+        elif value in self.IS_VANISHED:
+            self._require_vanished = True
 
-        # Contradictory filter - hide all
-        if self._require_translated and self._require_untranslated:
-            return False
+    def _apply_marker_filter(self, value: str) -> None:
+        """Apply a marker filter value.
 
+        Args:
+            value: The marker keyword (unsure, complete, none, mt, machine)
+        """
+        if value in self.IS_UNSURE:
+            self._require_unsure = True
+        elif value in self.IS_COMPLETE:
+            self._require_complete = True
+        elif value in self.IS_NONE:
+            self._require_none = True
+        elif value in self.IS_MT:
+            self._require_machine = True
+
+    def _capture_pinned_items(self) -> None:
+        """Capture source texts of currently visible items as pinned.
+
+        Called after filter changes to remember which items matched,
+        so they stay visible even after their data changes.
+        """
         model = self.sourceModel()
         if model is None:
-            return True
+            return
 
-        index = model.index(source_row, 0, source_parent)
+        for row in range(model.rowCount()):
+            index = model.index(row, 0)
+            source_text = index.data(TranslationRoles.SourceRole)
+            if source_text and self._matches_filter(index):
+                self._pinned_sources.add(source_text)
 
-        # Check keyword filters
+    def _matches_filter(self, index: QModelIndex) -> bool:
+        """Check if an index matches the current filter criteria.
+
+        Args:
+            index: The model index to check.
+
+        Returns:
+            True if the item matches the filter criteria.
+        """
         if self._require_placeholders:
             has_ph = index.data(TranslationRoles.HasPlaceholdersRole)
             if not has_ph:
@@ -171,7 +214,10 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
 
         if self._require_machine:
             is_machine = index.data(TranslationRoles.IsMachineTranslatedRole)
-            if not is_machine:
+            from core import TranslationMarker
+
+            marker = index.data(TranslationRoles.MarkerRole)
+            if not is_machine and marker != TranslationMarker.MACHINE_TRANSLATED:
                 return False
 
         if self._require_translated:
@@ -189,6 +235,21 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
 
             marker = index.data(TranslationRoles.MarkerRole)
             if marker != TranslationMarker.UNSURE:
+                return False
+
+        if self._require_complete:
+            from core import TranslationMarker
+
+            marker = index.data(TranslationRoles.MarkerRole)
+            if marker != TranslationMarker.COMPLETE:
+                return False
+
+        if self._require_none:
+            from core import TranslationMarker
+
+            marker = index.data(TranslationRoles.MarkerRole)
+            is_machine = index.data(TranslationRoles.IsMachineTranslatedRole)
+            if marker != TranslationMarker.NONE or is_machine:
                 return False
 
         if self._require_vanished:
@@ -213,6 +274,37 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
                 return False
 
         return True
+
+    def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
+        """Determine if a row should be visible based on the current filter.
+
+        Items that matched when the filter was set remain visible (pinned)
+        even after their data changes, until the filter text changes.
+
+        Args:
+            source_row: Row index in the source model.
+            source_parent: Parent index (unused for flat lists).
+
+        Returns:
+            True if the row should be shown, False to hide it.
+        """
+        if not self._filter_text.strip():
+            return True
+
+        if self._require_translated and self._require_untranslated:
+            return False
+
+        model = self.sourceModel()
+        if model is None:
+            return True
+
+        index = model.index(source_row, 0, source_parent)
+
+        source_text = index.data(TranslationRoles.SourceRole)
+        if source_text and source_text in self._pinned_sources:
+            return True
+
+        return self._matches_filter(index)
 
 
 __all__ = ["TranslationFilterProxyModel", "TranslationRoles"]
