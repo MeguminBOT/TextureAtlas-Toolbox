@@ -113,13 +113,21 @@ class ShortcutsDialog(QDialog):
         layout.addWidget(button_box)
 
     def _reset_to_defaults(self) -> None:
-        """Reset all shortcut fields to their default values."""
+        """Reset all shortcut fields to their default key sequences.
+
+        Iterates through every shortcut editor and restores the value from
+        DEFAULT_SHORTCUTS, discarding any user customizations.
+        """
         for key, edit in self.shortcut_edits.items():
             default_value = DEFAULT_SHORTCUTS.get(key, "")
             edit.setKeySequence(QKeySequence(default_value))
 
     def _validate_and_accept(self) -> None:
-        """Validate shortcuts for conflicts before accepting."""
+        """Validate shortcuts for conflicts, then accept if valid.
+
+        Checks that no two actions share the same key sequence. If a conflict
+        is detected, displays a warning and keeps the dialog open.
+        """
         shortcuts = self.get_shortcuts()
         used_sequences: Dict[str, str] = {}
 

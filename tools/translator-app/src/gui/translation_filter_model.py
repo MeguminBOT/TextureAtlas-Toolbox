@@ -46,22 +46,22 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
         "hello world"          - Items containing "hello world"
     """
 
-    # Valid values for "is:" prefix
     IS_TRANSLATED = frozenset({"translated", "done"})
     IS_MISSING = frozenset({"missing", "untranslated"})
     IS_MT = frozenset({"mt", "machine"})
     IS_UNSURE = frozenset({"unsure"})
     IS_VANISHED = frozenset({"vanished", "obsolete"})
-
-    # Valid values for "has:" prefix
     HAS_PLACEHOLDER = frozenset({"placeholder", "placeholders", "ph"})
 
     def __init__(self, parent=None) -> None:
-        """Initialize the filter proxy model."""
+        """Initialize the filter proxy model.
+
+        Args:
+            parent: Parent Qt object, typically the view using this proxy.
+        """
         super().__init__(parent)
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
 
-        # Parsed filter state
         self._filter_text: str = ""
         self._require_placeholders: bool = False
         self._require_machine: bool = False
@@ -130,14 +130,10 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
                 value = token[4:]  # Remove "has:" prefix
                 if value in self.HAS_PLACEHOLDER:
                     self._require_placeholders = True
-
-            # Handle context filters
             elif token.startswith("ctx:") or token.startswith("context:"):
                 term = token.split(":", 1)[1].strip()
                 if term:
                     self._context_terms.append(term)
-
-            # Plain text - add to search
             else:
                 remaining_parts.append(token)
 
@@ -189,7 +185,6 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
                 return False
 
         if self._require_unsure:
-            # Import here to avoid circular imports
             from core import TranslationMarker
 
             marker = index.data(TranslationRoles.MarkerRole)
@@ -208,7 +203,6 @@ class TranslationFilterProxyModel(QSortFilterProxyModel):
             ):
                 return False
 
-        # Text search
         if self._search_text:
             source_text = index.data(TranslationRoles.SourceRole) or ""
             translation_text = index.data(TranslationRoles.TranslationRole) or ""

@@ -19,6 +19,19 @@ DEFAULT_SHORTCUTS: Dict[str, str] = {
     "search": "Ctrl+F",
     "next_item": "Ctrl+Down",
     "prev_item": "Ctrl+Up",
+
+# Default theme/appearance settings
+DEFAULT_THEME: Dict[str, Any] = {
+    "dark_mode": False,
+    "icon_style": "simplified",
+    "custom_icons_path": "",
+}
+
+# All default preferences combined
+DEFAULT_PREFERENCES: Dict[str, Any] = {
+    "translations_folder": "",
+    "shortcuts": DEFAULT_SHORTCUTS,
+    **DEFAULT_THEME,
 }
 
 
@@ -41,21 +54,46 @@ def get_shortcuts(preferences: Dict[str, Any]) -> Dict[str, str]:
 
 
 def load_preferences() -> Dict[str, Any]:
-    """Return stored user preferences or defaults when unavailable."""
+    """Return stored user preferences, merged with defaults.
+
+    Missing keys are filled in from DEFAULT_PREFERENCES to ensure
+    all expected settings exist.
+
+    Returns:
+        A dictionary containing all preference keys with their current values.
+    """
+    defaults = DEFAULT_PREFERENCES.copy()
+    defaults["shortcuts"] = DEFAULT_SHORTCUTS.copy()
 
     if not _PREFERENCES_PATH.exists():
-        return {}
+        return defaults
+
     try:
         raw = _PREFERENCES_PATH.read_text(encoding="utf-8")
         data = json.loads(raw)
     except (OSError, json.JSONDecodeError):
-        return {}
-    return data if isinstance(data, dict) else {}
+        return defaults
+
+    if not isinstance(data, dict):
+        return defaults
+
+    # Merge stored data with defaults (stored values take precedence)
+    result = defaults.copy()
+    for key, value in data.items():
+        if key == "shortcuts" and isinstance(value, dict):
+            result["shortcuts"] = {**DEFAULT_SHORTCUTS, **value}
+        else:
+            result[key] = value
+
+    return result
 
 
 def save_preferences(preferences: Dict[str, Any]) -> None:
-    """Persist user preferences to disk."""
+    """Persist user preferences to disk.
 
+    Args:
+        preferences: The complete preferences dictionary to save.
+    """
     try:
         _PREFERENCES_PATH.parent.mkdir(parents=True, exist_ok=True)
         serialized = json.dumps(preferences, indent=2, sort_keys=True)
@@ -64,4 +102,11 @@ def save_preferences(preferences: Dict[str, Any]) -> None:
         pass
 
 
-__all__ = ["load_preferences", "save_preferences", "get_shortcuts", "DEFAULT_SHORTCUTS"]
+__all__ = [
+    "load_preferences",
+    "save_preferences",
+    "get_shortcuts",
+    "DEFAULT_SHORTCUTS",
+    "DEFAULT_THEME",
+    "DEFAULT_PREFERENCES",
+]

@@ -1,8 +1,8 @@
 """Editor tab widget for viewing and translating strings.
 
-Provides the main translation editing interface: a list of source strings,
-a translation text area with placeholder highlighting, machine translation
-controls, and a live preview panel.
+Provides the main translation interface: a filterable list of source
+strings, text editors with placeholder highlighting, machine translation
+controls, quality markers, and a live preview panel.
 """
 
 from __future__ import annotations
@@ -191,7 +191,11 @@ class EditorTab(QWidget):
         return self.translations
 
     def clear_translations(self) -> None:
-        """Reset the editor to an empty state."""
+        """Reset the editor to an empty state.
+
+        Clears translations, the list model, editor fields, and resets the
+        window title and status bar message.
+        """
         self.translations.clear()
         self._list_model.clear()
         self.current_item = None
@@ -220,7 +224,11 @@ class EditorTab(QWidget):
         self._apply_preview_theme()
 
     def _build_ui(self) -> None:
-        """Construct the main layout with left and right panels."""
+        """Construct the main layout with left and right panels.
+
+        Creates a horizontal splitter dividing the filter/list panel (left)
+        from the editing controls and preview (right).
+        """
 
         main_layout = QHBoxLayout(self)
         splitter = QSplitter(Qt.Horizontal)
@@ -407,7 +415,11 @@ class EditorTab(QWidget):
         self._apply_preview_theme()
 
     def _setup_connections(self) -> None:
-        """Wire up signals and slots for user interaction."""
+        """Wire up signals and slots for user interaction.
+
+        Connects selection changes, text edits, filter input, and button
+        clicks to their respective handlers.
+        """
 
         selection_model = self.translation_list.selectionModel()
         if selection_model:
@@ -452,8 +464,11 @@ class EditorTab(QWidget):
         self.load_translation_in_editor()
 
     def update_translation_list(self) -> None:
-        """Rebuild the translation list model from scratch."""
+        """Rebuild the translation list model from scratch.
 
+        Clears the internal model and repopulates it from ``self.translations``,
+        updating display text and icons via the IconProvider.
+        """
         self._list_model.clear()
         icon_provider = IconProvider.instance()
 
@@ -540,7 +555,11 @@ class EditorTab(QWidget):
             list_item.setText(display_text)
 
     def update_stats(self) -> None:
-        """Refresh the progress label with current translation counts."""
+        """Refresh the progress label with current translation counts.
+
+        Displays the number of translated entries vs. total entries and the
+        percentage complete.
+        """
 
         total = len(self.translations)
         translated = sum(1 for item in self.translations if item.is_translated)
@@ -548,7 +567,11 @@ class EditorTab(QWidget):
         self.stats_label.setText(f"Progress: {translated}/{total} ({percentage:.1f}%)")
 
     def clear_editor(self) -> None:
-        """Reset editor fields to their default empty state."""
+        """Reset editor fields to their default empty state.
+
+        Clears source, translation, preview, and context panels. Disables
+        the copy-source button and marker combo box.
+        """
 
         self.source_text.clear()
         self.translation_text.clear()
@@ -562,7 +585,11 @@ class EditorTab(QWidget):
         self.marker_combo.blockSignals(False)
 
     def load_translation_in_editor(self) -> None:
-        """Populate editor fields with the currently selected item."""
+        """Populate editor fields with the currently selected item.
+
+        Fills source text, translation text, marker combo, context info,
+        and configures placeholder inputs if the source contains tokens.
+        """
 
         if not self.current_item:
             return
@@ -591,7 +618,11 @@ class EditorTab(QWidget):
         self.update_preview()
 
     def setup_placeholders(self) -> None:
-        """Create input fields for placeholders found in the current item."""
+        """Create input fields for placeholders found in the current item.
+
+        Parses the source text for ``{...}`` tokens and generates labeled
+        text inputs with sensible default sample values.
+        """
 
         if not self.current_item or not self.current_item.has_placeholders():
             self.placeholder_group.setVisible(False)
@@ -731,7 +762,11 @@ class EditorTab(QWidget):
         self.target_lang_combo.blockSignals(False)
 
     def populate_provider_combo(self) -> None:
-        """Fill the provider combo box with available translation services."""
+        """Fill the provider combo box with available translation services.
+
+        Adds an entry for each registered provider, indicating whether it is
+        ready or requires API key configuration.
+        """
 
         if not self.provider_combo:
             return
@@ -749,7 +784,11 @@ class EditorTab(QWidget):
         self.update_provider_status(None)
 
     def on_provider_changed(self) -> None:
-        """Handle provider combo box selection change."""
+        """Handle provider combo box selection change.
+
+        Updates the internal selected provider key and refreshes status labels,
+        button states, and language combo contents.
+        """
 
         provider_key = (
             self.provider_combo.currentData() if self.provider_combo else None
@@ -793,7 +832,11 @@ class EditorTab(QWidget):
         self.populate_language_combos(provider_key)
 
     def handle_auto_translate(self) -> None:
-        """Translate the current item using the selected provider."""
+        """Translate the current item using the selected provider.
+
+        Protects placeholders, sends the text to the machine translation API,
+        restores placeholders, and updates the translation field.
+        """
 
         if not self.current_item:
             QMessageBox.information(
@@ -855,7 +898,12 @@ class EditorTab(QWidget):
             )
 
     def auto_translate_all_entries(self) -> None:
-        """Machine-translate all untranslated entries in the current file."""
+        """Machine-translate all untranslated entries in the current file.
+
+        Iterates through entries missing translations, sends each to the
+        selected provider, and marks them as machine-translated. Displays
+        a summary of successes and failures.
+        """
 
         if not self.translations:
             QMessageBox.information(
@@ -991,7 +1039,11 @@ class EditorTab(QWidget):
             self.auto_translate_all_btn.setEnabled(bool(self.translations))
 
     def update_preview(self) -> None:
-        """Render the translation with placeholder values in the preview area."""
+        """Render the translation with placeholder values in the preview area.
+
+        Substitutes placeholder tokens with user-supplied sample values and
+        displays the result in the preview text widget.
+        """
 
         if not self.current_item:
             self.preview_text.clear()
@@ -1003,7 +1055,11 @@ class EditorTab(QWidget):
         )
 
     def on_translation_changed(self) -> None:
-        """Sync translation text changes to the current item and model."""
+        """Sync translation text changes to the current item and model.
+
+        Updates the item's translation field, refreshes model data, validates
+        placeholders, and sets the modified flag.
+        """
 
         if not self.current_item:
             return
@@ -1029,8 +1085,11 @@ class EditorTab(QWidget):
                 self.status_bar.showMessage("Ready")
 
     def _update_current_model_item(self) -> None:
-        """Sync current_item's data to the corresponding model item."""
+        """Sync current_item's data to the corresponding list model item.
 
+        Updates display text, icon, and custom role data so the list view
+        reflects changes made in the editor fields.
+        """
         if not self.current_item:
             return
 
@@ -1082,19 +1141,30 @@ class EditorTab(QWidget):
                     self.status_bar.showMessage(f"Marked as: {marker_label}")
 
     def copy_source_to_translation(self) -> None:
-        """Copy source text to translation field and focus the input."""
+        """Copy source text to the translation field and focus it.
+
+        Useful when a string does not need translation or serves as a
+        starting point for manual editing.
+        """
         if self.current_item:
             self.translation_text.setPlainText(self.current_item.source)
             self.translation_text.setFocus()
 
     def focus_search(self) -> None:
-        """Focus the search/filter input field."""
+        """Focus and select all text in the filter input field.
+
+        Typically bound to Ctrl+F for quick access.
+        """
         if self.filter_input:
             self.filter_input.setFocus()
             self.filter_input.selectAll()
 
     def select_next_item(self) -> None:
-        """Move to the next item in the translation list."""
+        """Move selection to the next item in the translation list.
+
+        If no item is selected, selects the first item. Focuses the
+        translation text field after moving.
+        """
         if not self.translation_list:
             return
         current_index = self.translation_list.currentIndex()
@@ -1110,7 +1180,11 @@ class EditorTab(QWidget):
             self.translation_text.setFocus()
 
     def select_prev_item(self) -> None:
-        """Move to the previous item in the translation list."""
+        """Move selection to the previous item in the translation list.
+
+        Does nothing if already at the first item. Focuses the translation
+        text field after moving.
+        """
         if not self.translation_list:
             return
         current_index = self.translation_list.currentIndex()
@@ -1120,7 +1194,11 @@ class EditorTab(QWidget):
             self.translation_text.setFocus()
 
     def handle_auto_translate_with_focus(self) -> None:
-        """Run auto-translate and focus the translation input afterwards."""
+        """Run auto-translate and focus the translation input afterwards.
+
+        Convenience wrapper for keyboard shortcuts that should leave focus
+        in the translation field for immediate editing.
+        """
         self.handle_auto_translate()
         if self.current_item and self.current_item.translation:
             self.translation_text.setFocus()
@@ -1152,8 +1230,11 @@ class EditorTab(QWidget):
                 self._shortcuts[key] = shortcut
 
     def update_provider_state_after_load(self) -> None:
-        """Refresh provider status after loading a new file."""
+        """Refresh provider status after loading a new file.
 
+        Re-evaluates provider availability and updates the Translate All
+        button state based on the newly loaded translations.
+        """
         if self.provider_combo:
             self.update_provider_status(self.provider_combo.currentData())
 

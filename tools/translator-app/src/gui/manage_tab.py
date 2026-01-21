@@ -1,4 +1,4 @@
-"""Manage tab widget for translation file operations.
+"""Manage tab widget for translation file and language operations.
 
 Provides a UI for running Qt localization commands (lupdate, lrelease),
 managing the language registry, checking translation progress, and cleaning
@@ -111,7 +111,12 @@ class ManageTab(QWidget):
         self._refresh_status_table()
 
     def _build_ui(self) -> None:
-        """Construct the tab layout with language list, action buttons, and status table."""
+        """Construct the tab layout with language list, action buttons, and status.
+
+        Creates path selectors for source and translations folders, a language
+        list with selection controls, action buttons for lupdate/lrelease/etc.,
+        a status table, and a log viewer.
+        """
         layout = QVBoxLayout(self)
 
         # Source directory row (TextureAtlas Toolbox src folder)
@@ -308,7 +313,11 @@ class ManageTab(QWidget):
         QTimer.singleShot(100, self._prompt_fix_incomplete_locales)
 
     def _prompt_fix_incomplete_locales(self) -> None:
-        """Show warning for incomplete locales and offer to fix them."""
+        """Show warning for incomplete locales and offer to fix them.
+
+        Scans the registry for base-only codes (e.g., 'fr' instead of 'fr_FR')
+        and prompts the user to migrate each to a full locale code.
+        """
         if not hasattr(self, "_locale_warning_shown"):
             self._locale_warning_shown: set[str] = set()
 
@@ -507,17 +516,27 @@ class ManageTab(QWidget):
             )
 
     def select_all_languages(self) -> None:
-        """Select all languages in the list widget."""
+        """Select all languages in the list widget.
+
+        Uses Qt's selectAll() to highlight every item in the language list.
+        """
         if self.language_list_widget:
             self.language_list_widget.selectAll()
 
     def clear_language_selection(self) -> None:
-        """Clear the current language selection."""
+        """Clear the current language selection.
+
+        Deselects all items in the language list widget.
+        """
         if self.language_list_widget:
             self.language_list_widget.clearSelection()
 
     def _update_disclaimer_button_text(self) -> None:
-        """Update disclaimer button text based on selection's disclaimer state."""
+        """Update disclaimer button text based on selection's disclaimer state.
+
+        Sets the button label to 'Add', 'Remove', or 'Toggle' depending on
+        whether selected languages have disclaimers present.
+        """
         if not self.disclaimer_button or not self.language_list_widget:
             return
 
@@ -554,7 +573,11 @@ class ManageTab(QWidget):
         QApplication.processEvents()
 
     def _handle_language_double_click(self, item: QListWidgetItem) -> None:
-        """Open the corresponding .ts file when a language is double-clicked."""
+        """Open the corresponding .ts file when a language is double-clicked.
+
+        Args:
+            item: The list widget item that was double-clicked.
+        """
         if not item:
             return
         code = item.data(Qt.UserRole)
@@ -577,7 +600,11 @@ class ManageTab(QWidget):
                 pass
 
     def prompt_add_language(self) -> None:
-        """Show dialog to register a new language in the registry."""
+        """Show dialog to register a new language in the registry.
+
+        Opens AddLanguageDialog, saves the new entry to the registry, and
+        optionally runs lupdate to create the initial .ts file.
+        """
         dialog = AddLanguageDialog(self)
         if dialog.exec() != QDialog.Accepted:
             return
@@ -624,7 +651,11 @@ class ManageTab(QWidget):
             self._enqueue_operation(self.localization_ops.extract, [code])
 
     def prompt_delete_languages(self) -> None:
-        """Prompt to delete selected languages from the registry."""
+        """Prompt to delete selected languages from the registry.
+
+        Presents a confirmation dialog with options to also remove the
+        corresponding .ts/.qm files from disk.
+        """
         if self.manage_task_running:
             QMessageBox.information(
                 self,
@@ -665,7 +696,11 @@ class ManageTab(QWidget):
         self._delete_languages(languages, delete_files)
 
     def prompt_translations_folder(self) -> None:
-        """Prompt user to select a different translations directory."""
+        """Prompt user to select a different translations directory.
+
+        Opens a folder picker, validates the selection, and refreshes the
+        language list and status table to reflect the new location.
+        """
         if self.manage_task_running:
             QMessageBox.information(
                 self,
@@ -695,7 +730,11 @@ class ManageTab(QWidget):
         self._refresh_status_table()
 
     def prompt_edit_language(self) -> None:
-        """Show dialog to edit metadata for the selected language."""
+        """Show dialog to edit metadata for the selected language.
+
+        Opens AddLanguageDialog in edit mode. If the locale code changes,
+        triggers a file migration to rename .ts/.qm files.
+        """
         languages = self.get_selected_languages()
         if len(languages) != 1:
             QMessageBox.information(
@@ -809,6 +848,12 @@ class ManageTab(QWidget):
             )
 
     def _enqueue_operation(self, fn: Callable[..., Any], *args: object) -> None:
+        """Start a background task for the given callable.
+
+        Args:
+            fn: The function to run in the thread pool.
+            *args: Arguments to pass to fn.
+        """
         self.manage_task_running = True
         self.set_manage_buttons_enabled(False)
         if self.manage_status_label:
@@ -820,6 +865,11 @@ class ManageTab(QWidget):
         self.thread_pool.start(worker)
 
     def _handle_operation_completed(self, payload: object) -> None:
+        """Process results when a background operation finishes successfully.
+
+        Args:
+            payload: The OperationResult or list of results from the worker.
+        """
         self._current_worker = None
         results: List[OperationResult]
         if isinstance(payload, list):
@@ -867,6 +917,11 @@ class ManageTab(QWidget):
         QTimer.singleShot(200, self._update_disclaimer_button_text)
 
     def _handle_operation_failed(self, message: str) -> None:
+        """Handle a background operation failure.
+
+        Args:
+            message: The error message from the worker.
+        """
         self._current_worker = None
         if self.manage_log_view:
             self.manage_log_view.appendPlainText(f"[ERROR] {message}\n")
@@ -887,6 +942,7 @@ class ManageTab(QWidget):
             button.setEnabled(enabled)
 
     def _update_translations_path_label(self) -> None:
+        """Refresh the translations folder label with the current path."""
         if not self.translations_path_label:
             return
         current_path = self.localization_ops.paths.translations_dir
@@ -895,7 +951,11 @@ class ManageTab(QWidget):
         self.translations_path_label.setToolTip(str(current_path))
 
     def _update_src_path_label(self) -> None:
-        """Update the source directory label and warning indicator."""
+        """Update the source directory label and warning indicator.
+
+        Shows a warning icon if the TextureAtlas Toolbox project could not
+        be auto-detected.
+        """
         if not self.src_path_label:
             return
         current_path = self.localization_ops.paths.src_dir
@@ -920,7 +980,11 @@ class ManageTab(QWidget):
                 )
 
     def prompt_src_folder(self) -> None:
-        """Prompt user to select the TextureAtlas Toolbox src directory."""
+        """Prompt user to select the TextureAtlas Toolbox src directory.
+
+        Opens a folder picker and validates that the selection is a valid
+        source folder before updating paths.
+        """
         if self.manage_task_running:
             QMessageBox.information(
                 self,
@@ -1143,6 +1207,10 @@ class ManageTab(QWidget):
             self.manage_table.setItem(row, 6, quality_item)
 
     def refresh_language_list(self) -> None:
+        """Rebuild the language list while preserving the current selection.
+
+        Delegates to ``populate_language_list`` with selection preservation enabled.
+        """
         self.populate_language_list(preserve_selection=True)
 
     def refresh_status_table(self) -> None:
@@ -1153,7 +1221,11 @@ class ManageTab(QWidget):
         self._refresh_status_table()
 
     def _refresh_status_table(self) -> None:
-        """Refresh the status table with current translation progress for all languages."""
+        """Refresh the status table with current translation progress.
+
+        Queries the localization backend for status of all languages and
+        repopulates the table rows with updated progress data.
+        """
         result = self.localization_ops.status_report()
         if result.success:
             entries = result.details.get("entries", []) if result.details else []

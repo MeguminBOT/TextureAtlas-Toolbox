@@ -1,4 +1,8 @@
-"""Localization datasets and operations used across the translator app."""
+"""Localization operations and language registry for the translator app.
+
+Provides wrappers around Qt's lupdate/lrelease commands, language code
+resolution, and the registry mapping codes to human-readable names.
+"""
 
 from __future__ import annotations
 

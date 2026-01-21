@@ -1,7 +1,8 @@
 """Icon provider for consistent iconography throughout the application.
 
-Provides icons either from custom assets, built-in Qt icons, or programmatically
-generated colored indicators (circles/squares) when a simplified style is selected.
+Supports three display styles: emoji characters, colored shape indicators
+(simplified), or user-provided custom assets. Used for translation status,
+quality markers, and file state indicators.
 """
 
 from __future__ import annotations
@@ -175,7 +176,11 @@ class IconProvider:
             self._clear_caches()
 
     def _clear_caches(self) -> None:
-        """Clear all icon and pixmap caches."""
+        """Clear cached icons and pixmaps.
+
+        Called when the style or custom assets path changes to ensure icons
+        are regenerated with the new settings.
+        """
         self._icon_cache.clear()
         self._pixmap_cache.clear()
 

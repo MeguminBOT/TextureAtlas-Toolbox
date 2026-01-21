@@ -17,15 +17,12 @@ Usage:
     python Main.py --cli status              # Show translation progress
 """
 
-import atexit
 import os
 import re
-import signal
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 import xml.etree.ElementTree as ET
-import faulthandler
 
 from PySide6.QtCore import QThreadPool
 from PySide6.QtGui import QAction, QIcon
@@ -42,7 +39,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from core import TranslationItem
 from core.translation_manager import TranslationManager
 from gui import apply_app_theme
 from gui.editor_tab import EditorTab
@@ -84,6 +80,7 @@ class TranslationEditor(QMainWindow):
 
     def __init__(self) -> None:
         """Initialize the main window and its child widgets."""
+
         super().__init__()
         self.translation_manager = TranslationManager()
         self.localization_ops = LocalizationOperations()
@@ -134,6 +131,7 @@ class TranslationEditor(QMainWindow):
 
     def init_ui(self) -> None:
         """Build the main window layout, tabs, menu bar, and status bar."""
+
         self.setWindowTitle("Translation Editor - TextureAtlas Toolbox")
         self.setGeometry(100, 100, 1200, 800)
 
@@ -145,7 +143,7 @@ class TranslationEditor(QMainWindow):
                 if not icon.isNull():
                     self.setWindowIcon(icon)
                     icon_set = True
-            except Exception:  # Best effort icon loading
+            except Exception:
                 pass
         if not icon_set:
             png_icon_path = self._find_asset("assets/icon-ts.png")
@@ -186,8 +184,10 @@ class TranslationEditor(QMainWindow):
 
     def create_menu_bar(self) -> None:
         """Create the File, Options, and Help menus with their actions."""
+
         menubar = self.menuBar()
 
+        # File menu
         file_menu = menubar.addMenu("File")
 
         open_action = file_menu.addAction("Open .ts file...")
@@ -208,6 +208,7 @@ class TranslationEditor(QMainWindow):
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.close)
 
+        # Options menu
         options_menu = menubar.addMenu("Options")
 
         # Theme submenu
@@ -234,6 +235,7 @@ class TranslationEditor(QMainWindow):
 
     def show_usage_help(self) -> None:
         """Show the getting-started help dialog."""
+
         html = (
             "<h3>Getting started</h3>"
             "<ol>"
@@ -249,6 +251,7 @@ class TranslationEditor(QMainWindow):
 
     def show_api_key_help(self) -> None:
         """Show the translation API key configuration help dialog."""
+
         html = (
             "<p>Machine translation is optional. Provide your own API key.</p>"
             "<h3>DeepL (paid subscription)</h3>"
@@ -272,6 +275,7 @@ class TranslationEditor(QMainWindow):
             title: Dialog window title.
             html: HTML body to render in a QTextBrowser.
         """
+
         dialog = QDialog(self)
         dialog.setWindowTitle(title)
         layout = QVBoxLayout(dialog)
@@ -292,7 +296,7 @@ class TranslationEditor(QMainWindow):
         """Prompt to save unsaved changes before a destructive action.
 
         Returns:
-            True if safe to proceed (no changes, saved, or discarded).
+            True if safe to proceed (no changes, saved, or discarded),
             False if the user cancelled.
         """
         if not self.editor_tab or not self.editor_tab.has_unsaved_changes():
@@ -308,15 +312,15 @@ class TranslationEditor(QMainWindow):
 
         if result == QMessageBox.Save:
             self.save_file()
-            # Check if save was successful (no longer modified)
             return not self.editor_tab.has_unsaved_changes()
         elif result == QMessageBox.Discard:
             return True
-        else:  # Cancel
+        else:
             return False
 
     def open_file(self) -> None:
         """Open a file dialog and load the selected .ts file."""
+
         if not self._check_unsaved_changes():
             return
         file_path, _ = QFileDialog.getOpenFileName(
@@ -338,6 +342,7 @@ class TranslationEditor(QMainWindow):
             file_path: Absolute or relative path to the .ts file.
             check_unsaved: If True, prompt before discarding unsaved changes.
         """
+
         if not self.editor_tab:
             return
         if check_unsaved and not self._check_unsaved_changes():
@@ -391,7 +396,7 @@ class TranslationEditor(QMainWindow):
                             marker = TranslationMarker.from_string(
                                 marker_match.group(1)
                             )
-                        # Check for machine translated flag
+
                         if "[machine]" in comment_elem.text:
                             is_machine_translated = True
                     is_vanished = trans_type in ("vanished", "obsolete")
@@ -412,7 +417,6 @@ class TranslationEditor(QMainWindow):
                             ):
                                 existing_item.translation = translation
                                 existing_item.is_translated = True
-                            # Keep marker if existing item doesn't have one
                             if (
                                 existing_item.marker == TranslationMarker.NONE
                                 and marker != TranslationMarker.NONE
@@ -448,7 +452,6 @@ class TranslationEditor(QMainWindow):
                             "from duplicate vanished strings",
                             5000,
                         )
-                    # Re-parse the file since we modified it
                     tree = ET.parse(file_path)
                     root = tree.getroot()
 
@@ -456,7 +459,6 @@ class TranslationEditor(QMainWindow):
                     for source in recovered_sources:
                         if source in translation_groups:
                             item = translation_groups[source]
-                            # Reload the translation from file
                             for context in root.findall("context"):
                                 context_name = context.find("name")
                                 if context_name is not None:
@@ -476,22 +478,18 @@ class TranslationEditor(QMainWindow):
                                                 item.marker = None
                                                 break
             except Exception as e:
-                # If recovery fails, continue without it
                 print(f"Warning: Could not recover duplicate translations: {e}")
 
             unused_strings = self._extract_vanished_strings(root)
 
             # If unused strings found, try matching then prompt user
             if unused_strings:
-                # Get new unfinished strings for potential matching
                 new_unfinished = extract_new_unfinished_strings(file_path_obj)
 
-                # Find potential matches between vanished and new strings
                 matches = find_potential_matches(
                     unused_strings, new_unfinished, min_similarity=0.6
                 )
 
-                # Track which vanished strings were matched
                 matched_vanished = {m.vanished_source for m in matches}
                 remaining_unused = [
                     (src, trans)
@@ -499,7 +497,6 @@ class TranslationEditor(QMainWindow):
                     if src not in matched_vanished
                 ]
 
-                # If we have potential matches, show the matching dialog
                 if matches:
                     match_dialog = StringMatchingDialog(
                         self,
@@ -513,7 +510,6 @@ class TranslationEditor(QMainWindow):
                         match_result == QDialog.Accepted
                         and match_dialog.accepted_matches
                     ):
-                        # Apply the accepted matches to the file
                         transferred = apply_matches_to_file(
                             file_path_obj, match_dialog.accepted_matches
                         )
@@ -525,7 +521,6 @@ class TranslationEditor(QMainWindow):
                                     5000,
                                 )
 
-                        # Update remaining unused list
                         transferred_sources = {
                             m.vanished_source for m in match_dialog.accepted_matches
                         }
@@ -536,11 +531,9 @@ class TranslationEditor(QMainWindow):
                             and src not in transferred_sources
                         ]
 
-                        # Re-parse the file since we modified it
                         tree = ET.parse(file_path)
                         root = tree.getroot()
 
-                # Show dialog for remaining unmatched vanished strings
                 if remaining_unused:
                     dialog = UnusedStringsDialog(
                         self,
@@ -550,25 +543,24 @@ class TranslationEditor(QMainWindow):
                     result = dialog.exec()
 
                     if result == QDialog.Accepted:
-                        # Remove unused strings from translation_groups
                         for source, _ in remaining_unused:
                             translation_groups.pop(source, None)
 
-                        # Show status message
                         msg = f"Removed {len(remaining_unused)} unused string(s)"
                         if dialog.save_requested and dialog.saved_path:
                             msg += f" (saved to {Path(dialog.saved_path).name})"
                         if self.status_bar:
                             self.status_bar.showMessage(msg, 5000)
-                    # If cancelled (rejected), keep all strings as-is
 
             translations = list(translation_groups.values())
             self.editor_tab.load_translations(file_path, translations)
+
         except Exception as exc:
             QMessageBox.critical(self, "Error", f"Failed to load file:\n{exc}")
 
     def save_file(self) -> None:
         """Save translations to the currently open file, validating first."""
+
         if not self.editor_tab:
             return
         current_file = self.editor_tab.get_current_file()
@@ -595,6 +587,7 @@ class TranslationEditor(QMainWindow):
 
     def save_file_as(self) -> None:
         """Open a save dialog and write translations to the chosen path."""
+
         if not self.editor_tab or not self.editor_tab.get_translations():
             QMessageBox.warning(self, "Warning", "No translations to save.")
             return
@@ -634,6 +627,7 @@ class TranslationEditor(QMainWindow):
         Args:
             file_path: Destination path for the .ts file.
         """
+
         if not self.editor_tab:
             return
         try:
@@ -700,9 +694,9 @@ class TranslationEditor(QMainWindow):
             tree.write(file_path, encoding="utf-8", xml_declaration=True)
 
             self.editor_tab.mark_saved(file_path)
-            # Refresh the manage tab status table to reflect updated progress
             if self.manage_tab:
                 self.manage_tab.refresh_status_table()
+
         except Exception as exc:
             QMessageBox.critical(self, "Error", f"Failed to save file:\n{exc}")
 
@@ -715,6 +709,7 @@ class TranslationEditor(QMainWindow):
         Returns:
             Value of the ``language`` or ``sourcelanguage`` attribute, or None.
         """
+
         return root.get("language") or root.get("sourcelanguage")
 
     def _extract_vanished_strings(self, root: ET.Element) -> List[Tuple[str, str]]:
@@ -730,7 +725,7 @@ class TranslationEditor(QMainWindow):
         Returns:
             List of (source, translation) tuples for truly unused strings.
         """
-        # First, collect all active (non-vanished/obsolete) source strings
+
         active_sources: set[str] = set()
         for message in root.iter("message"):
             translation_elem = message.find("translation")
@@ -742,7 +737,6 @@ class TranslationEditor(QMainWindow):
                 if source_elem is not None and source_elem.text:
                     active_sources.add(source_elem.text)
 
-        # Now collect vanished/obsolete strings that don't exist elsewhere
         vanished: List[Tuple[str, str]] = []
         for message in root.iter("message"):
             translation_elem = message.find("translation")
@@ -755,7 +749,6 @@ class TranslationEditor(QMainWindow):
                         if source_elem is not None and source_elem.text
                         else ""
                     )
-                    # Skip if this string exists as an active entry (was moved)
                     if source and source not in active_sources:
                         translation = (
                             translation_elem.text if translation_elem.text else ""
@@ -772,6 +765,7 @@ class TranslationEditor(QMainWindow):
         Returns:
             Extracted language code (e.g., ``es``), or None if unrecognized.
         """
+
         filename = Path(file_path).name
         match = re.search(r"app_([A-Za-z0-9_\-]+)\.ts$", filename, re.IGNORECASE)
         if match:
@@ -779,7 +773,11 @@ class TranslationEditor(QMainWindow):
         return None
 
     def closeEvent(self, event) -> None:  # type: ignore[override]
-        """Prompt to save unsaved changes before the window closes."""
+        """Prompt to save unsaved changes before the window closes.
+
+        Args:
+            event: The Qt close event to accept or ignore.
+        """
         if self.editor_tab and self.editor_tab.has_unsaved_changes():
             reply = QMessageBox.question(
                 self,
@@ -803,6 +801,7 @@ class TranslationEditor(QMainWindow):
         Args:
             checked: Whether dark mode should be enabled.
         """
+
         self.dark_mode = checked
         if self.dark_mode_action and self.dark_mode_action.isChecked() != checked:
             self.dark_mode_action.blockSignals(True)
@@ -818,12 +817,12 @@ class TranslationEditor(QMainWindow):
 
     def _open_ts_file_from_manage(self, ts_path: Path) -> None:
         """Load a .ts file from ManageTab and switch to the Editor tab."""
+
         if not ts_path.exists():
             QMessageBox.warning(
                 self, "File Missing", f"Translation file not found:\n{ts_path}"
             )
             return
-        # Check unsaved changes first - if cancelled, don't proceed
         if not self._check_unsaved_changes():
             return
         self.load_ts_file(str(ts_path), check_unsaved=False)
@@ -834,11 +833,13 @@ class TranslationEditor(QMainWindow):
 
     def _handle_translations_dir_change(self, path: Path) -> None:
         """Save the new translations directory path to preferences."""
+
         self.preferences["translations_folder"] = str(path)
         self._persist_preferences()
 
     def _apply_saved_translations_dir(self) -> None:
         """Restore the translations directory from persisted preferences."""
+
         saved_path = self.preferences.get("translations_folder")
         if not saved_path:
             return
@@ -850,10 +851,10 @@ class TranslationEditor(QMainWindow):
 
     def _persist_preferences(self) -> None:
         """Write current preferences (theme, paths, shortcuts) to disk."""
+
         prefs = dict(self.preferences)
         prefs["dark_mode"] = self.dark_mode
         prefs["translations_folder"] = str(self.localization_ops.paths.translations_dir)
-        # Save icon style settings
         icon_provider = IconProvider.instance()
         prefs["icon_style"] = icon_provider.style.value
         if icon_provider.custom_assets_path:
@@ -863,6 +864,7 @@ class TranslationEditor(QMainWindow):
 
     def _init_icon_provider(self) -> None:
         """Initialize the global IconProvider from saved preferences."""
+
         style_str = self.preferences.get("icon_style", "simplified")
         try:
             style = IconStyle(style_str)
@@ -877,6 +879,7 @@ class TranslationEditor(QMainWindow):
 
     def show_theme_options(self) -> None:
         """Open the theme and icon style configuration dialog."""
+
         icon_provider = IconProvider.instance()
         custom_path = (
             str(icon_provider.custom_assets_path)
@@ -898,12 +901,11 @@ class TranslationEditor(QMainWindow):
         Args:
             settings: Keys ``dark_mode``, ``icon_style``, ``custom_icons_path``.
         """
-        # Apply dark mode
+
         new_dark_mode = settings.get("dark_mode", self.dark_mode)
         if new_dark_mode != self.dark_mode:
             self.toggle_dark_mode(new_dark_mode)
 
-        # Apply icon style
         icon_style_str = settings.get("icon_style", "simplified")
         custom_path_str = settings.get("custom_icons_path", "")
 
@@ -918,7 +920,6 @@ class TranslationEditor(QMainWindow):
         provider.style = icon_style
         provider.custom_assets_path = custom_path
 
-        # Persist and refresh UI
         self._persist_preferences()
         self._refresh_ui_icons()
 
@@ -927,17 +928,17 @@ class TranslationEditor(QMainWindow):
 
     def _refresh_ui_icons(self) -> None:
         """Refresh icons in both tabs after an icon style change."""
-        # Refresh manage tab language list and status table
+
         if self.manage_tab:
             self.manage_tab.populate_language_list(preserve_selection=True)
             self.manage_tab.refresh_status_table()
 
-        # Refresh editor tab translation list
         if self.editor_tab:
             self.editor_tab.update_translation_list()
 
     def _apply_shortcuts(self) -> None:
         """Apply saved keyboard shortcuts to the editor tab."""
+
         if not self.editor_tab:
             return
         shortcuts = get_shortcuts(self.preferences)
@@ -945,6 +946,7 @@ class TranslationEditor(QMainWindow):
 
     def show_shortcuts_dialog(self) -> None:
         """Open the keyboard shortcuts configuration dialog."""
+
         current_shortcuts = get_shortcuts(self.preferences)
         dialog = ShortcutsDialog(self, current_shortcuts)
         if dialog.exec() == QDialog.Accepted:
@@ -962,6 +964,9 @@ def main() -> None:
     Pass ``--cli`` as the first argument to invoke the command-line interface;
     otherwise the PySide6 GUI is started. An optional .ts file path opens
     that file directly in the editor.
+
+    Raises:
+        SystemExit: Always exits via sys.exit() with the app's return code.
     """
     if len(sys.argv) > 1 and sys.argv[1] == "--cli":
         from cli import main as cli_main

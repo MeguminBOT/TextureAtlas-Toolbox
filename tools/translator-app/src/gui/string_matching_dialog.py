@@ -359,7 +359,12 @@ class StringMatchingDialog(QDialog):
             self.table.selectRow(0)
 
     def _on_checkbox_changed(self, row: int, state: int) -> None:
-        """Handle checkbox state change."""
+        """Handle checkbox state change.
+
+        Args:
+            row: Row index of the changed checkbox.
+            state: New checkbox state (Qt.Checked or Qt.Unchecked).
+        """
         self.matches[row].selected = state == Qt.Checked
 
     def _on_selection_changed(self) -> None:
@@ -376,25 +381,38 @@ class StringMatchingDialog(QDialog):
         self.translation_preview.setPlainText(match.vanished_translation)
 
     def _select_all(self) -> None:
-        """Select all matches for transfer."""
+        """Select all matches for transfer.
+
+        Marks every match in the table as selected for translation transfer.
+        """
         for i, match in enumerate(self.matches):
             match.selected = True
             self._checkboxes[i].setChecked(True)
 
     def _select_none(self) -> None:
-        """Deselect all matches."""
+        """Deselect all matches.
+
+        Unchecks every match in the table so none are transferred.
+        """
         for i, match in enumerate(self.matches):
             match.selected = False
             self._checkboxes[i].setChecked(False)
 
     def _select_high_confidence(self) -> None:
-        """Select only matches with ≥80% similarity."""
+        """Select only matches with at least 80% similarity.
+
+        Unchecks lower-confidence matches to avoid accidental transfers.
+        """
         for i, match in enumerate(self.matches):
             match.selected = match.similarity >= 0.8
             self._checkboxes[i].setChecked(match.selected)
 
     def _apply_matches(self) -> None:
-        """Accept selected matches and close dialog."""
+        """Accept selected matches and close dialog.
+
+        Populates ``accepted_matches`` with user-confirmed matches and
+        closes the dialog with the Accepted result.
+        """
         self.accepted_matches = [m for m in self.matches if m.selected]
         self.accept()
 

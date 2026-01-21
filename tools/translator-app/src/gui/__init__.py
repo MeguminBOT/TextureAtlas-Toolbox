@@ -1,4 +1,9 @@
-"""GUI helper components for the translator app."""
+"""GUI components for the translator application.
+
+Provides dialogs, widgets, and styling helpers for the PySide6 interface.
+Includes the main editor/manage tabs, icon system, filter models, and
+theme management.
+"""
 
 from .add_language_dialog import AddLanguageDialog
 from .batch_unused_dialog import BatchUnusedStringsDialog

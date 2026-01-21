@@ -1,9 +1,8 @@
 """Coordinate machine translation providers and placeholder preservation.
 
-This module provides the TranslationManager class, which acts as the central
-hub for interacting with translation providers (DeepL, Google, LibreTranslate).
-It also supplies placeholder-protection helpers to ensure brace-wrapped tokens
-survive round-trips through external APIs.
+The TranslationManager class acts as the central hub for interacting with
+translation providers (DeepL, Google, LibreTranslate). It also provides
+helpers to protect brace-wrapped placeholders during API round-trips.
 """
 
 from __future__ import annotations
