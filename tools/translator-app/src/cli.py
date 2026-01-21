@@ -42,12 +42,12 @@ def print_result(result: OperationResult) -> None:
     if result.logs:
         print("\nLogs:")
         for log in result.logs:
-            print(f"  {log}")
+            print(f" {log}")
 
     if result.errors:
         print("\nErrors:")
         for error in result.errors:
-            print(f"  ❌ {error}")
+            print(f" {error}")
 
     if result.details:
         if "added" in result.details or "removed" in result.details:
@@ -221,7 +221,7 @@ def cmd_quality(languages: List[str], quality: str) -> int:
     if not_found:
         print(f"\nNot found in registry ({len(not_found)}):")
         for lang in not_found:
-            print(f"  [!] {lang}")
+            print(f" [!] {lang}")
 
     return 0 if updated else 1
 

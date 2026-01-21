@@ -59,53 +59,6 @@ from gui.string_matching_dialog import (
 from gui.theme_options_dialog import ThemeOptionsDialog
 from gui.unused_strings_dialog import UnusedStringsDialog
 from localization import LocalizationOperations
-from utils.preferences import load_preferences, save_preferences, get_shortcuts
-
-_CRASH_LOG_FILE: Optional[Any] = None
-
-
-def _enable_crash_logging() -> Optional[Path]:
-    """Enable faulthandler dumps for hard crashes such as segfaults.
-
-    Registers signal handlers for SIGSEGV and SIGABRT to write stack traces
-    to a log file. The log path defaults to ``translator_app_crash.log`` in
-    the current directory but can be overridden via the environment variable
-    ``TRANSLATOR_APP_CRASH_LOG``.
-
-    Returns:
-        Path to the crash log file if logging was enabled, or None on failure.
-    """
-    global _CRASH_LOG_FILE
-
-    log_env = os.environ.get("TRANSLATOR_APP_CRASH_LOG")
-    log_path = Path(log_env) if log_env else Path.cwd() / "translator_app_crash.log"
-
-    try:
-        _CRASH_LOG_FILE = open(log_path, "w", encoding="utf-8")
-    except OSError:
-        try:
-            faulthandler.enable(all_threads=True)
-        except Exception:
-            return None
-        return None
-
-    try:
-        faulthandler.enable(file=_CRASH_LOG_FILE, all_threads=True)
-    except Exception:
-        _CRASH_LOG_FILE.close()
-        _CRASH_LOG_FILE = None
-        return None
-
-    for sig in (getattr(signal, "SIGSEGV", None), getattr(signal, "SIGABRT", None)):
-        if sig is None:
-            continue
-        try:
-            faulthandler.register(sig, file=_CRASH_LOG_FILE, all_threads=True)
-        except Exception:
-            pass
-
-    atexit.register(_CRASH_LOG_FILE.close)
-    return log_path
 
 
 class TranslationEditor(QMainWindow):
@@ -1014,15 +967,6 @@ def main() -> None:
         from cli import main as cli_main
 
         sys.exit(cli_main(sys.argv[2:]))
-
-    crash_log_file = _enable_crash_logging()
-    if crash_log_file:
-        try:
-            sys.stderr.write(
-                f"[translator-app] Crash traces will be written to {crash_log_file}\n"
-            )
-        except Exception:
-            pass
 
     app = QApplication(sys.argv)
     app.setApplicationName("Translation Editor")
