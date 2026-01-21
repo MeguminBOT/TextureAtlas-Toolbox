@@ -833,6 +833,10 @@ class EditorTab(QWidget):
         self.selected_provider_key = provider_key
         self.update_provider_status(provider_key)
 
+    # Providers that support batch "Translate All" operations.
+    # DeepL and Google Cloud batch translation is disabled due to rate limits and reliability issues.
+    BATCH_TRANSLATE_PROVIDERS = frozenset({"libretranslate"})
+
     def update_provider_status(self, provider_key: Optional[str]) -> None:
         """Update status label and button states for the given provider.
 
@@ -862,9 +866,20 @@ class EditorTab(QWidget):
             self.provider_status_label.setText(message)
         self.translate_btn.setEnabled(available)
         if self.auto_translate_all_btn:
+            # Only enable batch translate for providers that support it reliably
+            supports_batch = provider_key in self.BATCH_TRANSLATE_PROVIDERS
             self.auto_translate_all_btn.setEnabled(
-                available and bool(self.translations)
+                available and bool(self.translations) and supports_batch
             )
+            if available and not supports_batch:
+                self.auto_translate_all_btn.setToolTip(
+                    f"Batch translation is not available for {provider_name}. "
+                    "Use single-entry translation instead."
+                )
+            else:
+                self.auto_translate_all_btn.setToolTip(
+                    "Automatically translate all entries that don't have translations yet"
+                )
         self.selected_provider_key = provider_key
         self.populate_language_combos(provider_key)
 

@@ -6,6 +6,7 @@ theme management.
 """
 
 from .add_language_dialog import AddLanguageDialog
+from .api_keys_dialog import ApiKeysDialog
 from .batch_unused_dialog import BatchUnusedStringsDialog
 from .icon_provider import (
     IconProvider,
@@ -32,6 +33,7 @@ from .unused_strings_dialog import UnusedStringsDialog
 
 __all__ = [
     "AddLanguageDialog",
+    "ApiKeysDialog",
     "BatchUnusedStringsDialog",
     "DEFAULT_SHORTCUTS",
     "IconProvider",

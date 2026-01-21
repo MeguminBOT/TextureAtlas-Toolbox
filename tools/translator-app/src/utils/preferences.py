@@ -1,7 +1,8 @@
 """User preferences persistence for the translator application.
 
-Stores user settings (dark mode, last translations folder, keyboard shortcuts,
-etc.) in a JSON file under the user's home directory.
+Stores and retrieves settings (dark mode, translations folder, keyboard
+shortcuts, API keys) from a JSON file in the user's home directory.
+Defaults are provided for all settings.
 """
 
 from __future__ import annotations
@@ -25,6 +26,14 @@ DEFAULT_SHORTCUTS: Dict[str, str] = {
     "mark_complete": "Ctrl+Shift+3",
 }
 
+# Default API keys (empty strings, user must configure)
+DEFAULT_API_KEYS: Dict[str, str] = {
+    "deepl_api_key": "",
+    "deepl_api_endpoint": "",  # Leave empty for free API, set for Pro
+    "google_translate_api_key": "",
+    "libretranslate_endpoint": "",
+    "libretranslate_api_key": "",
+}
 
 # Default theme/appearance settings
 DEFAULT_THEME: Dict[str, Any] = {
@@ -37,6 +46,7 @@ DEFAULT_THEME: Dict[str, Any] = {
 DEFAULT_PREFERENCES: Dict[str, Any] = {
     "translations_folder": "",
     "shortcuts": DEFAULT_SHORTCUTS,
+    "api_keys": DEFAULT_API_KEYS,
     **DEFAULT_THEME,
 }
 
@@ -59,6 +69,23 @@ def get_shortcuts(preferences: Dict[str, Any]) -> Dict[str, str]:
     return result
 
 
+def get_api_keys(preferences: Dict[str, Any]) -> Dict[str, str]:
+    """Retrieve API keys from preferences with defaults.
+
+    Args:
+        preferences: The loaded preferences dictionary.
+
+    Returns:
+        A dictionary mapping API key names to their values.
+    """
+    stored = preferences.get("api_keys", {})
+    if not isinstance(stored, dict):
+        stored = {}
+    result = DEFAULT_API_KEYS.copy()
+    result.update(stored)
+    return result
+
+
 def load_preferences() -> Dict[str, Any]:
     """Return stored user preferences, merged with defaults.
 
@@ -70,6 +97,7 @@ def load_preferences() -> Dict[str, Any]:
     """
     defaults = DEFAULT_PREFERENCES.copy()
     defaults["shortcuts"] = DEFAULT_SHORTCUTS.copy()
+    defaults["api_keys"] = DEFAULT_API_KEYS.copy()
 
     if not _PREFERENCES_PATH.exists():
         return defaults
@@ -88,6 +116,8 @@ def load_preferences() -> Dict[str, Any]:
     for key, value in data.items():
         if key == "shortcuts" and isinstance(value, dict):
             result["shortcuts"] = {**DEFAULT_SHORTCUTS, **value}
+        elif key == "api_keys" and isinstance(value, dict):
+            result["api_keys"] = {**DEFAULT_API_KEYS, **value}
         else:
             result[key] = value
 
@@ -112,7 +142,9 @@ __all__ = [
     "load_preferences",
     "save_preferences",
     "get_shortcuts",
+    "get_api_keys",
     "DEFAULT_SHORTCUTS",
+    "DEFAULT_API_KEYS",
     "DEFAULT_THEME",
     "DEFAULT_PREFERENCES",
 ]

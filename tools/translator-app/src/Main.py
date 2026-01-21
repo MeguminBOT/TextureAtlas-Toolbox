@@ -55,11 +55,14 @@ from gui.string_matching_dialog import (
 )
 from gui.theme_options_dialog import ThemeOptionsDialog
 from gui.unused_strings_dialog import UnusedStringsDialog
+from gui.api_keys_dialog import ApiKeysDialog
 from localization import LocalizationOperations
 from utils.preferences import (
     load_preferences,
     save_preferences,
     get_shortcuts,
+    get_api_keys,
+)
 
 
 class TranslationEditor(QMainWindow):
@@ -92,6 +95,7 @@ class TranslationEditor(QMainWindow):
         self.thread_pool = QThreadPool.globalInstance()
         self.current_ts_language: Optional[str] = None
         self.preferences: Dict[str, Any] = load_preferences()
+        self._apply_api_keys_to_environment()
         self.dark_mode = bool(self.preferences.get("dark_mode", False))
         self._apply_saved_translations_dir()
         self._init_icon_provider()
@@ -216,7 +220,15 @@ class TranslationEditor(QMainWindow):
         # Options menu
         options_menu = menubar.addMenu("Options")
 
-        # Theme submenu
+        shortcuts_action = options_menu.addAction("Keyboard Shortcuts...")
+        shortcuts_action.triggered.connect(self.show_shortcuts_dialog)
+
+        options_menu.addSeparator()
+        api_keys_action = options_menu.addAction("API Keys...")
+        api_keys_action.triggered.connect(self.show_api_keys_dialog)
+        options_menu.addSeparator()
+
+        # Options menu - Theme sub-menu
         theme_menu = options_menu.addMenu("Theme")
         self.dark_mode_action = theme_menu.addAction("Dark Mode")
         self.dark_mode_action.setCheckable(True)
@@ -226,9 +238,6 @@ class TranslationEditor(QMainWindow):
         theme_options_action = theme_menu.addAction("Theme Options...")
         theme_options_action.triggered.connect(self.show_theme_options)
 
-        options_menu.addSeparator()
-        shortcuts_action = options_menu.addAction("Keyboard Shortcuts...")
-        shortcuts_action.triggered.connect(self.show_shortcuts_dialog)
         # Advanced menu for bulk operations
         advanced_menu = menubar.addMenu("Advanced")
 
@@ -247,6 +256,7 @@ class TranslationEditor(QMainWindow):
         mark_all_complete = mark_all_menu.addAction("Complete")
         mark_all_complete.triggered.connect(self._mark_all_complete)
 
+        # Help menu
         help_menu = menubar.addMenu("Help")
 
         usage_action = help_menu.addAction("Using the Translator App")
@@ -871,6 +881,28 @@ class TranslationEditor(QMainWindow):
             self.preferences.pop("translations_folder", None)
             self._persist_preferences()
 
+    def _apply_api_keys_to_environment(self) -> None:
+        """Set translation API keys from preferences as environment variables.
+
+        This allows the translation providers to pick up configured keys
+        without requiring the user to set system environment variables.
+        Only sets variables for non-empty values.
+        """
+
+        api_keys = get_api_keys(self.preferences)
+        env_var_map = {
+            "deepl_api_key": "DEEPL_API_KEY",
+            "deepl_api_endpoint": "DEEPL_API_ENDPOINT",
+            "google_translate_api_key": "GOOGLE_TRANSLATE_API_KEY",
+            "libretranslate_endpoint": "LIBRETRANSLATE_ENDPOINT",
+            "libretranslate_api_key": "LIBRETRANSLATE_API_KEY",
+        }
+
+        for pref_key, env_var in env_var_map.items():
+            value = api_keys.get(pref_key, "")
+            if value:
+                os.environ[env_var] = value
+
     def _persist_preferences(self) -> None:
         """Write current preferences (theme, paths, shortcuts) to disk."""
 
@@ -898,6 +930,30 @@ class TranslationEditor(QMainWindow):
 
         provider = IconProvider(style=style, custom_assets_path=custom_path)
         IconProvider.set_instance(provider)
+
+    def show_api_keys_dialog(self) -> None:
+        """Open the API keys configuration dialog.
+
+        Allows users to enter API keys for translation providers. Keys are
+        saved to preferences and applied as environment variables for the
+        current session only.
+        """
+
+        current_keys = get_api_keys(self.preferences)
+        dialog = ApiKeysDialog(self, api_keys=current_keys)
+
+        if dialog.exec() == ApiKeysDialog.DialogCode.Accepted:
+            new_keys = dialog.get_api_keys()
+            self.preferences["api_keys"] = new_keys
+            self._persist_preferences()
+            self._apply_api_keys_to_environment()
+
+            self.translation_manager = TranslationManager()
+            if self.editor_tab:
+                self.editor_tab.translation_manager = self.translation_manager
+
+            if self.status_bar:
+                self.status_bar.showMessage("API keys saved and applied", 3000)
 
     def show_theme_options(self) -> None:
         """Open the theme and icon style configuration dialog."""
