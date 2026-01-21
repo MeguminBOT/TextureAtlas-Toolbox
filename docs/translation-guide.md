@@ -268,8 +268,7 @@ that works best for your workflow:
 
 | Tool                                          | Best For                            | Interface       |
 | --------------------------------------------- | ----------------------------------- | --------------- |
-| **TextureAtlas Toolbox - Translation Editor** | Visual editing with validation      | GUI             |
-| **translate.py**                              | Developers, CI/CD, batch operations | CLI             |
+| **TextureAtlas Toolbox - Translation Editor** | Visual editing with validation      | GUI or CLI      |
 | **Simple Text Format**                        | Contributors who prefer plain text  | CLI/Interactive |
 | **Qt Linguist**                               | Advanced translation workflows      | GUI             |
 | **Text Editor**                               | Quick edits when familiar with XML  | Any             |
@@ -279,69 +278,65 @@ that works best for your workflow:
 ### Option 1: TextureAtlas Toolbox - Translation Editor (Recommended)
 
 The project includes a standalone GUI application specifically designed for managing and editing `.ts` files in a way that makes it easy for people who are less experienced and has several safe checks when saving translations.
-It's located in `tools/translator-app/`.
+It's located in `tools/translator-app/`. For portable versions that are ready to run, check the releases page, they are listed together with TextureAtlas Toolbox releases.
 
 **Features**
 
--   **Smart string grouping**: Identical strings across contexts are grouped together
--   **Syntax highlighting**: Placeholders like `{count}` and `{filename}` are highlighted
--   **Real-time preview**: See how translations look with sample placeholder values
--   **Validation**: Prevents saving files with missing or extra placeholders
--   **Dark/Light mode**: Toggle themes for comfortable editing
--   **Translation services**: Supports Google Cloud, DeepL, and LibreTranslate
--   **File management**: Extract, compile, and update all translation files directly from the GUI
+-   **Smart String Grouping**: Automatically groups identical source strings across multiple contexts, reducing translation work
+-   **Syntax Highlighting**: Highlights placeholders (e.g., `{count}`, `{filename}`) in both source and translation text
+-   **Dark/Light Mode**: Toggle between themes for comfortable editing in any environment
+-   **Real-time Preview**: See how translations look with actual placeholder values
+-   **Validation System**: Prevents saving files with missing or extra placeholders
+-   **Context Information**: Shows all contexts where each string is used
+-   **Copy Source**: Quick button to copy source text as a starting point for translation
+-   **Filter Syntax**: Search with keywords like `is:missing`, `mark:unsure`, `has:placeholder`, `ctx:name`
+-   **Quality Markers**: Mark translations as Unsure, Machine Translated, or Complete with keyboard shortcuts
+-   **Translation Services Integration**: Supports Google Cloud, DeepL and LibreTranslate services
+-   **Language Management**: Register languages, set quality levels, and manage MT disclaimers
+-   **CLI Support**: Batch operations for CI/CD integration
 
 **Running the Editor**
 
-_Windows (Executable):_
+_Windows (Portable - Recommended):_
 
-```
-tools\translator-app\app\Translation Editor.exe
-```
+Run the `Translation Editor.bat` file in `tools/translator-app/`
 
-Or use the shortcut:
+_Linux/macOS:_
 
-```
-tools\translator-app\Launch Translation Editor.bat
-```
-
-_Windows (Standalone):_
-
-```
-tools\translator-app\Translation Editor (Standalone).exe
-```
+Run the `translation-editor.sh` file by double clicking it (check execution permission)
 
 _Python (Any OS):_
 
 ```bash
-python tools/translator-app/src/Main.py
+cd tools/translator-app/src
+python Main.py
 
-# Open a specific file directly
-python tools/translator-app/src/Main.py src/translations/app_sv.ts
+# Or open a specific file directly
+python Main.py path/to/app_sv.ts
 ```
 
 **Quick Start**
 
-1. Click **Open .ts File** or press `Ctrl+O`
-2. Select a translation from the left list
-3. Type your translation in the **Translation** field
-4. Use the preview panel to verify placeholder formatting
-5. Press `Ctrl+S` to save
+1. Run the app
+2. Select existing language or add a new one
+3. Add translation
+4. Save: Use `Ctrl+S` or click "Save .ts File"
 
 **Visual Indicators**
 
-The editor uses colored circles to indicate translation status:
+The editor uses colored indicators to show translation status:
 
-| Color        | Meaning                                       |
-| ------------ | --------------------------------------------- |
-| Green        | Translation complete                          |
-| Red          | Translation missing                           |
-| Yellow/Amber | Needs attention (unsure marker)               |
-| Blue-gray    | String appears in multiple contexts (grouped) |
+| Color  | Meaning                                       |
+| ------ | --------------------------------------------- |
+| Green  | Translation complete                          |
+| Purple | Machine translation                           |
+| Yellow | Unsure                                        |
+| Red    | Translation missing                           |
+| Number badge | String appears in multiple contexts (grouped) |
 
 **Translation Quality Colors**
 
-When viewing language files, additional colors indicate translation quality:
+When viewing language files in the Manage tab, colors indicate the overall translation quality level:
 
 | Color  | Quality Level | Description                           |
 | ------ | ------------- | ------------------------------------- |
@@ -364,6 +359,47 @@ When viewing language files, additional colors indicate translation quality:
 | `Ctrl+F`       | Search translations               |
 | `Ctrl+Down`    | Navigate to next item             |
 | `Ctrl+Up`      | Navigate to previous item         |
+| `Ctrl+Shift+0` | Clear marker (None)               |
+| `Ctrl+Shift+1` | Mark as Unsure                    |
+| `Ctrl+Shift+2` | Mark as Machine Translated        |
+| `Ctrl+Shift+3` | Mark as Complete                  |
+
+**Filter Syntax**
+
+The search box supports structured filter keywords:
+
+| Filter | Description |
+| ------ | ----------- |
+| `is:translated` / `is:done` | Show translated items |
+| `is:missing` / `is:untranslated` | Show untranslated items |
+| `is:mt` / `is:machine` | Show machine translated items |
+| `is:vanished` | Show obsolete/vanished items |
+| `mark:unsure` | Items marked as unsure |
+| `mark:complete` | Items marked as complete |
+| `mark:none` | Items with no marker |
+| `has:placeholder` / `has:ph` | Items containing placeholders |
+| `ctx:<name>` / `context:<name>` | Items in a specific context |
+
+Examples:
+- `is:missing` — Show only untranslated items
+- `is:mt has:ph` — Machine translated items with placeholders
+- `ctx:SettingsWindow` — Items in the SettingsWindow context
+
+**Advanced Menu**
+
+The **Advanced** menu provides bulk operations:
+
+- **Mark all translations as...** — Apply a marker to all entries in the current file:
+  - None (Clear Markers)
+  - Unsure
+  - Machine Translated
+  - Complete
+
+**Machine Translation API Setup (Optional)**
+
+The Translation Editor supports optional machine translation via DeepL, Google Cloud, or LibreTranslate. Configure API keys via environment variables or the preferences file.
+
+For detailed setup instructions, see the [Translation Editor README](../tools/translator-app/README.md#optional-machine-translation-api-setup).
 
 ---
 
@@ -773,7 +809,7 @@ Variables like `{filename}` don't work.
 **File Corruption**
 If your TS file becomes corrupted:
 
-1. Restore from Git: `git checkout HEAD -- src/translations/app_sv.ts`
+1. If you are using Git, then restore from Git: `git checkout HEAD -- src/translations/app_sv.ts`
 2. Re-extract strings: `python tools/translate.py extract sv`
 3. Reapply your translations
 

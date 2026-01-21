@@ -37,6 +37,8 @@ translator-app/
 
 - **Smart String Grouping**: Automatically groups identical source strings across multiple contexts, reducing translation work
 - **Syntax Highlighting**: Highlights placeholders (e.g., `{count}`, `{filename}`) in both source and translation text
+- **Filter Syntax**: Search with keywords like `is:missing`, `mark:unsure`, `has:placeholder`, `ctx:name`
+- **Quality Markers**: Mark translations as Unsure, Machine Translated, or Complete with keyboard shortcuts
 - **Dark/Light Mode**: Toggle between themes for comfortable editing in any environment
 - **Real-time Preview**: See how translations look with actual placeholder values
 - **Validation System**: Prevents saving files with missing or extra placeholders
@@ -114,6 +116,42 @@ See [Command-Line Interface](#command-line-interface) section below for full det
 - `Ctrl+F`: Search translations
 - `Ctrl+Down`: Next translation
 - `Ctrl+Up`: Previous translation
+- `Ctrl+Shift+0`: Clear marker (None)
+- `Ctrl+Shift+1`: Mark as Unsure
+- `Ctrl+Shift+2`: Mark as Machine Translated
+- `Ctrl+Shift+3`: Mark as Complete
+
+### Filter Syntax (GUI)
+
+The search box supports structured filter keywords:
+
+| Filter | Description |
+|--------|-------------|
+| `is:translated` / `is:done` | Show translated items |
+| `is:missing` / `is:untranslated` | Show untranslated items |
+| `is:mt` / `is:machine` | Show machine translated items |
+| `is:vanished` | Show obsolete/vanished items |
+| `mark:unsure` | Items marked as unsure |
+| `mark:complete` | Items marked as complete |
+| `mark:none` | Items with no marker |
+| `has:placeholder` / `has:ph` | Items containing placeholders |
+| `ctx:<name>` / `context:<name>` | Items in a specific context |
+
+**Examples:**
+- `is:missing` — Show only untranslated items
+- `is:mt has:ph` — Machine translated items with placeholders
+- `ctx:SettingsWindow` — Items in the SettingsWindow context
+- `hello world` — Plain text search in source and translation
+
+### Advanced Menu (GUI)
+
+The **Advanced** menu provides bulk operations:
+
+- **Mark all translations as...** — Apply a marker to all entries in the current file:
+  - None (Clear Markers)
+  - Unsure
+  - Machine Translated
+  - Complete
 
 ## Command-Line Interface
 
