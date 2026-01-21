@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Backend for running Qt translation commands and managing .ts/.qm files.
+"""Backend for Qt translation commands and .ts/.qm file management.
 
-This module provides LocalizationOperations, the main engine that wraps
-lupdate/lrelease commands, generates resource files, injects machine-translation
-disclaimers, and reports progress. Used by both the GUI and CLI.
+Provides LocalizationOperations, the main engine that wraps lupdate/lrelease
+commands, generates resource files, manages machine-translation disclaimers,
+and reports progress. Used by both the GUI and CLI.
 
-Usage:
+Usage::
+
     from localization.operations import LocalizationOperations
 
     ops = LocalizationOperations()
@@ -719,6 +720,8 @@ class LocalizationOperations:
         Returns:
             An OperationResult listing which files were modified.
         """
+        import re
+
         self._ensure_translations_dir()
         result = OperationResult("remove_disclaimer", True)
         selected = normalize_languages(languages)
@@ -734,10 +737,31 @@ class LocalizationOperations:
                 result.add_log(f"No disclaimer found in {ts_file.name}")
                 continue
 
-            updated = content.replace(DISCLAIMER_BLOCK + "\n", "")
-            updated = updated.replace(DISCLAIMER_BLOCK, "")
+            updated = content
+            removed = False
 
-            ts_file.write_text(updated, encoding="utf-8")
+            if DISCLAIMER_BLOCK + "\n" in updated:
+                updated = updated.replace(DISCLAIMER_BLOCK + "\n", "")
+                removed = True
+            elif DISCLAIMER_BLOCK in updated:
+                updated = updated.replace(DISCLAIMER_BLOCK, "")
+                removed = True
+
+            if not removed or "MachineTranslationDisclaimer</name>" in updated:
+                pattern = r"<context>\s*<name>MachineTranslationDisclaimer</name>(?!Dialog).*?</context>\s*"
+                updated, count = re.subn(pattern, "", updated, flags=re.DOTALL)
+                if count > 0:
+                    removed = True
+
+            if "<name>MachineTranslationDisclaimer</name>" in updated:
+                result.add_error(
+                    f"Failed to remove disclaimer from {ts_file.name} - pattern mismatch"
+                )
+                continue
+
+            with open(ts_file, "w", encoding="utf-8") as f:
+                f.write(updated)
+                f.flush()
             result.add_log(f"Removed disclaimer from {ts_file.name}")
         return result
 

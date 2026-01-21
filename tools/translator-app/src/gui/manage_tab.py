@@ -1,8 +1,8 @@
 """Manage tab widget for translation file and language operations.
 
 Provides a UI for running Qt localization commands (lupdate, lrelease),
-managing the language registry, checking translation progress, and cleaning
-up vanished strings across multiple .ts files.
+managing the language registry, tracking translation progress across files,
+and batch operations like removing vanished strings or MT disclaimers.
 """
 
 from __future__ import annotations
@@ -841,7 +841,7 @@ class ManageTab(QWidget):
         elif op_name == "status":
             self._enqueue_operation(self.localization_ops.status_report, languages)
         elif op_name == "disclaimer":
-            self._enqueue_operation(self.localization_ops.toggle_disclaimers, languages)
+            self._handle_disclaimer_operation(languages)
         else:
             QMessageBox.warning(
                 self, "Unknown Operation", f"Unsupported action: {op_name}"
@@ -863,6 +863,79 @@ class ManageTab(QWidget):
         worker.signals.failed.connect(self._handle_operation_failed)
         self._current_worker = worker  # Keep reference to prevent premature GC
         self.thread_pool.start(worker)
+
+    def _handle_disclaimer_operation(self, languages: List[str]) -> None:
+        """Handle disclaimer add/remove operations for selected languages.
+
+        Args:
+            languages: List of language codes to process.
+        """
+        if not languages:
+            return
+
+        has_disclaimer_count = sum(
+            1 for lang in languages if self.localization_ops.has_disclaimer(lang)
+        )
+
+        is_removal = has_disclaimer_count == len(languages)
+
+        if is_removal:
+            lang_list = ", ".join(lang.upper() for lang in languages)
+            reply = QMessageBox.question(
+                self,
+                "Remove MT Disclaimers",
+                f"Remove machine translation disclaimers from {len(languages)} file(s)?\n\n"
+                f"Languages: {lang_list}",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.Yes,
+            )
+
+            if reply == QMessageBox.Yes:
+                if self.status_bar:
+                    self.status_bar.showMessage(
+                        f"Removing machine translation disclaimers from {len(languages)} file(s)..."
+                    )
+
+                if self.manage_log_view:
+                    self.manage_log_view.appendPlainText(
+                        f"Removing machine translation disclaimers from {len(languages)} file(s): {lang_list}"
+                    )
+
+                result = self.localization_ops.remove_disclaimers(languages)
+                self.append_manage_log(result)
+
+                removed_count = sum(
+                    1 for log in result.logs if "Removed disclaimer" in log
+                )
+                skipped_count = sum(
+                    1 for log in result.logs if "No disclaimer found" in log
+                )
+
+                if self.manage_log_view:
+                    summary = f"Summary: {removed_count} removed"
+                    if skipped_count > 0:
+                        summary += f", {skipped_count} already clean"
+                    if result.errors:
+                        summary += f", {len(result.errors)} failed"
+                    self.manage_log_view.appendPlainText(summary + "\n")
+
+                if result.success:
+                    status_msg = f"Removed machine translation disclaimers from {removed_count} file(s)"
+                    if skipped_count > 0:
+                        status_msg += f" ({skipped_count} already clean)"
+                    if self.status_bar:
+                        self.status_bar.showMessage(status_msg)
+                else:
+                    error_count = len(result.errors)
+                    if self.status_bar:
+                        self.status_bar.showMessage(
+                            f"Machine translation disclaimer removal: {removed_count} OK, {error_count} failed"
+                        )
+
+                self._refresh_status_table()
+                self._update_disclaimer_button_text()
+        else:
+            self._enqueue_operation(self.localization_ops.toggle_disclaimers, languages)
 
     def _handle_operation_completed(self, payload: object) -> None:
         """Process results when a background operation finishes successfully.
