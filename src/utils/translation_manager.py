@@ -40,7 +40,7 @@ LANGUAGE_METADATA: dict[str, dict[str, str]] = {
     "pt_br": {
         "name": "Português (Brasil)",
         "english_name": "Portuguese (Brazil)",
-        "quality": "unknown",
+        "quality": "machine",
     },
     "sv_se": {"name": "Svenska", "english_name": "Swedish", "quality": "machine"},
     "zh_cn": {
@@ -466,22 +466,66 @@ class TranslationManager:
 
         return f"{native_name} / {english_name}"
 
-    def get_machine_translation_disclaimer(self) -> tuple[str, str]:
-        """Get the machine translation disclaimer in the current language.
+    # Pre-translated machine translation disclaimers for each language
+    # These are used when the .ts file translations aren't available
+    DISCLAIMER_TRANSLATIONS: dict[str, str] = {
+        "de_de": "Diese Sprache wurde automatisch übersetzt und kann Ungenauigkeiten enthalten. "
+        "Wenn Sie bessere Übersetzungen beitragen möchten, besuchen Sie bitte unser GitHub-Repository.",
+        "es_es": "Este idioma fue traducido automáticamente y puede contener inexactitudes. "
+        "Si desea contribuir con mejores traducciones, visite nuestro repositorio de GitHub.",
+        "fr_fr": "Cette langue a été traduite automatiquement et peut contenir des inexactitudes. "
+        "Si vous souhaitez contribuer à de meilleures traductions, veuillez visiter notre dépôt GitHub.",
+        "it_it": "Questa lingua è stata tradotta automaticamente e potrebbe contenere imprecisioni. "
+        "Se desideri contribuire con traduzioni migliori, visita il nostro repository GitHub.",
+        "ja_jp": "この言語は自動翻訳されており、不正確な部分が含まれている可能性があります。"
+        "より良い翻訳に貢献したい場合は、GitHubリポジトリをご覧ください。",
+        "ko_kr": "이 언어는 자동 번역되었으며 부정확한 내용이 포함될 수 있습니다. "
+        "더 나은 번역에 기여하고 싶으시다면 GitHub 저장소를 방문해 주세요.",
+        "nl_nl": "Deze taal is automatisch vertaald en kan onnauwkeurigheden bevatten. "
+        "Als u betere vertalingen wilt bijdragen, bezoek dan onze GitHub-repository.",
+        "pl_pl": "Ten język został przetłumaczony automatycznie i może zawierać nieścisłości. "
+        "Jeśli chcesz przyczynić się do lepszych tłumaczeń, odwiedź nasze repozytorium GitHub.",
+        "pt_br": "Este idioma foi traduzido automaticamente e pode conter imprecisões. "
+        "Se você gostaria de contribuir com melhores traduções, visite nosso repositório no GitHub.",
+        "sv_se": "Detta språk har översatts automatiskt och kan innehålla felaktigheter. "
+        "Om du vill bidra med bättre översättningar, besök vårt GitHub-arkiv.",
+        "zh_cn": "此语言为自动翻译，可能包含不准确之处。"
+        "如果您想贡献更好的翻译，请访问我们的 GitHub 仓库。",
+        "da_dk": "Dette sprog er automatisk oversat og kan indeholde unøjagtigheder. "
+        "Hvis du gerne vil bidrage med bedre oversættelser, besøg venligst vores GitHub-repository.",
+    }
+
+    def get_machine_translation_disclaimer(
+        self, target_language_code: str | None = None
+    ) -> tuple[str, str, str]:
+        """Get the machine translation disclaimer in both target language and English.
+
+        Uses pre-translated disclaimers for machine-translated languages to ensure
+        users can preview the translation quality.
+
+        Args:
+            target_language_code: Optional language code to get disclaimer in.
+                If None, uses current active translation.
 
         Returns:
-            A tuple (title, message) for displaying a disclaimer dialog.
+            A tuple (title, target_message, english_message) for displaying
+            a disclaimer dialog with both language versions.
         """
-
-        title = QCoreApplication.translate(
-            "MachineTranslationDisclaimer", "Machine Translation Notice"
-        )
-        message = QCoreApplication.translate(
-            "MachineTranslationDisclaimer",
+        english_title = "Machine Translation Notice"
+        english_message = (
             "This language was automatically translated and may contain inaccuracies. "
-            "If you would like to contribute better translations, please visit our GitHub repository.",
+            "If you would like to contribute better translations, please visit our GitHub repository."
         )
-        return title, message
+
+        # Use pre-translated disclaimer only for machine-translated languages
+        target_message = english_message
+        if target_language_code and target_language_code != "en_us":
+            if self.is_machine_translated(target_language_code):
+                target_message = self.DISCLAIMER_TRANSLATIONS.get(
+                    target_language_code, english_message
+                )
+
+        return english_title, target_message, english_message
 
 
 DEFAULT_TRANSLATION_CONTEXT = "TextureAtlasExtractorApp"
