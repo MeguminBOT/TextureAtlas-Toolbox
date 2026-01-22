@@ -79,10 +79,15 @@ class OverrideSettingsWindow(QDialog):
     tr = translate
 
     UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
+    DURATION_UTILS_CONTEXT = "ExtractTabWidget"
 
     def trc(self, text: str) -> str:
         """Translate a string from ui_constants using its proper context."""
         return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
+
+    def trd(self, text: str) -> str:
+        """Translate a string from duration_utils using its proper context."""
+        return QCoreApplication.translate(self.DURATION_UTILS_CONTEXT, text)
 
     def __init__(
         self, parent, name, settings_type, settings_manager, on_store_callback, app=None
@@ -427,7 +432,7 @@ class OverrideSettingsWindow(QDialog):
             Translated label string based on duration_input_type.
         """
         display_meta = self._get_duration_display_meta()
-        return self.tr(display_meta.label)
+        return self.trd(display_meta.label)
 
     def _configure_fps_spinbox(self):
         """Configure the FPS spinbox range, suffix, and tooltip.
@@ -437,8 +442,8 @@ class OverrideSettingsWindow(QDialog):
         """
         display_meta = self._get_duration_display_meta()
         self.fps_spinbox.setRange(display_meta.min_value, display_meta.max_value)
-        self.fps_spinbox.setSuffix(self.tr(display_meta.suffix))
-        self.fps_spinbox.setToolTip(self.tr(display_meta.tooltip))
+        self.fps_spinbox.setSuffix(self.trd(display_meta.suffix))
+        self.fps_spinbox.setToolTip(self.trd(display_meta.tooltip))
 
     def _duration_ms_to_display(self, duration_ms: int) -> int:
         """Convert a millisecond duration to the current display unit.

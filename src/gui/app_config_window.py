@@ -87,6 +87,9 @@ class AppConfigWindow(QDialog):
     # Context for translating strings from ui_constants module
     UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
 
+    # Context for translating strings from duration_utils module
+    DURATION_UTILS_CONTEXT = "ExtractTabWidget"
+
     def trc(self, text: str) -> str:
         """Translate a string from ui_constants using its proper context.
 
@@ -101,6 +104,21 @@ class AppConfigWindow(QDialog):
             The translated string.
         """
         return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
+
+    def trd(self, text: str) -> str:
+        """Translate a string from duration_utils using its proper context.
+
+        Use this method for strings returned by duration_utils functions
+        (get_duration_display_meta, etc.) to ensure they are looked up
+        in the correct translation context.
+
+        Args:
+            text: The string from duration_utils to translate.
+
+        Returns:
+            The translated string.
+        """
+        return QCoreApplication.translate(self.DURATION_UTILS_CONTEXT, text)
 
     def __init__(self, parent, app_config):
         """Initialize the configuration dialog.
@@ -511,9 +529,9 @@ class AppConfigWindow(QDialog):
         resampling_combo.addItems(RESAMPLING_DISPLAY_NAMES)
         resampling_combo.setCurrentText("Nearest")
         resampling_combo.setToolTip(
-            "Resampling method for image scaling:\n\n"
+            self.tr("Resampling method for image scaling:\n\n")
             + "\n\n".join(
-                f"• {name}: {get_resampling_tooltip(name).split(chr(10))[0]}"
+                f"• {name}: {self.tr(get_resampling_tooltip(name).split(chr(10))[0])}"
                 for name in RESAMPLING_DISPLAY_NAMES
             )
         )
@@ -634,18 +652,18 @@ class AppConfigWindow(QDialog):
         duration_ms = max(1, int(duration_ms))
         self._duration_value_ms = duration_ms
 
-        label_text = self.tr(display_meta.label)
+        label_text = self.trd(display_meta.label)
         if not label_text.endswith(":"):
             label_text = f"{label_text}:"
         self.duration_label.setText(label_text)
 
-        tooltip = self.tr(display_meta.tooltip)
+        tooltip = self.trd(display_meta.tooltip)
         self.duration_label.setToolTip(tooltip)
         self.duration_spinbox.setToolTip(tooltip)
 
         self.duration_spinbox.blockSignals(True)
         self.duration_spinbox.setRange(display_meta.min_value, display_meta.max_value)
-        self.duration_spinbox.setSuffix(self.tr(display_meta.suffix))
+        self.duration_spinbox.setSuffix(self.trd(display_meta.suffix))
 
         display_value = load_duration_display_value(
             duration_ms,

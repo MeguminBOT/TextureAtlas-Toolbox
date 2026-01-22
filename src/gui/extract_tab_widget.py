@@ -212,6 +212,42 @@ class ExtractTabWidget(BaseTabWidget):
 
     tr = translate
 
+    # Context for translating strings from ui_constants module
+    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
+
+    # Context for translating strings from duration_utils module
+    DURATION_UTILS_CONTEXT = "ExtractTabWidget"
+
+    def trc(self, text: str) -> str:
+        """Translate a string from ui_constants using its proper context.
+
+        Use this method for strings defined in ui_constants.py (Labels,
+        GroupTitles, CheckBoxLabels, etc.) to ensure they are looked up
+        in the correct translation context.
+
+        Args:
+            text: The string constant from ui_constants to translate.
+
+        Returns:
+            The translated string.
+        """
+        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
+
+    def trd(self, text: str) -> str:
+        """Translate a string from duration_utils using its proper context.
+
+        Use this method for strings defined in duration_utils.py
+        (display_meta.label, display_meta.tooltip, display_meta.suffix)
+        to ensure they are looked up in the correct translation context.
+
+        Args:
+            text: The string from duration_utils to translate.
+
+        Returns:
+            The translated string.
+        """
+        return QCoreApplication.translate(self.DURATION_UTILS_CONTEXT, text)
+
     def __init__(self, parent=None, use_existing_ui=False):
         """Initialize the Extract tab UI and hook into parent callbacks.
 
@@ -399,13 +435,13 @@ class ExtractTabWidget(BaseTabWidget):
 
     def create_animation_export_group(self):
         """Create the animation export group box."""
-        group = QGroupBox(self.tr(GroupTitles.ANIMATION_EXPORT))
+        group = QGroupBox(self.trc(GroupTitles.ANIMATION_EXPORT))
         group.setFixedSize(191, 331)
         group.setAlignment(Qt.AlignmentFlag.AlignCenter)
         group.setCheckable(True)
         group.setChecked(True)
 
-        format_label = QLabel(self.tr(Labels.FORMAT))
+        format_label = QLabel(self.trc(Labels.FORMAT))
         format_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         format_label.setGeometry(40, 30, 111, 16)
         format_label.setParent(group)
@@ -416,7 +452,7 @@ class ExtractTabWidget(BaseTabWidget):
             get_display_texts(ANIMATION_FORMAT_OPTIONS)
         )
 
-        self.frame_rate_label = QLabel(self.tr(Labels.FRAME_RATE))
+        self.frame_rate_label = QLabel(self.trc(Labels.FRAME_RATE))
         self.frame_rate_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.frame_rate_label.setGeometry(40, 80, 111, 16)
         self.frame_rate_label.setParent(group)
@@ -425,7 +461,7 @@ class ExtractTabWidget(BaseTabWidget):
         self.frame_rate_entry.setGeometry(10, 100, 171, 24)
         configure_spinbox(self.frame_rate_entry, SpinBoxConfig.FRAME_RATE)
 
-        loop_delay_label = QLabel(self.tr(Labels.LOOP_DELAY))
+        loop_delay_label = QLabel(self.trc(Labels.LOOP_DELAY))
         loop_delay_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         loop_delay_label.setGeometry(40, 130, 111, 16)
         loop_delay_label.setParent(group)
@@ -435,7 +471,7 @@ class ExtractTabWidget(BaseTabWidget):
         self.loop_delay_entry.setRange(0, 10000)
         self.loop_delay_entry.setValue(250)
 
-        min_period_label = QLabel(self.tr(Labels.MIN_PERIOD))
+        min_period_label = QLabel(self.trc(Labels.MIN_PERIOD))
         min_period_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         min_period_label.setGeometry(40, 180, 111, 16)
         min_period_label.setParent(group)
@@ -445,7 +481,7 @@ class ExtractTabWidget(BaseTabWidget):
         self.min_period_entry.setRange(0, 10000)
         self.min_period_entry.setValue(0)
 
-        scale_label = QLabel(self.tr(Labels.SCALE))
+        scale_label = QLabel(self.trc(Labels.SCALE))
         scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         scale_label.setGeometry(40, 230, 111, 16)
         scale_label.setParent(group)
@@ -454,7 +490,7 @@ class ExtractTabWidget(BaseTabWidget):
         self.scale_entry.setGeometry(10, 250, 171, 24)
         configure_spinbox(self.scale_entry, SpinBoxConfig.SCALE)
 
-        threshold_label = QLabel(self.tr(Labels.ALPHA_THRESHOLD))
+        threshold_label = QLabel(self.trc(Labels.ALPHA_THRESHOLD))
         threshold_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         threshold_label.setGeometry(40, 280, 111, 16)
         threshold_label.setParent(group)
@@ -468,13 +504,13 @@ class ExtractTabWidget(BaseTabWidget):
 
     def create_frame_export_group(self):
         """Create the frame export group box."""
-        group = QGroupBox(self.tr(GroupTitles.FRAME_EXPORT))
+        group = QGroupBox(self.trc(GroupTitles.FRAME_EXPORT))
         group.setFixedSize(191, 331)
         group.setAlignment(Qt.AlignmentFlag.AlignCenter)
         group.setCheckable(True)
         group.setChecked(True)
 
-        format_label = QLabel(self.tr(Labels.FORMAT))
+        format_label = QLabel(self.trc(Labels.FORMAT))
         format_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         format_label.setGeometry(40, 30, 111, 16)
         format_label.setParent(group)
@@ -483,7 +519,7 @@ class ExtractTabWidget(BaseTabWidget):
         self.frame_format_combobox.setGeometry(10, 50, 171, 24)
         self.frame_format_combobox.addItems(get_display_texts(FRAME_FORMAT_OPTIONS))
 
-        selection_label = QLabel(self.tr(Labels.FRAME_SELECTION_TITLE))
+        selection_label = QLabel(self.trc(Labels.FRAME_SELECTION_TITLE))
         selection_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         selection_label.setGeometry(40, 80, 111, 16)
         selection_label.setParent(group)
@@ -494,7 +530,7 @@ class ExtractTabWidget(BaseTabWidget):
             self.frame_selection_combobox, FRAME_SELECTION_OPTIONS, self.tr
         )
 
-        scale_label = QLabel(self.tr(Labels.FRAME_SCALE))
+        scale_label = QLabel(self.trc(Labels.FRAME_SCALE))
         scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         scale_label.setGeometry(40, 130, 111, 16)
         scale_label.setParent(group)
@@ -503,7 +539,7 @@ class ExtractTabWidget(BaseTabWidget):
         self.frame_scale_entry.setGeometry(10, 150, 171, 24)
         configure_spinbox(self.frame_scale_entry, SpinBoxConfig.FRAME_SCALE)
 
-        resampling_label = QLabel(self.tr(Labels.RESAMPLING))
+        resampling_label = QLabel(self.trc(Labels.RESAMPLING))
         resampling_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         resampling_label.setGeometry(40, 180, 111, 16)
         resampling_label.setParent(group)
@@ -515,7 +551,7 @@ class ExtractTabWidget(BaseTabWidget):
         )
 
         self.compression_settings_button = QPushButton(
-            self.tr(ButtonLabels.COMPRESSION_SETTINGS)
+            self.trc(ButtonLabels.COMPRESSION_SETTINGS)
         )
         self.compression_settings_button.setGeometry(10, 240, 171, 24)
         self.compression_settings_button.setParent(group)
@@ -540,7 +576,7 @@ class ExtractTabWidget(BaseTabWidget):
         filename_widget = QWidget()
         layout = QHBoxLayout(filename_widget)
 
-        cropping_label = QLabel(self.tr(Labels.CROPPING_METHOD))
+        cropping_label = QLabel(self.trc(Labels.CROPPING_METHOD))
         cropping_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(cropping_label)
 
@@ -550,7 +586,7 @@ class ExtractTabWidget(BaseTabWidget):
         )
         layout.addWidget(self.cropping_method_combobox)
 
-        format_label = QLabel(self.tr(Labels.FILENAME_FORMAT))
+        format_label = QLabel(self.trc(Labels.FILENAME_FORMAT))
         layout.addWidget(format_label)
 
         self.filename_format_combobox = QComboBox()
@@ -559,13 +595,13 @@ class ExtractTabWidget(BaseTabWidget):
         )
         layout.addWidget(self.filename_format_combobox)
 
-        prefix_label = QLabel(self.tr(Labels.PREFIX))
+        prefix_label = QLabel(self.trc(Labels.PREFIX))
         layout.addWidget(prefix_label)
 
         self.filename_prefix_entry = QLineEdit()
         layout.addWidget(self.filename_prefix_entry)
 
-        suffix_label = QLabel(self.tr(Labels.SUFFIX))
+        suffix_label = QLabel(self.trc(Labels.SUFFIX))
         layout.addWidget(suffix_label)
 
         self.filename_suffix_entry = QLineEdit()
@@ -598,7 +634,7 @@ class ExtractTabWidget(BaseTabWidget):
         )
         layout.addWidget(self.override_animation_settings_button)
 
-        self.reset_button = QPushButton(self.tr(ButtonLabels.RESET))
+        self.reset_button = QPushButton(self.trc(ButtonLabels.RESET))
         layout.addWidget(self.reset_button)
 
         self.start_process_button = QPushButton(self.tr("Start process"))
@@ -752,7 +788,7 @@ class ExtractTabWidget(BaseTabWidget):
         anim_format = self._get_animation_format()
         display_meta = get_duration_display_meta(duration_type, anim_format)
         resolved_type = display_meta.resolved_type
-        duration_tooltip = self.tr(display_meta.tooltip)
+        duration_tooltip = self.trd(display_meta.tooltip)
 
         prev_type = getattr(self, "_prev_duration_type", resolved_type)
         current_value = self.frame_rate_entry.value()
@@ -768,9 +804,9 @@ class ExtractTabWidget(BaseTabWidget):
         # Store the current resolved type for next conversion
         self._prev_duration_type = resolved_type
 
-        self.frame_rate_label.setText(self.tr(display_meta.label))
+        self.frame_rate_label.setText(self.trd(display_meta.label))
         self.frame_rate_entry.setRange(display_meta.min_value, display_meta.max_value)
-        self.frame_rate_entry.setSuffix(self.tr(display_meta.suffix))
+        self.frame_rate_entry.setSuffix(self.trd(display_meta.suffix))
 
         self.frame_rate_entry.setValue(converted_value)
         self.frame_rate_label.setToolTip(duration_tooltip)
@@ -828,7 +864,7 @@ class ExtractTabWidget(BaseTabWidget):
 
         directory = QFileDialog.getExistingDirectory(
             self,
-            self.tr(FileDialogTitles.SELECT_INPUT_DIR),
+            self.trc(FileDialogTitles.SELECT_INPUT_DIR),
             start_directory,
             QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks,
         )
@@ -850,7 +886,7 @@ class ExtractTabWidget(BaseTabWidget):
 
         directory = QFileDialog.getExistingDirectory(
             self,
-            self.tr(FileDialogTitles.SELECT_OUTPUT_DIR),
+            self.trc(FileDialogTitles.SELECT_OUTPUT_DIR),
             start_directory,
             QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks,
         )
@@ -870,7 +906,7 @@ class ExtractTabWidget(BaseTabWidget):
 
         dialog = SpritesheetFileDialog(
             self,
-            self.tr(FileDialogTitles.SELECT_FILES),
+            self.trc(FileDialogTitles.SELECT_FILES),
             start_directory,
             self.SPRITESHEET_METADATA_FILTERS,
             use_native_dialog,
@@ -1704,7 +1740,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not current_spritesheet_item:
             QMessageBox.information(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Please select a spritesheet first."),
             )
             return
@@ -1740,7 +1776,7 @@ class ExtractTabWidget(BaseTabWidget):
         except Exception as e:
             QMessageBox.warning(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Could not open animation settings: {error}").format(
                     error=str(e)
                 ),
@@ -1783,7 +1819,7 @@ class ExtractTabWidget(BaseTabWidget):
         except Exception as e:
             QMessageBox.warning(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Could not open spritesheet settings: {error}").format(
                     error=str(e)
                 ),
@@ -1798,7 +1834,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not current_item:
             QMessageBox.information(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Please select a spritesheet first."),
             )
             return
@@ -1830,7 +1866,7 @@ class ExtractTabWidget(BaseTabWidget):
         except Exception as e:
             QMessageBox.warning(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Could not open spritesheet settings: {error}").format(
                     error=str(e)
                 ),
@@ -2053,7 +2089,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not current_item:
             QMessageBox.information(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Please select an animation first."),
             )
             return
@@ -2062,7 +2098,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not current_spritesheet_item:
             QMessageBox.information(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Please select a spritesheet first."),
             )
             return
@@ -2098,7 +2134,7 @@ class ExtractTabWidget(BaseTabWidget):
         except Exception as e:
             QMessageBox.warning(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Could not open animation settings: {error}").format(
                     error=str(e)
                 ),
@@ -2118,7 +2154,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not current_item:
             QMessageBox.information(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Please select an animation first."),
             )
             return
@@ -2127,7 +2163,7 @@ class ExtractTabWidget(BaseTabWidget):
         if not current_spritesheet_item:
             QMessageBox.information(
                 self,
-                self.tr(DialogTitles.ERROR),
+                self.trc(DialogTitles.ERROR),
                 self.tr("Please select a spritesheet first."),
             )
             return
@@ -2140,7 +2176,7 @@ class ExtractTabWidget(BaseTabWidget):
             if not spritesheet_path:
                 QMessageBox.warning(
                     self,
-                    self.tr(DialogTitles.PREVIEW_ERROR),
+                    self.trc(DialogTitles.PREVIEW_ERROR),
                     self.tr("Could not find spritesheet file path."),
                 )
                 return

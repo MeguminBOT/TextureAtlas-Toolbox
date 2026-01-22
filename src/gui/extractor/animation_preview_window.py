@@ -546,10 +546,15 @@ class AnimationPreviewWindow(QDialog):
     settings_saved = Signal(dict)
 
     UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
+    DURATION_UTILS_CONTEXT = "ExtractTabWidget"
 
     def trc(self, text: str) -> str:
         """Translate a string from ui_constants using its proper context."""
         return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
+
+    def trd(self, text: str) -> str:
+        """Translate a string from duration_utils using its proper context."""
+        return QCoreApplication.translate(self.DURATION_UTILS_CONTEXT, text)
 
     def __init__(self, parent, animation_path: str, settings: dict):
         """Create the preview dialog and start loading frames.
@@ -1725,7 +1730,7 @@ class AnimationPreviewWindow(QDialog):
         )
         display_meta = get_duration_display_meta(duration_type, anim_format)
         resolved_type = display_meta.resolved_type
-        duration_tooltip = self.tr(display_meta.tooltip)
+        duration_tooltip = self.trd(display_meta.tooltip)
 
         prev_type = getattr(self, "_prev_duration_type", resolved_type)
         current_value = self.fps_spinbox.value()
@@ -1739,9 +1744,9 @@ class AnimationPreviewWindow(QDialog):
 
         self._prev_duration_type = resolved_type
 
-        self.fps_label.setText(self.tr(display_meta.label))
+        self.fps_label.setText(self.trd(display_meta.label))
         self.fps_spinbox.setRange(display_meta.min_value, display_meta.max_value)
-        self.fps_spinbox.setSuffix(self.tr(display_meta.suffix))
+        self.fps_spinbox.setSuffix(self.trd(display_meta.suffix))
 
         self.fps_spinbox.setValue(converted_value)
         self.fps_label.setToolTip(duration_tooltip)
@@ -1966,10 +1971,10 @@ class AnimationPreviewWindow(QDialog):
                 max_value = min(10000, max_value)
                 single_step = 10
 
-            self.fps_label.setText(self.tr(display_meta.label))
+            self.fps_label.setText(self.trd(display_meta.label))
             self.fps_spinbox.setRange(min_value, max_value)
-            self.fps_spinbox.setSuffix(self.tr(display_meta.suffix))
-            self.fps_spinbox.setToolTip(self.tr(display_meta.tooltip))
+            self.fps_spinbox.setSuffix(self.trd(display_meta.suffix))
+            self.fps_spinbox.setToolTip(self.trd(display_meta.tooltip))
             self.fps_spinbox.setSingleStep(single_step)
 
             self._per_frame_duration_type = resolved_type

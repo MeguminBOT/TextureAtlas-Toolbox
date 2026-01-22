@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Scrollable help dialogs for application documentation and FNF guidance."""
 
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit
 from PySide6.QtGui import QFont
 
@@ -13,6 +14,12 @@ class HelpWindow(QDialog):
     """Modal dialog displaying scrollable help text with monospace formatting."""
 
     tr = translate
+
+    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
+
+    def trc(self, text: str) -> str:
+        """Translate a string from ui_constants using its proper context."""
+        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
 
     def __init__(self, parent=None, help_text="", title="Help"):
         """Initialize the help dialog with the given content.
@@ -41,7 +48,7 @@ class HelpWindow(QDialog):
         text_edit.setFont(QFont("Consolas", 10))
         layout.addWidget(text_edit)
 
-        close_btn = QPushButton(self.tr(ButtonLabels.CLOSE))
+        close_btn = QPushButton(self.trc(ButtonLabels.CLOSE))
         close_btn.clicked.connect(self.close)
         close_btn.setMaximumWidth(100)
 

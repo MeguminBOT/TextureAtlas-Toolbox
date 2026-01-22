@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QCheckBox,
 )
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QCoreApplication, QThread, Signal
 
 from gui.base_tab_widget import BaseTabWidget
 
@@ -148,6 +148,24 @@ class GenerateTabWidget(BaseTabWidget):
 
     # Constants
     tr = translate
+
+    # Context for translating strings from ui_constants module
+    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
+
+    def trc(self, text: str) -> str:
+        """Translate a string from ui_constants using its proper context.
+
+        Use this method for strings defined in ui_constants.py (Labels,
+        GroupTitles, CheckBoxLabels, etc.) to ensure they are looked up
+        in the correct translation context.
+
+        Args:
+            text: The string constant from ui_constants to translate.
+
+        Returns:
+            The translated string.
+        """
+        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
 
     def __init__(self, ui, parent=None):
         """Initialize the Generate tab as a UI controller.
@@ -373,11 +391,15 @@ class GenerateTabWidget(BaseTabWidget):
             )
         )
 
-        self.padding_spin.setToolTip(
-            self.tr(
-                "Pixels of padding between sprites.\n\n"
-                "Padding helps prevent texture bleeding during rendering,\n"
-                "especially when using texture filtering or mipmaps."
+        padding_tip = self.tr(
+            "Pixels of padding between sprites.\n\n"
+            "Padding helps prevent texture bleeding during rendering,\n"
+            "especially when using texture filtering or mipmaps."
+        )
+        self.padding_spin.setToolTip(padding_tip)
+        self.padding_spin.setStatusTip(
+            self.trc(
+                "Adds some extra whitespace between textures or sprites to ensure they won't overlap"
             )
         )
 
@@ -439,7 +461,7 @@ class GenerateTabWidget(BaseTabWidget):
         """Add individual files to a new animation group."""
         files, _ = QFileDialog.getOpenFileNames(
             self,
-            self.tr(FileDialogTitles.SELECT_FRAMES),
+            self.trc(FileDialogTitles.SELECT_FRAMES),
             "",
             self.get_image_file_filter(),
         )
@@ -450,7 +472,7 @@ class GenerateTabWidget(BaseTabWidget):
     def add_directory(self):
         """Add all images from a directory to the frame list."""
         directory = QFileDialog.getExistingDirectory(
-            self, self.tr(FileDialogTitles.SELECT_FRAME_DIR), ""
+            self, self.trc(FileDialogTitles.SELECT_FRAME_DIR), ""
         )
 
         if directory:
@@ -525,7 +547,7 @@ class GenerateTabWidget(BaseTabWidget):
         # First select the atlas image file (any supported format)
         atlas_file, _ = QFileDialog.getOpenFileName(
             self,
-            self.tr(FileDialogTitles.SELECT_ATLAS_IMAGE),
+            self.trc(FileDialogTitles.SELECT_ATLAS_IMAGE),
             "",
             self.get_atlas_image_file_filter(),
         )
@@ -551,7 +573,7 @@ class GenerateTabWidget(BaseTabWidget):
         if not data_file:
             data_file, _ = QFileDialog.getOpenFileName(
                 self,
-                self.tr(FileDialogTitles.SELECT_ATLAS_DATA),
+                self.trc(FileDialogTitles.SELECT_ATLAS_DATA),
                 str(atlas_directory),
                 self.get_data_file_filter(),
             )
@@ -856,13 +878,13 @@ class GenerateTabWidget(BaseTabWidget):
     def _setup_heuristic_combo(self):
         """Create and insert the heuristic combo box and compression button."""
         # Create label and combo box for heuristic selection
-        self.heuristic_label = QLabel(self.tr(Labels.HEURISTIC))
+        self.heuristic_label = QLabel(self.trc(Labels.HEURISTIC))
         self.heuristic_combobox = QComboBox()
         self.heuristic_combobox.setMinimumWidth(140)
 
         # Create compression settings button
         self.compression_settings_button = QPushButton(
-            self.tr(ButtonLabels.COMPRESSION_SETTINGS)
+            self.trc(ButtonLabels.COMPRESSION_SETTINGS)
         )
         self.compression_settings_button.setToolTip(
             self.tr(
@@ -1018,7 +1040,7 @@ class GenerateTabWidget(BaseTabWidget):
 
     def _setup_trim_checkbox(self):
         """Create and insert the trim sprites checkbox."""
-        self.trim_sprites_check = QCheckBox(self.tr(CheckBoxLabels.TRIM_SPRITES))
+        self.trim_sprites_check = QCheckBox(self.trc(CheckBoxLabels.TRIM_SPRITES))
         self.trim_sprites_check.setChecked(False)
         self.trim_sprites_check.setToolTip(
             self.tr(
@@ -1294,7 +1316,7 @@ class GenerateTabWidget(BaseTabWidget):
         # Open save dialog to select output path
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            self.tr(FileDialogTitles.SAVE_ATLAS_AS),
+            self.trc(FileDialogTitles.SAVE_ATLAS_AS),
             "",
             self.get_output_file_filter(),
         )

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Dialog for selecting the application display language."""
 
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QDialog,
@@ -35,6 +36,12 @@ class LanguageSelectionWindow(QDialog):
     """
 
     tr = translate
+
+    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
+
+    def trc(self, text: str) -> str:
+        """Translate a string from ui_constants using its proper context."""
+        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
 
     def __init__(self, parent=None, current_language="en_us"):
         """Initialize the language selection dialog.
@@ -174,11 +181,11 @@ class LanguageSelectionWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        self.cancel_button = QPushButton(self.tr(ButtonLabels.CANCEL))
+        self.cancel_button = QPushButton(self.trc(ButtonLabels.CANCEL))
         self.cancel_button.setMinimumWidth(80)
         button_layout.addWidget(self.cancel_button)
 
-        self.apply_button = QPushButton(self.tr(ButtonLabels.APPLY))
+        self.apply_button = QPushButton(self.trc(ButtonLabels.APPLY))
         self.apply_button.setMinimumWidth(80)
         self.apply_button.setDefault(True)
         button_layout.addWidget(self.apply_button)

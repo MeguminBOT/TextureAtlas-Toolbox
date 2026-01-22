@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QFrame,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QCoreApplication, Qt
 from PySide6.QtGui import QFont
 
 from utils.translation_manager import tr as translate
@@ -29,6 +29,12 @@ class SettingsWindow(QDialog):
     """
 
     tr = translate
+
+    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
+
+    def trc(self, text: str) -> str:
+        """Translate a string from ui_constants using its proper context."""
+        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
 
     def __init__(self, parent, settings_manager):
         """Initialize the settings overview dialog.
@@ -62,7 +68,7 @@ class SettingsWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        close_button = QPushButton(self.tr(ButtonLabels.CLOSE))
+        close_button = QPushButton(self.trc(ButtonLabels.CLOSE))
         close_button.clicked.connect(self.accept)
         button_layout.addWidget(close_button)
 
