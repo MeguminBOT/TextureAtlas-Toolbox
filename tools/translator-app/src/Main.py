@@ -420,7 +420,10 @@ class TranslationEditor(QMainWindow):
                     source_elem = message.find("source")
                     translation_elem = message.find("translation")
                     location_elem = message.find("location")
-                    comment_elem = message.find("comment")
+                    # Read from translatorcomment (preferred) or fall back to comment
+                    comment_elem = message.find("translatorcomment")
+                    if comment_elem is None:
+                        comment_elem = message.find("comment")
 
                     source = (
                         source_elem.text
@@ -448,9 +451,9 @@ class TranslationEditor(QMainWindow):
                             marker = TranslationMarker.from_string(
                                 marker_match.group(1)
                             )
-
-                        if "[machine]" in comment_elem.text:
-                            is_machine_translated = True
+                            # Derive machine translated status from marker
+                            if marker == TranslationMarker.MACHINE_TRANSLATED:
+                                is_machine_translated = True
                     is_vanished = trans_type in ("vanished", "obsolete")
 
                     filename = ""
@@ -721,14 +724,15 @@ class TranslationEditor(QMainWindow):
                     source_elem = ET.SubElement(message_elem, "source")
                     source_elem.text = item.source
 
-                    # Save translation marker and machine flag as comment with prefixes
+                    # Save translation marker and machine flag as translatorcomment
+                    # (translatorcomment is preserved by lupdate, unlike comment)
                     comment_parts = []
                     if item.marker and item.marker != TranslationMarker.NONE:
                         comment_parts.append(f"[marker:{item.marker.value}]")
                     if item.is_machine_translated:
                         comment_parts.append("[machine]")
                     if comment_parts:
-                        comment_elem = ET.SubElement(message_elem, "comment")
+                        comment_elem = ET.SubElement(message_elem, "translatorcomment")
                         comment_elem.text = " ".join(comment_parts)
 
                     translation_elem = ET.SubElement(message_elem, "translation")

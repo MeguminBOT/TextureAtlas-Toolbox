@@ -1,9 +1,4 @@
 {
-    "da_dk": {
-        "name": "dansk (Danmark)",
-        "english_name": "Danish (Denmark)",
-        "quality": "machine"
-    },
     "de_de": {
         "name": "Deutsch (Deutschland)",
         "english_name": "German (Germany)",
@@ -45,9 +40,9 @@
         "quality": "machine"
     },
     "pt_br": {
-        "name": "Português (Brasil)",
+        "name": "português (Brasil)",
         "english_name": "Portuguese (Brazil)",
-        "quality": "unknown"
+        "quality": "machine"
     },
     "sv_se": {
         "name": "svenska (Sverige)",

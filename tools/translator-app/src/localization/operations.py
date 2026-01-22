@@ -264,8 +264,8 @@ def _count_messages(ts_path: Path) -> Tuple[int, int, int]:
     # Qt uses both "vanished" (newer) and "obsolete" (older) for removed strings
     vanished = content.count('type="vanished"')
     obsolete = content.count('type="obsolete"')
-    # Count machine translated strings (marked with [machine] in comments)
-    machine_translated = content.count("[machine]")
+    # Count machine translated strings (marked with [marker:machine] in translatorcomment)
+    machine_translated = content.count("[marker:machine]")
     # Exclude vanished/obsolete strings from total count
     active_total = max(total - vanished - obsolete, 0)
     # Finished = active strings that are neither unfinished nor vanished/obsolete
