@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 
 APP_NAME = "TextureAtlas Toolbox"
-APP_VERSION = "2.0.2"
+APP_VERSION = "2.0.3"
 REPO_OWNER = "MeguminBOT"
 REPO_NAME = "TextureAtlas-Toolbox"
 
