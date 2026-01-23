@@ -400,7 +400,7 @@ class AtlasGenerator:
                         ) = self._trim_image(img)
 
                     frame_id = f"{anim_name}_{idx:04d}"
-                    path_obj = Path(path)
+                    sprite_name = f"{anim_name}{idx:04d}"
 
                     frame_input = FrameInput(
                         id=frame_id,
@@ -408,7 +408,7 @@ class AtlasGenerator:
                         height=img.height,
                         user_data={
                             "path": path,
-                            "name": path_obj.stem,
+                            "name": sprite_name,
                             "animation": anim_name,
                             "index": idx,
                             "trim_offset_x": trim_offset_x,
@@ -540,7 +540,7 @@ class AtlasGenerator:
                         img = img.convert("RGBA")
 
                     frame_id = f"{anim_name}_{idx:04d}"
-                    path_obj = Path(path)
+                    sprite_name = f"{anim_name}{idx:04d}"
 
                     frame_input = FrameInput(
                         id=frame_id,
@@ -548,7 +548,7 @@ class AtlasGenerator:
                         height=img.height,
                         user_data={
                             "path": path,
-                            "name": path_obj.stem,
+                            "name": sprite_name,
                             "animation": anim_name,
                             "index": idx,
                         },
