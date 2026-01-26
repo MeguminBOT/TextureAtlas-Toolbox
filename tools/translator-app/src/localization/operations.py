@@ -2,8 +2,8 @@
 """Backend for Qt translation commands and .ts/.qm file management.
 
 Provides LocalizationOperations, the main engine that wraps lupdate/lrelease
-commands, generates resource files, manages machine-translation disclaimers,
-and reports progress. Used by both the GUI and CLI.
+commands, generates resource files, and reports progress. Used by both the
+GUI and CLI.
 
 Usage::
 
@@ -273,27 +273,11 @@ def _count_messages(ts_path: Path) -> Tuple[int, int, int]:
     return active_total, finished, machine_translated
 
 
-DISCLAIMER_BLOCK = """<context>
-    <name>MachineTranslationDisclaimer</name>
-    <message>
-        <location filename="../main.py" line="0"/>
-        <source>Machine Translation Notice</source>
-        <translation type="unfinished">Machine Translation Notice</translation>
-    </message>
-    <message>
-        <location filename="../main.py" line="1"/>
-        <source>This language was automatically translated and may contain inaccuracies. If you would like to contribute better translations, please visit our GitHub repository.</source>
-        <translation type="unfinished">This language was automatically translated and may contain inaccuracies. If you would like to contribute better translations, please visit our GitHub repository.</translation>
-    </message>
-</context>
-"""
-
-
 class LocalizationOperations:
     """High-level operations for managing Qt translation files.
 
     Wraps lupdate and lrelease commands, generates .qrc resource files,
-    injects machine-translation disclaimers, and produces status reports.
+    and produces status reports.
 
     Attributes:
         paths: Resolved project paths for locating source and translation files.
@@ -665,200 +649,6 @@ class LocalizationOperations:
             )
         result.details["entries"] = entries
         return result
-
-    def inject_disclaimers(
-        self, languages: Optional[Sequence[str]] = None
-    ) -> OperationResult:
-        """Insert machine-translation disclaimer into .ts files.
-
-        Only applies to languages with quality="machine" in the registry.
-        Skips files that already contain the disclaimer.
-
-        Args:
-            languages: Language codes to process; processes all if omitted.
-
-        Returns:
-            An OperationResult listing which files were modified.
-        """
-        self._ensure_translations_dir()
-        result = OperationResult("disclaimer", True)
-        selected = normalize_languages(languages)
-
-        for lang in selected:
-            meta = LANGUAGE_REGISTRY.get(lang, {})
-            if meta.get("quality") != "machine":
-                result.add_log(f"Skipping {lang}: not tagged as machine translated")
-                continue
-
-            ts_file = self.paths.translations_dir / f"app_{lang}.ts"
-            if not ts_file.exists():
-                result.add_log(f"Skipping {lang}: missing {ts_file}")
-                continue
-
-            content = ts_file.read_text(encoding="utf-8")
-            if "MachineTranslationDisclaimer" in content:
-                result.add_log(f"Disclaimer already present in {ts_file.name}")
-                continue
-
-            if "</TS>" not in content:
-                result.add_error(f"Malformed TS file (missing </TS>): {ts_file}")
-                continue
-
-            updated = content.replace("</TS>", DISCLAIMER_BLOCK + "\n</TS>")
-            ts_file.write_text(updated, encoding="utf-8")
-            result.add_log(f"Inserted disclaimer into {ts_file.name}")
-        return result
-
-    def remove_disclaimers(
-        self, languages: Optional[Sequence[str]] = None
-    ) -> OperationResult:
-        """Remove machine-translation disclaimer from .ts files.
-
-        Args:
-            languages: Language codes to process; processes all if omitted.
-
-        Returns:
-            An OperationResult listing which files were modified.
-        """
-        import re
-
-        self._ensure_translations_dir()
-        result = OperationResult("remove_disclaimer", True)
-        selected = normalize_languages(languages)
-
-        for lang in selected:
-            ts_file = self.paths.translations_dir / f"app_{lang}.ts"
-            if not ts_file.exists():
-                result.add_log(f"Skipping {lang}: missing {ts_file}")
-                continue
-
-            content = ts_file.read_text(encoding="utf-8")
-            if "MachineTranslationDisclaimer" not in content:
-                result.add_log(f"No disclaimer found in {ts_file.name}")
-                continue
-
-            updated = content
-            removed = False
-
-            if DISCLAIMER_BLOCK + "\n" in updated:
-                updated = updated.replace(DISCLAIMER_BLOCK + "\n", "")
-                removed = True
-            elif DISCLAIMER_BLOCK in updated:
-                updated = updated.replace(DISCLAIMER_BLOCK, "")
-                removed = True
-
-            if not removed or "MachineTranslationDisclaimer</name>" in updated:
-                pattern = r"<context>\s*<name>MachineTranslationDisclaimer</name>(?!Dialog).*?</context>\s*"
-                updated, count = re.subn(pattern, "", updated, flags=re.DOTALL)
-                if count > 0:
-                    removed = True
-
-            if "<name>MachineTranslationDisclaimer</name>" in updated:
-                result.add_error(
-                    f"Failed to remove disclaimer from {ts_file.name} - pattern mismatch"
-                )
-                continue
-
-            with open(ts_file, "w", encoding="utf-8") as f:
-                f.write(updated)
-                f.flush()
-            result.add_log(f"Removed disclaimer from {ts_file.name}")
-        return result
-
-    def toggle_disclaimers(
-        self, languages: Optional[Sequence[str]] = None
-    ) -> OperationResult:
-        """Toggle machine-translation disclaimers in .ts files.
-
-        Removes the disclaimer if present, adds it if absent. Uses regex
-        fallback to handle non-standard disclaimer formats.
-
-        Args:
-            languages: Language codes to process; processes all if omitted.
-
-        Returns:
-            An OperationResult with added/removed counts in details.
-        """
-        self._ensure_translations_dir()
-        result = OperationResult("toggle_disclaimer", True)
-        selected = normalize_languages(languages)
-
-        added_count = 0
-        removed_count = 0
-
-        for lang in selected:
-            ts_file = self.paths.translations_dir / f"app_{lang}.ts"
-            if not ts_file.exists():
-                result.add_log(f"Skipping {lang}: missing {ts_file}")
-                continue
-
-            with open(ts_file, "r", encoding="utf-8") as f:
-                content = f.read()
-            has_disclaimer = "<name>MachineTranslationDisclaimer</name>" in content
-
-            if has_disclaimer:
-                updated = content
-                removed = False
-
-                if DISCLAIMER_BLOCK + "\n" in updated:
-                    updated = updated.replace(DISCLAIMER_BLOCK + "\n", "")
-                    removed = True
-                elif DISCLAIMER_BLOCK in updated:
-                    updated = updated.replace(DISCLAIMER_BLOCK, "")
-                    removed = True
-
-                if not removed or "MachineTranslationDisclaimer</name>" in updated:
-                    import re
-
-                    pattern = r"<context>\s*<name>MachineTranslationDisclaimer</name>(?!Dialog).*?</context>\s*"
-                    updated, count = re.subn(pattern, "", updated, flags=re.DOTALL)
-                    if count > 0:
-                        removed = True
-
-                if "<name>MachineTranslationDisclaimer</name>" in updated:
-                    result.add_error(
-                        f"Failed to remove disclaimer from {ts_file.name} - pattern mismatch"
-                    )
-                    continue
-
-                with open(ts_file, "w", encoding="utf-8") as f:
-                    f.write(updated)
-                    f.flush()
-                result.add_log(f"Removed disclaimer from {ts_file.name}")
-                removed_count += 1
-            else:
-                if "</TS>" not in content:
-                    result.add_error(f"Malformed TS file (missing </TS>): {ts_file}")
-                    continue
-
-                updated = content.replace("</TS>", DISCLAIMER_BLOCK + "\n</TS>")
-                with open(ts_file, "w", encoding="utf-8") as f:
-                    f.write(updated)
-                    f.flush()
-                result.add_log(f"Inserted disclaimer into {ts_file.name}")
-                added_count += 1
-
-        result.details["added"] = added_count
-        result.details["removed"] = removed_count
-        return result
-
-    def has_disclaimer(self, language: str) -> bool:
-        """Check if a language's .ts file contains the MT disclaimer.
-
-        Looks for the exact context name, not the Dialog variant.
-
-        Args:
-            language: Language code to check.
-
-        Returns:
-            True if the MachineTranslationDisclaimer context is present.
-        """
-        ts_file = self.paths.translations_dir / f"app_{language}.ts"
-        if not ts_file.exists():
-            return False
-        with open(ts_file, "r", encoding="utf-8") as f:
-            content = f.read()
-        return "<name>MachineTranslationDisclaimer</name>" in content
 
 
 __all__ = [

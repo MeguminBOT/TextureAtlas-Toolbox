@@ -45,7 +45,7 @@ translator-app/
 - **Context Information**: Shows all contexts where each string is used
 - **Copy Source**: Quick button to copy source text as a starting point for translation
 - **Translation Services Integration**: Supports Google Cloud, DeepL and LibreTranslate services
-- **Language Management**: Register languages, set quality levels, and manage MT disclaimers
+- **Language Management**: Register languages and set quality levels
 - **CLI Support**: Batch operations for CI/CD integration
 
 ## Usage
@@ -179,7 +179,6 @@ python cli.py help <command>
 | `compile` | Run lrelease to compile .ts files to .qm binaries |
 | `resource` | Generate translations.qrc file |
 | `status` | Show translation progress report |
-| `disclaimer` | Add, remove, or toggle MT disclaimers |
 | `quality` | Set translation quality level (machine/reviewed/unknown) |
 | `help` | Show help for a command |
 
@@ -194,15 +193,6 @@ python cli.py compile
 
 # Show translation status
 python cli.py status
-
-# Add disclaimer to French translation
-python cli.py disclaimer --add fr_FR
-
-# Remove disclaimer
-python cli.py disclaimer --remove fr_FR
-
-# Toggle disclaimer (add if missing, remove if present)
-python cli.py disclaimer --toggle fr_FR
 
 # Set quality level
 python cli.py quality fr_FR --set reviewed

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Command-line interface for translation management operations.
 
-Provides CLI access to extract, compile, status, disclaimer, and quality
+Provides CLI access to extract, compile, status, and quality
 operations without launching the GUI. Useful for CI/CD pipelines and
 batch processing.
 
@@ -9,9 +9,6 @@ Usage:
     python cli.py extract fr_FR de_DE
     python cli.py compile --all
     python cli.py status
-    python cli.py disclaimer --add fr_FR
-    python cli.py disclaimer --remove fr_FR
-    python cli.py disclaimer --toggle fr_FR
     python cli.py quality fr_FR de_DE --set reviewed
 """
 
@@ -138,32 +135,6 @@ def cmd_status(ops: LocalizationOperations, languages: List[str]) -> int:
     return 0
 
 
-def cmd_disclaimer(
-    ops: LocalizationOperations,
-    languages: List[str],
-    action: str,
-) -> int:
-    """Add, remove, or toggle MT disclaimers.
-
-    Args:
-        ops: LocalizationOperations instance.
-        languages: Language codes to process.
-        action: One of "add", "remove", or "toggle".
-
-    Returns:
-        Exit code (0 for success, 1 for failure).
-    """
-    if action == "add":
-        result = ops.inject_disclaimers(languages if languages else None)
-    elif action == "remove":
-        result = ops.remove_disclaimers(languages if languages else None)
-    else:  # toggle
-        result = ops.toggle_disclaimers(languages if languages else None)
-
-    print_result(result)
-    return 0 if result.success else 1
-
-
 VALID_QUALITY_VALUES = ("machine", "reviewed", "unknown")
 
 
@@ -241,7 +212,6 @@ Examples:
   %(prog)s extract fr_FR de_DE     Extract strings for French and German
   %(prog)s compile --all           Compile all languages
   %(prog)s status                  Show translation progress
-  %(prog)s disclaimer --toggle fr  Toggle disclaimer for French
   %(prog)s quality fr_FR --set reviewed  Mark French as reviewed
         """,
     )
@@ -326,47 +296,6 @@ Usage examples:
         help="Language codes to report (default: all)",
     )
 
-    # Disclaimer command
-    disclaimer_parser = subparsers.add_parser(
-        "disclaimer",
-        help="Manage MT disclaimers in .ts files",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Usage examples:
-  translator-cli disclaimer --add fr_FR       Add disclaimer to French
-  translator-cli disclaimer --remove fr_FR    Remove disclaimer from French
-  translator-cli disclaimer --toggle fr_FR    Toggle (add if missing, remove if present)
-  translator-cli disclaimer --toggle          Toggle for all languages
-        """,
-    )
-    disclaimer_parser.add_argument(
-        "languages",
-        nargs="*",
-        help="Language codes to process (default: all)",
-    )
-    disclaimer_group = disclaimer_parser.add_mutually_exclusive_group(required=True)
-    disclaimer_group.add_argument(
-        "--add",
-        action="store_const",
-        const="add",
-        dest="action",
-        help="Add disclaimer to files",
-    )
-    disclaimer_group.add_argument(
-        "--remove",
-        action="store_const",
-        const="remove",
-        dest="action",
-        help="Remove disclaimer from files",
-    )
-    disclaimer_group.add_argument(
-        "--toggle",
-        action="store_const",
-        const="toggle",
-        dest="action",
-        help="Toggle disclaimer (add if absent, remove if present)",
-    )
-
     # Quality command
     quality_parser = subparsers.add_parser(
         "quality",
@@ -400,7 +329,7 @@ Usage examples:
     help_parser.add_argument(
         "help_command",
         nargs="?",
-        choices=["extract", "compile", "resource", "status", "disclaimer", "quality"],
+        choices=["extract", "compile", "resource", "status", "quality"],
         help="Command to get help for",
     )
 
@@ -454,8 +383,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return cmd_resource(ops)
     elif args.command == "status":
         return cmd_status(ops, languages)
-    elif args.command == "disclaimer":
-        return cmd_disclaimer(ops, languages, args.action)
     elif args.command == "quality":
         return cmd_quality(languages, args.quality_value)
     elif args.command == "help":
