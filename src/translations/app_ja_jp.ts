@@ -2238,7 +2238,7 @@ Extraction can proceed but results may be affected.</source>
     </message>
 </context>
 <context>
-    <name>TextureAtlasExtractorApp</name>
+    <name>TextureAtlasToolboxApp</name>
     <message>
         <location filename="../Main.py" line="179"/>
         <source>Variable delay</source>

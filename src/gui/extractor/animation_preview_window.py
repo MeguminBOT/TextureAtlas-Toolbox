@@ -32,7 +32,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QScrollArea,
 )
-from PySide6.QtCore import QCoreApplication, Qt, QTimer, QThread, Signal, QSize
+from PySide6.QtCore import Qt, QTimer, QThread, Signal, QSize
 from PySide6.QtGui import QPixmap, QImage, QPainter, QColor
 
 try:
@@ -69,6 +69,7 @@ from utils.resampling import (
     get_resampling_name,
     DEFAULT_RESAMPLING_METHOD,
 )
+from utils.translation_manager import translate
 
 MAX_FRAMES_IN_MEMORY = 100
 FRAME_CACHE_SIZE = 20
@@ -544,17 +545,7 @@ class AnimationPreviewWindow(QDialog):
     """
 
     settings_saved = Signal(dict)
-
-    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
-    DURATION_UTILS_CONTEXT = "ExtractTabWidget"
-
-    def trc(self, text: str) -> str:
-        """Translate a string from ui_constants using its proper context."""
-        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
-
-    def trd(self, text: str) -> str:
-        """Translate a string from duration_utils using its proper context."""
-        return QCoreApplication.translate(self.DURATION_UTILS_CONTEXT, text)
+    tr = translate
 
     def __init__(self, parent, animation_path: str, settings: dict):
         """Create the preview dialog and start loading frames.
@@ -633,11 +624,11 @@ class AnimationPreviewWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        close_button = QPushButton(self.trc(ButtonLabels.CLOSE))
+        close_button = QPushButton(self.tr(ButtonLabels.CLOSE))
         close_button.clicked.connect(self.reject)
         button_layout.addWidget(close_button)
 
-        close_save_button = QPushButton(self.trc(ButtonLabels.CLOSE_AND_SAVE))
+        close_save_button = QPushButton(self.tr(ButtonLabels.CLOSE_AND_SAVE))
         close_save_button.clicked.connect(self.close_and_save)
         button_layout.addWidget(close_save_button)
 
@@ -695,7 +686,7 @@ class AnimationPreviewWindow(QDialog):
         panel = QWidget()
         layout = QVBoxLayout(panel)
 
-        layout.addWidget(QLabel(self.trc(Labels.FRAMES) + ":"))
+        layout.addWidget(QLabel(self.tr(Labels.FRAMES) + ":"))
 
         self.frame_list = FrameListWidget()
         self.frame_list.frame_selected.connect(self.goto_frame)
@@ -715,7 +706,7 @@ class AnimationPreviewWindow(QDialog):
 
         self.display = AnimationDisplay()
 
-        self.display.setToolTip(self.trc(Tooltips.CTRL_ZOOM))
+        self.display.setToolTip(self.tr(Tooltips.CTRL_ZOOM))
 
         self.display.scale_changed.connect(self.on_display_scale_changed)
 
@@ -746,10 +737,10 @@ class AnimationPreviewWindow(QDialog):
         panel.setMaximumWidth(300)
         layout = QVBoxLayout(panel)
 
-        format_group = QGroupBox(self.trc(Labels.ANIMATION_FORMAT))
+        format_group = QGroupBox(self.tr(Labels.ANIMATION_FORMAT))
         format_layout = QGridLayout(format_group)
 
-        format_layout.addWidget(QLabel(self.trc(Labels.ANIMATION_FORMAT)), 0, 0)
+        format_layout.addWidget(QLabel(self.tr(Labels.ANIMATION_FORMAT)), 0, 0)
         self.format_combo = QComboBox()
         self.format_combo.addItems(["GIF", "WebP"])  # APNG disabled due to preview bug
         self.format_combo.setCurrentText(self.settings.get("animation_format", "GIF"))
@@ -758,10 +749,10 @@ class AnimationPreviewWindow(QDialog):
 
         layout.addWidget(format_group)
 
-        playback_group = QGroupBox(self.trc(GroupTitles.ANIMATION_SETTINGS))
+        playback_group = QGroupBox(self.tr(GroupTitles.ANIMATION_SETTINGS))
         playback_layout = QGridLayout(playback_group)
 
-        self.fps_label = QLabel(self.trc(Labels.FRAME_RATE))
+        self.fps_label = QLabel(self.tr(Labels.FRAME_RATE))
         playback_layout.addWidget(self.fps_label, 0, 0)
         self.fps_spinbox = QSpinBox()
         self.fps_spinbox.setRange(
@@ -778,26 +769,26 @@ class AnimationPreviewWindow(QDialog):
         )
         self.update_frame_rate_display()
 
-        playback_layout.addWidget(QLabel(self.trc(Labels.LOOP_DELAY)), 1, 0)
+        playback_layout.addWidget(QLabel(self.tr(Labels.LOOP_DELAY)), 1, 0)
         self.delay_spinbox = QSpinBox()
         self.delay_spinbox.setRange(0, 5000)
         self.delay_spinbox.setValue(self.settings.get("delay", 250))
         self.delay_spinbox.valueChanged.connect(self.on_delay_changed)
         playback_layout.addWidget(self.delay_spinbox, 1, 1)
 
-        playback_layout.addWidget(QLabel(self.trc(Labels.MINIMUM_PERIOD)), 2, 0)
+        playback_layout.addWidget(QLabel(self.tr(Labels.MINIMUM_PERIOD)), 2, 0)
         self.period_spinbox = QSpinBox()
         self.period_spinbox.setRange(0, 10000)
         self.period_spinbox.setValue(self.settings.get("period", 0))
         self.period_spinbox.valueChanged.connect(self.on_period_changed)
         playback_layout.addWidget(self.period_spinbox, 2, 1)
 
-        self.var_delay_checkbox = QCheckBox(self.trc(Labels.VARIABLE_DELAY))
+        self.var_delay_checkbox = QCheckBox(self.tr(Labels.VARIABLE_DELAY))
         self.var_delay_checkbox.setChecked(self.settings.get("var_delay", False))
         self.var_delay_checkbox.toggled.connect(self.on_var_delay_changed)
         playback_layout.addWidget(self.var_delay_checkbox, 3, 0, 1, 2)
 
-        playback_layout.addWidget(QLabel(self.trc(Labels.SCALE)), 4, 0)
+        playback_layout.addWidget(QLabel(self.tr(Labels.SCALE)), 4, 0)
         self.anim_scale_spinbox = QDoubleSpinBox()
         self.anim_scale_spinbox.setRange(0.1, 10.0)
         self.anim_scale_spinbox.setSingleStep(0.1)
@@ -805,33 +796,33 @@ class AnimationPreviewWindow(QDialog):
         self.anim_scale_spinbox.valueChanged.connect(self.on_anim_scale_changed)
         playback_layout.addWidget(self.anim_scale_spinbox, 4, 1)
 
-        playback_layout.addWidget(QLabel(self.trc(Labels.RESAMPLING)), 5, 0)
+        playback_layout.addWidget(QLabel(self.tr(Labels.RESAMPLING)), 5, 0)
         self.resampling_combo = QComboBox()
         self.resampling_combo.addItems(RESAMPLING_DISPLAY_NAMES)
         current_resampling = self.settings.get(
             "resampling_method", DEFAULT_RESAMPLING_METHOD
         )
         self.resampling_combo.setCurrentIndex(get_resampling_index(current_resampling))
-        self.resampling_combo.setToolTip(self.trc(Tooltips.RESAMPLING_IMAGES))
+        self.resampling_combo.setToolTip(self.tr(Tooltips.RESAMPLING_IMAGES))
         self.resampling_combo.currentIndexChanged.connect(self.on_resampling_changed)
         playback_layout.addWidget(self.resampling_combo, 5, 1)
 
-        playback_layout.addWidget(QLabel(self.trc(Labels.INDICES) + ":"), 6, 0)
+        playback_layout.addWidget(QLabel(self.tr(Labels.INDICES) + ":"), 6, 0)
         self.indices_edit = QLineEdit()
-        self.indices_edit.setPlaceholderText(self.trc(Placeholders.INDICES_HINT))
+        self.indices_edit.setPlaceholderText(self.tr(Placeholders.INDICES_HINT))
         self.indices_edit.textChanged.connect(self.on_indices_changed)
         playback_layout.addWidget(self.indices_edit, 6, 1)
 
-        playback_layout.addWidget(QLabel(self.trc(Labels.CROPPING_METHOD)), 7, 0)
+        playback_layout.addWidget(QLabel(self.tr(Labels.CROPPING_METHOD)), 7, 0)
         self.crop_combo = QComboBox()
-        populate_combobox(self.crop_combo, CROPPING_METHOD_OPTIONS, self.trc)
+        populate_combobox(self.crop_combo, CROPPING_METHOD_OPTIONS, self.tr)
         current_crop = self.settings.get("crop_option", "none")
         current_index = get_index_by_internal(CROPPING_METHOD_OPTIONS, current_crop)
         self.crop_combo.setCurrentIndex(current_index)
         self.crop_combo.currentIndexChanged.connect(self.on_crop_changed)
         playback_layout.addWidget(self.crop_combo, 7, 1)
 
-        playback_layout.addWidget(QLabel(self.trc(Labels.ALPHA_THRESHOLD)), 8, 0)
+        playback_layout.addWidget(QLabel(self.tr(Labels.ALPHA_THRESHOLD)), 8, 0)
         self.threshold_spinbox = QSpinBox()
         self.threshold_spinbox.setRange(0, 100)
         self.threshold_spinbox.setSingleStep(1)
@@ -841,7 +832,7 @@ class AnimationPreviewWindow(QDialog):
         playback_layout.addWidget(self.threshold_spinbox, 8, 1)
 
         self.per_frame_mode_checkbox = QCheckBox(
-            self.trc(Labels.EDIT_SELECTED_FRAME_ONLY)
+            self.tr(Labels.EDIT_SELECTED_FRAME_ONLY)
         )
         self.per_frame_mode_checkbox.setChecked(False)
         self.per_frame_mode_checkbox.setToolTip(
@@ -854,7 +845,7 @@ class AnimationPreviewWindow(QDialog):
         self.per_frame_mode_checkbox.toggled.connect(self.on_per_frame_mode_changed)
         playback_layout.addWidget(self.per_frame_mode_checkbox, 9, 0, 1, 2)
 
-        self.apply_to_all_button = QPushButton(self.trc(ButtonLabels.APPLY_TO_ALL))
+        self.apply_to_all_button = QPushButton(self.tr(ButtonLabels.APPLY_TO_ALL))
         self.apply_to_all_button.setVisible(False)
         self.apply_to_all_button.setToolTip(
             self.tr("Apply the current frame delay to all frames")
@@ -862,7 +853,7 @@ class AnimationPreviewWindow(QDialog):
         self.apply_to_all_button.clicked.connect(self.apply_delay_to_all_frames)
         playback_layout.addWidget(self.apply_to_all_button, 10, 0)
 
-        self.reset_timing_button = QPushButton(self.trc(ButtonLabels.RESET_TIMING))
+        self.reset_timing_button = QPushButton(self.tr(ButtonLabels.RESET_TIMING))
         self.reset_timing_button.setVisible(False)
         self.reset_timing_button.setToolTip(
             self.tr("Reset all frame delays back to original values")
@@ -872,14 +863,14 @@ class AnimationPreviewWindow(QDialog):
 
         layout.addWidget(playback_group)
 
-        display_group = QGroupBox(self.trc(GroupTitles.DISPLAY))
+        display_group = QGroupBox(self.tr(GroupTitles.DISPLAY))
         display_layout = QGridLayout(display_group)
 
-        self.loop_checkbox = QCheckBox(self.trc(Labels.LOOP_PREVIEW))
+        self.loop_checkbox = QCheckBox(self.tr(Labels.LOOP_PREVIEW))
         self.loop_checkbox.setChecked(True)
         display_layout.addWidget(self.loop_checkbox, 0, 0, 1, 2)
 
-        display_layout.addWidget(QLabel(self.trc(Labels.PREVIEW_ZOOM_COLON)), 1, 0)
+        display_layout.addWidget(QLabel(self.tr(Labels.PREVIEW_ZOOM_COLON)), 1, 0)
         self.scale_spinbox = QSpinBox()
         self.scale_spinbox.setRange(10, 500)
         self.scale_spinbox.setSingleStep(10)
@@ -891,7 +882,7 @@ class AnimationPreviewWindow(QDialog):
         self.scale_spinbox.valueChanged.connect(self.on_scale_percentage_changed)
         display_layout.addWidget(self.scale_spinbox, 1, 1)
 
-        display_layout.addWidget(QLabel(self.trc(Labels.BACKGROUND_COLON)), 2, 0)
+        display_layout.addWidget(QLabel(self.tr(Labels.BACKGROUND_COLON)), 2, 0)
         bg_layout = QVBoxLayout()
 
         self.bg_mode_combo = QComboBox()
@@ -918,11 +909,11 @@ class AnimationPreviewWindow(QDialog):
 
         layout.addWidget(display_group)
 
-        export_group = QGroupBox(self.trc(GroupTitles.EXPORT))
+        export_group = QGroupBox(self.tr(GroupTitles.EXPORT))
         export_layout = QVBoxLayout(export_group)
 
         self.regenerate_button = QPushButton(
-            self.trc(ButtonLabels.FORCE_REGENERATE_ANIMATION)
+            self.tr(ButtonLabels.FORCE_REGENERATE_ANIMATION)
         )
         self.regenerate_button.clicked.connect(self.regenerate_animation)
         export_layout.addWidget(self.regenerate_button)
@@ -946,15 +937,15 @@ class AnimationPreviewWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        self.play_button = QPushButton(self.trc(ButtonLabels.PLAY))
+        self.play_button = QPushButton(self.tr(ButtonLabels.PLAY))
         self.play_button.clicked.connect(self.toggle_playback)
         button_layout.addWidget(self.play_button)
 
-        prev_button = QPushButton(self.trc(ButtonLabels.PREVIOUS))
+        prev_button = QPushButton(self.tr(ButtonLabels.PREVIOUS))
         prev_button.clicked.connect(self.previous_frame)
         button_layout.addWidget(prev_button)
 
-        next_button = QPushButton(self.trc(ButtonLabels.NEXT))
+        next_button = QPushButton(self.tr(ButtonLabels.NEXT))
         next_button.clicked.connect(self.next_frame)
         button_layout.addWidget(next_button)
 
@@ -962,7 +953,7 @@ class AnimationPreviewWindow(QDialog):
         controls_layout.addLayout(button_layout)
 
         slider_layout = QHBoxLayout()
-        slider_layout.addWidget(QLabel(self.trc(Labels.POSITION_COLON)))
+        slider_layout.addWidget(QLabel(self.tr(Labels.POSITION_COLON)))
         self.position_slider = QSlider(Qt.Orientation.Horizontal)
         self.position_slider.setMinimum(0)
         self.position_slider.valueChanged.connect(self.on_position_changed)
@@ -976,7 +967,7 @@ class AnimationPreviewWindow(QDialog):
         if not os.path.exists(self.animation_path):
             QMessageBox.warning(
                 self,
-                self.trc(DialogTitles.ERROR),
+                self.tr(DialogTitles.ERROR),
                 self.tr("Animation file not found: {path}").format(
                     path=self.animation_path
                 ),
@@ -1093,7 +1084,7 @@ class AnimationPreviewWindow(QDialog):
         if self.play_button:
             self.play_button.setEnabled(True)
 
-        QMessageBox.warning(self, self.trc(DialogTitles.ERROR), error_message)
+        QMessageBox.warning(self, self.tr(DialogTitles.ERROR), error_message)
 
     def cleanup_resources(self):
         """Stop the processor thread, timer, and release frames."""
@@ -1175,7 +1166,7 @@ class AnimationPreviewWindow(QDialog):
                 self.goto_frame(checked_frames[0])
 
         self.is_playing = True
-        self.play_button.setText(self.trc(ButtonLabels.PAUSE))
+        self.play_button.setText(self.tr(ButtonLabels.PAUSE))
 
         self._loop_delay_applied = False
 
@@ -1190,7 +1181,7 @@ class AnimationPreviewWindow(QDialog):
     def pause(self):
         """Stop playback and reset the button label."""
         self.is_playing = False
-        self.play_button.setText(self.trc(ButtonLabels.PLAY))
+        self.play_button.setText(self.tr(ButtonLabels.PLAY))
         self.timer.stop()
 
         self._loop_delay_applied = False
@@ -1693,14 +1684,14 @@ class AnimationPreviewWindow(QDialog):
             else:
                 QMessageBox.warning(
                     self,
-                    self.trc(DialogTitles.ERROR),
+                    self.tr(DialogTitles.ERROR),
                     self.tr("Failed to regenerate animation."),
                 )
 
         except Exception as e:
             QMessageBox.warning(
                 self,
-                self.trc(DialogTitles.ERROR),
+                self.tr(DialogTitles.ERROR),
                 self.tr("Failed to regenerate animation: {error}").format(error=str(e)),
             )
 
@@ -1730,7 +1721,7 @@ class AnimationPreviewWindow(QDialog):
         )
         display_meta = get_duration_display_meta(duration_type, anim_format)
         resolved_type = display_meta.resolved_type
-        duration_tooltip = self.trd(display_meta.tooltip)
+        duration_tooltip = self.tr(display_meta.tooltip)
 
         prev_type = getattr(self, "_prev_duration_type", resolved_type)
         current_value = self.fps_spinbox.value()
@@ -1744,9 +1735,9 @@ class AnimationPreviewWindow(QDialog):
 
         self._prev_duration_type = resolved_type
 
-        self.fps_label.setText(self.trd(display_meta.label))
+        self.fps_label.setText(self.tr(display_meta.label))
         self.fps_spinbox.setRange(display_meta.min_value, display_meta.max_value)
-        self.fps_spinbox.setSuffix(self.trd(display_meta.suffix))
+        self.fps_spinbox.setSuffix(self.tr(display_meta.suffix))
 
         self.fps_spinbox.setValue(converted_value)
         self.fps_label.setToolTip(duration_tooltip)
@@ -1971,10 +1962,10 @@ class AnimationPreviewWindow(QDialog):
                 max_value = min(10000, max_value)
                 single_step = 10
 
-            self.fps_label.setText(self.trd(display_meta.label))
+            self.fps_label.setText(self.tr(display_meta.label))
             self.fps_spinbox.setRange(min_value, max_value)
-            self.fps_spinbox.setSuffix(self.trd(display_meta.suffix))
-            self.fps_spinbox.setToolTip(self.trd(display_meta.tooltip))
+            self.fps_spinbox.setSuffix(self.tr(display_meta.suffix))
+            self.fps_spinbox.setToolTip(self.tr(display_meta.tooltip))
             self.fps_spinbox.setSingleStep(single_step)
 
             self._per_frame_duration_type = resolved_type

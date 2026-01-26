@@ -101,13 +101,12 @@ class ExtractorWorker(QThread):
         )
 
 
-class TextureAtlasExtractorApp(QMainWindow):
+class TextureAtlasToolboxApp(QMainWindow):
     """
     A Qt/PySide6 GUI application for extracting textures from a texture atlas and converting them to GIF, WebP, and APNG formats.
     """
 
     tr = translate
-    TRANSLATION_CONTEXT = "TextureAtlasExtractorApp"
 
     # Signal emitted when animation preview settings are saved
     preview_settings_saved = Signal(str)  # animation_name
@@ -1045,11 +1044,7 @@ class TextureAtlasExtractorApp(QMainWindow):
                     self.update_dynamic_tab_labels()
 
                     # Show success message (in the new language)
-                    from PySide6.QtCore import QCoreApplication
-
-                    success_msg = QCoreApplication.translate(
-                        "TextureAtlasExtractorApp", "Language changed successfully!"
-                    )
+                    success_msg = self.tr("Language changed successfully!")
                     QMessageBox.information(self, self.tr("Success"), success_msg)
                 else:
                     # Show error message
@@ -1281,7 +1276,7 @@ def main():
     apply_color_scheme(app, color_scheme)
 
     # Create and show the main window
-    window = TextureAtlasExtractorApp()
+    window = TextureAtlasToolboxApp()
     window.show()
 
     # Start the event loop

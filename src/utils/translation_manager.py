@@ -133,8 +133,17 @@ class TranslationManager:
             english_name = lang_code.upper()
 
         # Add territory for regional variants
+        # PySide6 < 6.1 uses Country enum; 6.1+ uses Territory
         territory = locale.territory()
-        if territory != QLocale.Territory.AnyTerritory:
+        any_territory = getattr(QLocale, "Territory", getattr(QLocale, "Country", None))
+        any_territory_value = (
+            getattr(any_territory, "AnyTerritory", None) if any_territory else None
+        )
+        if any_territory_value is None:
+            any_territory_value = (
+                getattr(any_territory, "AnyCountry", None) if any_territory else None
+            )
+        if any_territory_value is not None and territory != any_territory_value:
             territory_name = QLocale.territoryToString(territory)
             if territory_name and territory_name not in english_name:
                 english_name = f"{english_name} ({territory_name})"
@@ -528,7 +537,16 @@ class TranslationManager:
         return english_title, target_message, english_message
 
 
-DEFAULT_TRANSLATION_CONTEXT = "TextureAtlasExtractorApp"
+APP_TRANSLATION_CONTEXT = "TextureAtlasToolboxApp"
+"""Single unified translation context for all application strings.
+
+All translatable strings should use this context to ensure consistent
+lookups in Qt's translation system. This matches the context used in
+ui_constants.py QT_TRANSLATE_NOOP markers.
+"""
+
+# Legacy alias for backwards compatibility
+DEFAULT_TRANSLATION_CONTEXT = APP_TRANSLATION_CONTEXT
 
 _translation_manager: TranslationManager | None = None
 
@@ -542,33 +560,78 @@ def get_translation_manager() -> TranslationManager:
     return _translation_manager
 
 
-class _Translator:
-    """Callable descriptor that binds translation context per class instance."""
+class _BoundTranslator:
+    """Bound translator that uses a specific context (class name) for lookups."""
 
-    def __call__(self, text: str, context: str | None = None) -> str:
-        """Translate text using the application's current locale."""
+    __slots__ = ("_context",)
 
-        translation_context = (
-            context if context is not None else DEFAULT_TRANSLATION_CONTEXT
-        )
-        return QCoreApplication.translate(translation_context, text)
+    def __init__(self, context: str):
+        self._context = context
 
-    def _resolve_context(self, owner: type | None) -> str:
-        if owner is None:
-            return DEFAULT_TRANSLATION_CONTEXT
-        custom_context = getattr(owner, "TRANSLATION_CONTEXT", None)
-        if isinstance(custom_context, str) and custom_context:
-            return custom_context
-        return owner.__name__
+    def __call__(self, text: str) -> str:
+        """Translate text, falling back to unified context if not found."""
+        # Try class-specific context first (matches existing .ts files)
+        result = QCoreApplication.translate(self._context, text)
+        if result != text:
+            return result
+        # Fall back to unified app context (for ui_constants.py strings)
+        return QCoreApplication.translate(APP_TRANSLATION_CONTEXT, text)
+
+
+class _UnifiedTranslator:
+    """Translation callable that works both as a function and class attribute.
+
+    This descriptor-enabled callable provides a unified translation interface:
+    - As a function: tr("text") - uses unified context
+    - As a class attribute: self.tr("text") - uses class name as context with fallback
+
+    When accessed via self.tr(), uses the owning class name as context first,
+    then falls back to the unified context. This ensures compatibility with
+    existing .ts translation files that use class-name-based contexts.
+    """
+
+    def __call__(self, text: str) -> str:
+        """Translate text using the unified application context."""
+        return QCoreApplication.translate(APP_TRANSLATION_CONTEXT, text)
 
     def __get__(self, instance, owner):
-        context = self._resolve_context(owner)
-
-        def bound(text: str, context_override: str | None = None) -> str:
-            translation_context = context_override or context
-            return self(text, context=translation_context)
-
-        return bound
+        """Return a bound translator that uses the class name as context."""
+        if owner is None:
+            return self
+        return _BoundTranslator(owner.__name__)
 
 
-tr = _Translator()
+def tr(text: str) -> str:
+    """Translate a string using the unified application context.
+
+    This is the primary translation function for all UI strings. It uses
+    a single shared context (TextureAtlasToolboxApp) which matches the
+    context used in ui_constants.py and .ts translation files.
+
+    Usage:
+        from utils.translation_manager import tr
+
+        # As a standalone function:
+        label = QLabel(tr("Your Computer"))
+        label = QLabel(tr(Labels.FRAME_RATE))
+
+        # As a class attribute for self.tr() style:
+        class MyDialog(QDialog):
+            tr = tr  # Enable self.tr("text") syntax
+
+            def setup(self):
+                self.setWindowTitle(self.tr("My Title"))
+
+    Args:
+        text: The string to translate.
+
+    Returns:
+        The translated string, or the original if no translation exists.
+    """
+    return QCoreApplication.translate(APP_TRANSLATION_CONTEXT, text)
+
+
+# Create instance for class-attribute usage
+tr = _UnifiedTranslator()
+# Alias for compatibility with 'from utils.translation_manager import translate' pattern
+translate = tr

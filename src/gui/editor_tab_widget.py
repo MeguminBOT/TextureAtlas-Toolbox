@@ -48,6 +48,7 @@ from PySide6.QtWidgets import (
 
 from gui.base_tab_widget import BaseTabWidget
 from utils.FNF.alignment import resolve_fnf_offset
+from utils.translation_manager import translate
 from utils.ui_constants import (
     Tooltips,
     ButtonLabels,
@@ -584,11 +585,7 @@ class CanvasDetachWindow(QDialog):
 class EditorTabWidget(BaseTabWidget):
     """High-level controller for the alignment editor tab UI and logic."""
 
-    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
-
-    def trc(self, text: str) -> str:
-        """Translate a string from ui_constants using its proper context."""
-        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
+    tr = translate
 
     def __init__(self, parent_app, use_existing_ui: bool = False):
         """Instantiate the tab, build or reuse UI, and prime state caches.
@@ -719,15 +716,13 @@ class EditorTabWidget(BaseTabWidget):
         lists_layout.addWidget(self.animation_tree, 1)
 
         button_row = QHBoxLayout()
-        self.load_files_button = QPushButton(
-            self.trc(ButtonLabels.LOAD_ANIMATION_FILES)
-        )
-        self.load_files_button.setToolTip(self.trc(Tooltips.LOAD_ANIMATIONS))
+        self.load_files_button = QPushButton(self.tr(ButtonLabels.LOAD_ANIMATION_FILES))
+        self.load_files_button.setToolTip(self.tr(Tooltips.LOAD_ANIMATIONS))
         button_row.addWidget(self.load_files_button)
-        self.remove_animation_button = QPushButton(self.trc(ButtonLabels.REMOVE))
+        self.remove_animation_button = QPushButton(self.tr(ButtonLabels.REMOVE))
         button_row.addWidget(self.remove_animation_button)
-        self.combine_button = QPushButton(self.trc(ButtonLabels.COMBINE_SELECTED))
-        self.combine_button.setToolTip(self.trc(Tooltips.COMBINE_SELECTED))
+        self.combine_button = QPushButton(self.tr(ButtonLabels.COMBINE_SELECTED))
+        self.combine_button.setToolTip(self.tr(Tooltips.COMBINE_SELECTED))
         self.combine_button.setEnabled(False)
         button_row.addWidget(self.combine_button)
         lists_layout.addLayout(button_row)
@@ -763,20 +758,20 @@ class EditorTabWidget(BaseTabWidget):
 
         canvas_toolbar = QHBoxLayout()
         self.zoom_out_button = QPushButton("-")
-        self.zoom_out_button.setToolTip(self.trc(Tooltips.ZOOM_OUT))
+        self.zoom_out_button.setToolTip(self.tr(Tooltips.ZOOM_OUT))
         self.zoom_in_button = QPushButton("+")
-        self.zoom_in_button.setToolTip(self.trc(Tooltips.ZOOM_IN))
-        self.reset_zoom_button = QPushButton(self.trc(ButtonLabels.RESET_ZOOM))
+        self.zoom_in_button.setToolTip(self.tr(Tooltips.ZOOM_IN))
+        self.reset_zoom_button = QPushButton(self.tr(ButtonLabels.RESET_ZOOM))
         self.zoom_100_button = QPushButton("100%")
-        self.zoom_100_button.setToolTip(self.trc(Tooltips.ZOOM_100))
+        self.zoom_100_button.setToolTip(self.tr(Tooltips.ZOOM_100))
         self.zoom_50_button = QPushButton("50%")
-        self.zoom_50_button.setToolTip(self.trc(Tooltips.ZOOM_50))
-        self.center_view_button = QPushButton(self.trc(ButtonLabels.CENTER_VIEW))
-        self.center_view_button.setToolTip(self.trc(Tooltips.CENTER_VIEW))
-        self.fit_canvas_button = QPushButton(self.trc(ButtonLabels.FIT_CANVAS))
-        self.fit_canvas_button.setToolTip(self.trc(Tooltips.FIT_CANVAS))
+        self.zoom_50_button.setToolTip(self.tr(Tooltips.ZOOM_50))
+        self.center_view_button = QPushButton(self.tr(ButtonLabels.CENTER_VIEW))
+        self.center_view_button.setToolTip(self.tr(Tooltips.CENTER_VIEW))
+        self.fit_canvas_button = QPushButton(self.tr(ButtonLabels.FIT_CANVAS))
+        self.fit_canvas_button.setToolTip(self.tr(Tooltips.FIT_CANVAS))
         self.zoom_label = QLabel("100%")
-        self.detach_canvas_button = QPushButton(self.trc(ButtonLabels.DETACH_CANVAS))
+        self.detach_canvas_button = QPushButton(self.tr(ButtonLabels.DETACH_CANVAS))
         canvas_toolbar.addWidget(self.zoom_out_button)
         canvas_toolbar.addWidget(self.zoom_in_button)
         canvas_toolbar.addWidget(self.reset_zoom_button)
@@ -789,7 +784,7 @@ class EditorTabWidget(BaseTabWidget):
         canvas_toolbar.addWidget(self.detach_canvas_button)
         canvas_column.addLayout(canvas_toolbar)
 
-        controls_group = QGroupBox(self.trc(GroupTitles.ALIGNMENT_CONTROLS))
+        controls_group = QGroupBox(self.tr(GroupTitles.ALIGNMENT_CONTROLS))
         controls_layout = QFormLayout(controls_group)
 
         self.offset_x_spin = QSpinBox()
@@ -801,9 +796,9 @@ class EditorTabWidget(BaseTabWidget):
         controls_layout.addRow(self.tr("Frame offset Y"), self.offset_y_spin)
 
         control_buttons = QHBoxLayout()
-        self.reset_offset_button = QPushButton(self.trc(ButtonLabels.RESET_TO_DEFAULT))
+        self.reset_offset_button = QPushButton(self.tr(ButtonLabels.RESET_TO_DEFAULT))
         control_buttons.addWidget(self.reset_offset_button)
-        self.apply_all_button = QPushButton(self.trc(ButtonLabels.APPLY_TO_ALL_FRAMES))
+        self.apply_all_button = QPushButton(self.tr(ButtonLabels.APPLY_TO_ALL_FRAMES))
         control_buttons.addWidget(self.apply_all_button)
         controls_layout.addRow(control_buttons)
 
@@ -816,18 +811,18 @@ class EditorTabWidget(BaseTabWidget):
         controls_layout.addRow(self.tr("Canvas height"), self.canvas_height_spin)
 
         self.save_overrides_button = QPushButton(
-            self.trc(ButtonLabels.SAVE_ALIGNMENT_EXTRACT)
+            self.tr(ButtonLabels.SAVE_ALIGNMENT_EXTRACT)
         )
         self.save_overrides_button.setEnabled(False)
         controls_layout.addRow(self.save_overrides_button)
 
         self.export_composite_button = QPushButton(
-            self.trc(ButtonLabels.EXPORT_COMPOSITE_SPRITES)
+            self.tr(ButtonLabels.EXPORT_COMPOSITE_SPRITES)
         )
         self.export_composite_button.setEnabled(False)
         controls_layout.addRow(self.export_composite_button)
 
-        display_group = QGroupBox(self.trc(GroupTitles.DISPLAY_SNAPPING))
+        display_group = QGroupBox(self.tr(GroupTitles.DISPLAY_SNAPPING))
         display_layout = QFormLayout(display_group)
 
         self.origin_mode_combo = QComboBox()
@@ -837,7 +832,7 @@ class EditorTabWidget(BaseTabWidget):
         ghost_widget = QWidget()
         ghost_row = QHBoxLayout(ghost_widget)
         ghost_row.setContentsMargins(0, 0, 0, 0)
-        self.ghost_checkbox = QCheckBox(self.trc(CheckBoxLabels.ENABLE))
+        self.ghost_checkbox = QCheckBox(self.tr(CheckBoxLabels.ENABLE))
         self.ghost_frame_combo = QComboBox()
         self.ghost_frame_combo.setEnabled(False)
         ghost_row.addWidget(self.ghost_checkbox)
@@ -847,7 +842,7 @@ class EditorTabWidget(BaseTabWidget):
         snap_widget = QWidget()
         snap_row = QHBoxLayout(snap_widget)
         snap_row.setContentsMargins(0, 0, 0, 0)
-        self.snap_checkbox = QCheckBox(self.trc(CheckBoxLabels.ENABLE))
+        self.snap_checkbox = QCheckBox(self.tr(CheckBoxLabels.ENABLE))
         self.snap_step_spin = QSpinBox()
         self.snap_step_spin.setRange(1, 256)
         self.snap_step_spin.setValue(1)
@@ -1079,10 +1074,10 @@ class EditorTabWidget(BaseTabWidget):
 
         menu = QMenu(self)
         if has_animation:
-            remove_anim_action = menu.addAction(self.trc(MenuActions.REMOVE_ANIMATIONS))
+            remove_anim_action = menu.addAction(self.tr(MenuActions.REMOVE_ANIMATIONS))
             remove_anim_action.triggered.connect(self._remove_selected_animation)
         if has_frame:
-            remove_frames_action = menu.addAction(self.trc(MenuActions.REMOVE_FRAMES))
+            remove_frames_action = menu.addAction(self.tr(MenuActions.REMOVE_FRAMES))
             remove_frames_action.triggered.connect(self._remove_selected_frames)
         menu.exec(self.animation_tree.viewport().mapToGlobal(pos))
 
@@ -1286,7 +1281,7 @@ class EditorTabWidget(BaseTabWidget):
             return
 
         self._detached_window = CanvasDetachWindow(self)
-        self._detached_window.setWindowTitle(self.trc(WindowTitles.ALIGNMENT_CANVAS))
+        self._detached_window.setWindowTitle(self.tr(WindowTitles.ALIGNMENT_CANVAS))
         dialog_layout = QVBoxLayout(self._detached_window)
         dialog_layout.setContentsMargins(6, 6, 6, 6)
         if self.canvas_holder.layout():
@@ -1298,7 +1293,7 @@ class EditorTabWidget(BaseTabWidget):
             self.canvas.sizeHint().width() + 120, self.canvas.sizeHint().height() + 120
         )
         self._detached_window.show()
-        self.detach_canvas_button.setText(self.trc(ButtonLabels.REATTACH_CANVAS))
+        self.detach_canvas_button.setText(self.tr(ButtonLabels.REATTACH_CANVAS))
 
     def _reattach_canvas(self):
         """Return the canvas scroll area back into the main layout."""
@@ -1315,7 +1310,7 @@ class EditorTabWidget(BaseTabWidget):
         self.canvas_scroll.show()
         if dialog:
             dialog.deleteLater()
-        self.detach_canvas_button.setText(self.trc(ButtonLabels.DETACH_CANVAS))
+        self.detach_canvas_button.setText(self.tr(ButtonLabels.DETACH_CANVAS))
 
     # ------------------------------------------------------------------
     # Animation loading helpers
@@ -1325,14 +1320,14 @@ class EditorTabWidget(BaseTabWidget):
         if not PIL_AVAILABLE:
             QMessageBox.warning(
                 self,
-                self.trc(DialogTitles.MISSING_DEPENDENCY),
+                self.tr(DialogTitles.MISSING_DEPENDENCY),
                 self.tr("Pillow is required to load animations."),
             )
             return
 
         paths, _ = QFileDialog.getOpenFileNames(
             self,
-            self.trc(FileDialogTitles.SELECT_ANIMATION_FILES),
+            self.tr(FileDialogTitles.SELECT_ANIMATION_FILES),
             "",
             self.tr(FileFilters.ANIMATION_FILES),
         )
@@ -1368,7 +1363,7 @@ class EditorTabWidget(BaseTabWidget):
             if not frames:
                 QMessageBox.warning(
                     self,
-                    self.trc(DialogTitles.LOAD_FAILED),
+                    self.tr(DialogTitles.LOAD_FAILED),
                     self.tr("{file} did not contain any frames.").format(
                         file=os.path.basename(file_path)
                     ),
@@ -1390,7 +1385,7 @@ class EditorTabWidget(BaseTabWidget):
         except Exception as exc:
             QMessageBox.warning(
                 self,
-                self.trc(DialogTitles.LOAD_FAILED),
+                self.tr(DialogTitles.LOAD_FAILED),
                 self.tr("Could not load {file}: {error}").format(
                     file=os.path.basename(file_path), error=str(exc)
                 ),
@@ -1639,7 +1634,7 @@ class EditorTabWidget(BaseTabWidget):
         if len(selected_items) < 2:
             QMessageBox.information(
                 self,
-                self.trc(DialogTitles.NEED_MORE_ANIMATIONS),
+                self.tr(DialogTitles.NEED_MORE_ANIMATIONS),
                 self.tr("Select at least two animations to build a composite entry."),
             )
             return
@@ -1701,7 +1696,7 @@ class EditorTabWidget(BaseTabWidget):
         if len(composite_sources) < 2 or not combined_frames:
             QMessageBox.warning(
                 self,
-                self.trc(DialogTitles.COMBINE_FAILED),
+                self.tr(DialogTitles.COMBINE_FAILED),
                 self.tr(
                     "Could not build the composite entry. Ensure the selected animations have frames."
                 ),
@@ -2324,7 +2319,7 @@ class EditorTabWidget(BaseTabWidget):
         settings["alignment_overrides"] = overrides_data
         QMessageBox.information(
             self,
-            self.trc(DialogTitles.ALIGNMENT_SAVED),
+            self.tr(DialogTitles.ALIGNMENT_SAVED),
             self.tr(
                 "Offsets stored for '{name}'. They will be used on the next extraction run."
             ).format(name=full_name),
@@ -2341,7 +2336,7 @@ class EditorTabWidget(BaseTabWidget):
         if not source_ids_value:
             QMessageBox.information(
                 self,
-                self.trc(DialogTitles.EXPORT_COMPOSITE),
+                self.tr(DialogTitles.EXPORT_COMPOSITE),
                 self.tr("Select a composite entry generated from multiple animations."),
             )
             return
@@ -2350,7 +2345,7 @@ class EditorTabWidget(BaseTabWidget):
         if not source_ids:
             QMessageBox.warning(
                 self,
-                self.trc(DialogTitles.EXPORT_COMPOSITE),
+                self.tr(DialogTitles.EXPORT_COMPOSITE),
                 self.tr(
                     "Could not determine the source animations for this composite."
                 ),
@@ -2370,7 +2365,7 @@ class EditorTabWidget(BaseTabWidget):
             if any(anim.source != "extract" for anim in source_animations):
                 QMessageBox.warning(
                     self,
-                    self.trc(DialogTitles.EXPORT_COMPOSITE),
+                    self.tr(DialogTitles.EXPORT_COMPOSITE),
                     self.tr(
                         "Composite export currently supports animations loaded from the extractor only."
                     ),
@@ -2385,7 +2380,7 @@ class EditorTabWidget(BaseTabWidget):
             if not base_spritesheet or different_sheet:
                 QMessageBox.warning(
                     self,
-                    self.trc(DialogTitles.EXPORT_COMPOSITE),
+                    self.tr(DialogTitles.EXPORT_COMPOSITE),
                     self.tr(
                         "All combined animations must belong to the same spritesheet and originate from the extractor."
                     ),
@@ -2403,7 +2398,7 @@ class EditorTabWidget(BaseTabWidget):
             if not base_spritesheet:
                 QMessageBox.warning(
                     self,
-                    self.trc(DialogTitles.EXPORT_COMPOSITE),
+                    self.tr(DialogTitles.EXPORT_COMPOSITE),
                     self.tr(
                         "Source animations were removed and no export metadata was stored. Recreate the composite while source animations are present."
                     ),
@@ -2417,7 +2412,7 @@ class EditorTabWidget(BaseTabWidget):
         default_name = self.tr("Composite_{count}").format(count=composite_count)
         animation_name, accepted = QInputDialog.getText(
             self,
-            self.trc(DialogTitles.COMPOSITE_NAME),
+            self.tr(DialogTitles.COMPOSITE_NAME),
             self.tr("Enter a name for the exported animation"),
             text=default_name,
         )

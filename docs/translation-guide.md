@@ -114,14 +114,14 @@ TS files are XML-based with a specific structure:
 
 ```xml
 <context>
-    <name>TextureAtlasExtractorApp</name>
+    <name>TextureAtlasToolboxApp</name>
     <!-- Messages for this class/context -->
 </context>
 ```
 
 -   **name**: The Python class or context where the text appears
 -   Groups related translations together
--   Common contexts: `TextureAtlasExtractorApp`, `ProcessingWindow`, `SettingsWindow`
+-   Common contexts: `TextureAtlasToolboxApp`, `ProcessingWindow`, `SettingsWindow`
 
 #### Message Entries
 

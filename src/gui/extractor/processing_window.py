@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QWidget,
 )
-from PySide6.QtCore import QCoreApplication, Qt, QTimer, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QCloseEvent, QFont
 
 from utils.translation_manager import tr as translate
@@ -51,12 +51,6 @@ class ProcessingWindow(QDialog):
     cancellation_requested = Signal()
 
     tr = translate
-
-    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
-
-    def trc(self, text: str) -> str:
-        """Translate a string from ui_constants using its proper context."""
-        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         """Initialize the processing dialog with progress indicators and timers.
@@ -201,13 +195,13 @@ class ProcessingWindow(QDialog):
 
         button_layout = QHBoxLayout()
 
-        self.cancel_button = QPushButton(self.trc(ButtonLabels.CANCEL))
+        self.cancel_button = QPushButton(self.tr(ButtonLabels.CANCEL))
         self.cancel_button.clicked.connect(self.cancel_processing)
         button_layout.addWidget(self.cancel_button)
 
         button_layout.addStretch()
 
-        self.close_button = QPushButton(self.trc(ButtonLabels.CLOSE))
+        self.close_button = QPushButton(self.tr(ButtonLabels.CLOSE))
         self.close_button.clicked.connect(self.accept)
         self.close_button.setEnabled(False)
         button_layout.addWidget(self.close_button)

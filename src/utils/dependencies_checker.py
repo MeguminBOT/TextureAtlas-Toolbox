@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QApplication,
     QMessageBox,
 )
-from PySide6.QtCore import QCoreApplication, Qt
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
 from utils.translation_manager import tr as translate
@@ -29,12 +29,6 @@ class ErrorDialogWithLinks(QDialog):
     """Dialog displaying an error message with clickable hyperlinks."""
 
     tr = translate
-
-    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
-
-    def trc(self, text: str) -> str:
-        """Translate a string from ui_constants using its proper context."""
-        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
 
     def __init__(self, message: str, links: List[Tuple[str, str]], parent=None):
         """Initialize the error dialog.
@@ -83,7 +77,7 @@ class ErrorDialogWithLinks(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        ok_button = QPushButton(self.trc(ButtonLabels.OK))
+        ok_button = QPushButton(self.tr(ButtonLabels.OK))
         ok_button.clicked.connect(self.accept)
         ok_button.setFixedWidth(80)
         button_layout.addWidget(ok_button)

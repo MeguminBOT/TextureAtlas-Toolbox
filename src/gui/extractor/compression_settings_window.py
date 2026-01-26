@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QWidget,
 )
-from PySide6.QtCore import QCoreApplication, Qt
+from PySide6.QtCore import Qt
 
 from utils.translation_manager import tr as translate
 from utils.ui_constants import ButtonLabels, Labels, WindowTitles, CheckBoxLabels
@@ -41,12 +41,6 @@ class CompressionSettingsWindow(QDialog):
 
     tr = translate
 
-    UI_CONSTANTS_CONTEXT = "TextureAtlasToolboxApp"
-
-    def trc(self, text: str) -> str:
-        """Translate a string from ui_constants using its proper context."""
-        return QCoreApplication.translate(self.UI_CONSTANTS_CONTEXT, text)
-
     def __init__(
         self, parent=None, settings_manager=None, app_config=None, current_format="PNG"
     ):
@@ -66,7 +60,7 @@ class CompressionSettingsWindow(QDialog):
         self.original_values = {}
         self.compression_widgets = {}
 
-        self.setWindowTitle(self.trc(WindowTitles.COMPRESSION_SETTINGS))
+        self.setWindowTitle(self.tr(WindowTitles.COMPRESSION_SETTINGS))
         self.setModal(True)
         self.resize(400, 500)
 
@@ -119,11 +113,11 @@ class CompressionSettingsWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        cancel_button = QPushButton(self.trc(ButtonLabels.CANCEL))
+        cancel_button = QPushButton(self.tr(ButtonLabels.CANCEL))
         cancel_button.clicked.connect(self.reject)
         button_layout.addWidget(cancel_button)
 
-        ok_button = QPushButton(self.trc(ButtonLabels.OK))
+        ok_button = QPushButton(self.tr(ButtonLabels.OK))
         ok_button.clicked.connect(self.accept_changes)
         ok_button.setDefault(True)
         button_layout.addWidget(ok_button)
@@ -139,7 +133,7 @@ class CompressionSettingsWindow(QDialog):
         group = QGroupBox(self.tr("PNG Compression Settings"))
         grid = QGridLayout(group)
 
-        grid.addWidget(QLabel(self.trc(Labels.COMPRESS_LEVEL_0_9)), 0, 0)
+        grid.addWidget(QLabel(self.tr(Labels.COMPRESS_LEVEL_0_9)), 0, 0)
         compress_level = QSpinBox()
         compress_level.setRange(0, 9)
         compress_level.setValue(9)
@@ -155,7 +149,7 @@ class CompressionSettingsWindow(QDialog):
         )
         grid.addWidget(compress_level, 0, 1)
 
-        optimize = QCheckBox(self.trc(CheckBoxLabels.OPTIMIZE_PNG))
+        optimize = QCheckBox(self.tr(CheckBoxLabels.OPTIMIZE_PNG))
         optimize.setToolTip(
             self.tr(
                 "PNG optimize:\n"
@@ -186,7 +180,7 @@ class CompressionSettingsWindow(QDialog):
         group = QGroupBox(self.tr("WebP Compression Settings"))
         grid = QGridLayout(group)
 
-        lossless = QCheckBox(self.trc(CheckBoxLabels.LOSSLESS_WEBP))
+        lossless = QCheckBox(self.tr(CheckBoxLabels.LOSSLESS_WEBP))
         lossless.setToolTip(
             self.tr(
                 "WebP lossless mode:\n"
@@ -197,7 +191,7 @@ class CompressionSettingsWindow(QDialog):
         )
         grid.addWidget(lossless, 0, 0, 1, 2)
 
-        grid.addWidget(QLabel(self.trc(Labels.QUALITY_0_100)), 1, 0)
+        grid.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), 1, 0)
         quality = QSpinBox()
         quality.setRange(0, 100)
         quality.setValue(100)
@@ -212,7 +206,7 @@ class CompressionSettingsWindow(QDialog):
         )
         grid.addWidget(quality, 1, 1)
 
-        grid.addWidget(QLabel(self.trc(Labels.METHOD_0_6)), 2, 0)
+        grid.addWidget(QLabel(self.tr(Labels.METHOD_0_6)), 2, 0)
         method = QSpinBox()
         method.setRange(0, 6)
         method.setValue(6)
@@ -227,7 +221,7 @@ class CompressionSettingsWindow(QDialog):
         )
         grid.addWidget(method, 2, 1)
 
-        grid.addWidget(QLabel(self.trc(Labels.ALPHA_QUALITY_0_100)), 3, 0)
+        grid.addWidget(QLabel(self.tr(Labels.ALPHA_QUALITY_0_100)), 3, 0)
         alpha_quality = QSpinBox()
         alpha_quality.setRange(0, 100)
         alpha_quality.setValue(100)
@@ -242,7 +236,7 @@ class CompressionSettingsWindow(QDialog):
         )
         grid.addWidget(alpha_quality, 3, 1)
 
-        exact = QCheckBox(self.trc(CheckBoxLabels.EXACT_WEBP))
+        exact = QCheckBox(self.tr(CheckBoxLabels.EXACT_WEBP))
         exact.setToolTip(
             self.tr(
                 "WebP exact mode:\n"
@@ -278,7 +272,7 @@ class CompressionSettingsWindow(QDialog):
         group = QGroupBox(self.tr("AVIF Compression Settings"))
         grid = QGridLayout(group)
 
-        lossless = QCheckBox(self.trc(CheckBoxLabels.LOSSLESS_AVIF))
+        lossless = QCheckBox(self.tr(CheckBoxLabels.LOSSLESS_AVIF))
         lossless.setToolTip(
             self.tr(
                 "AVIF lossless mode:\n"
@@ -289,7 +283,7 @@ class CompressionSettingsWindow(QDialog):
         )
         grid.addWidget(lossless, 0, 0, 1, 2)
 
-        grid.addWidget(QLabel(self.trc(Labels.QUALITY_0_100)), 1, 0)
+        grid.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), 1, 0)
         quality = QSpinBox()
         quality.setRange(0, 100)
         quality.setValue(100)
@@ -303,7 +297,7 @@ class CompressionSettingsWindow(QDialog):
         )
         grid.addWidget(quality, 1, 1)
 
-        grid.addWidget(QLabel(self.trc(Labels.SPEED_0_10)), 2, 0)
+        grid.addWidget(QLabel(self.tr(Labels.SPEED_0_10)), 2, 0)
         speed = QSpinBox()
         speed.setRange(0, 10)
         speed.setValue(5)
@@ -340,7 +334,7 @@ class CompressionSettingsWindow(QDialog):
         group = QGroupBox(self.tr("TIFF Compression Settings"))
         grid = QGridLayout(group)
 
-        grid.addWidget(QLabel(self.trc(Labels.COMPRESSION_TYPE)), 0, 0)
+        grid.addWidget(QLabel(self.tr(Labels.COMPRESSION_TYPE)), 0, 0)
         compression_type = QComboBox()
         compression_type.addItems(["none", "lzw", "zip", "jpeg"])
         compression_type.setCurrentText("lzw")
@@ -355,7 +349,7 @@ class CompressionSettingsWindow(QDialog):
         )
         grid.addWidget(compression_type, 0, 1)
 
-        grid.addWidget(QLabel(self.trc(Labels.QUALITY_0_100)), 1, 0)
+        grid.addWidget(QLabel(self.tr(Labels.QUALITY_0_100)), 1, 0)
         quality = QSpinBox()
         quality.setRange(0, 100)
         quality.setValue(100)
@@ -368,7 +362,7 @@ class CompressionSettingsWindow(QDialog):
         )
         grid.addWidget(quality, 1, 1)
 
-        optimize = QCheckBox(self.trc(CheckBoxLabels.OPTIMIZE_TIFF))
+        optimize = QCheckBox(self.tr(CheckBoxLabels.OPTIMIZE_TIFF))
         optimize.setToolTip(
             self.tr(
                 "TIFF optimize:\n"
