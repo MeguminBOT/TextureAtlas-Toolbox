@@ -1112,21 +1112,59 @@ stored separately in spritemap.json.
 
 **Element Keys:**
 
-| Key   | Full Name          | Description                                 |
-| ----- | ------------------ | ------------------------------------------- |
-| `ASI` | Atlas Sprite Index | Reference to sprite index in spritemap.json |
-| `SI`  | Symbol Instance    | Reference to a symbol in SD                 |
-| `M3D` | Matrix 3D          | 4x4 transform matrix (16 values)            |
-| `ST`  | Symbol Type        | "G" (graphic), "MC" (movieclip), etc.       |
+| Key   | Full Name          | Description                                              |
+| ----- | ------------------ | -------------------------------------------------------- |
+| `ASI` | Atlas Sprite Index | Reference to sprite index in spritemap.json              |
+| `SI`  | Symbol Instance    | Reference to a symbol in SD                              |
+| `ST`  | Symbol Type        | "G" (graphic), "MC" (movieclip), etc.                    |
+
+**Transform keys:**
+
+| Key   | Full Name          | Description                                              |
+| ----- | ------------------ | -------------------------------------------------------- |
+| `M3D` | Matrix 3D          | 4x4 3D transformation matrix (16 values)                 |
+| `MX`  | Matrix 2D          | 3x2 2D transformation matrix (6 values)                  |
 
 **Extraction Behavior:**
 
-TextureAtlas Toolbox processes Adobe Animate spritemaps by:
+TextureAtlas Toolbox reconstructs Adobe Animate spritemap animations through a multi-stage
+rendering pipeline:
 
-1. Parsing the `ATLAS.SPRITES` array to locate sprites in the image
-2. Walking through `AN.TL` and `SD.S` timelines to extract animation sequences
-3. Applying transform matrices to reconstruct frame-by-frame renders
-4. Grouping frames by symbol name for individual animation export
+1. **Normalization** — The Animation.json is normalized to a consistent format. This includes
+converting verbose key names to abbreviated forms and transforming `MX` (6-value 2D) matrices
+to `M3D` (16-value 3D) format for unified processing.
+
+2. **Atlas Loading** — The spritemap PNG is loaded and the `ATLAS.SPRITES` array is parsed to
+create a lookup table mapping sprite names to their atlas regions (position, dimensions,
+rotation state).
+
+3. **Timeline Walking** — The renderer walks through both root timeline (`AN.TL`) and symbol
+definitions (`SD.S`). Each symbol's layers are processed in reverse order (back-to-front)
+to respect Flash's layer stacking.
+
+4. **Frame Resolution** — For each frame index, a binary search locates the active keyframe
+based on `I` (index) and `DU` (duration) values. Nested symbol instances resolve their
+internal frame using loop mode (`LP`):
+- `LP` (Loop) — Cycles through frames continuously
+- `PO` (Play Once) — Plays once, then holds the last frame
+- `SF` (Single Frame) — Displays only the specified `FF` (first frame)
+
+5. **Transform Composition** — Each element's `M3D` or `MX` matrix is parsed into a 3×3 affine
+transform. Parent transforms accumulate via matrix multiplication (`@`) as the renderer
+descends into nested symbols, preserving the full transform hierarchy.
+
+6. **Sprite Compositing** — Individual sprites are extracted from the atlas. NumPy computes the
+transformed bounding box from corner positions, then PIL's `Image.transform()` applies the
+affine transformation. Sprites are alpha-composited onto the canvas in layer order. Color
+effects (`C` key) are applied when present.
+
+7. **Clipping Masks** — Layers marked as clipping masks (`LT: "Clp"`) use a canvas stack
+approach: the mask and masked content render to temporary canvases, then combine using
+alpha multiplication before compositing onto the base canvas.
+
+8. **Bounding Box Calculation** — After rendering all frames for a symbol or label range, the
+combined bounding box is calculated and frames are cropped to minimize output size while
+preserving registration (offset data for proper playback alignment).
 
 **Memory Considerations:**
 
@@ -1138,6 +1176,7 @@ Adobe Animate spritemaps can be memory-intensive to reconstruct for export:
 Consider processing these files individually rather than in large batches.
 
 When used properly in a game engine, unlike our extractor, it’s a memory efficient format.
+If you have any ideas on improvements to the spritemap processing, you can open a PR with your changes.
 
 **When to Use:**
 -   Extracting animations from Adobe Animate HTML5 Canvas exports

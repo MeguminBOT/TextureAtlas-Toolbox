@@ -8,7 +8,7 @@ Adobe Animate exports spritemap data in two forms:
   - **Verbose**: Descriptive keys (``ANIMATION``, ``TIMELINE``, ``LAYERS``, etc.)
 
 This module ensures all Animation.json documents use the optimized schema
-regardless of export settings. The :func:`normalize_animation_document`
+regardless of export settings. The :func: `normalize_animation_document`
 function detects verbose structures and transforms them into the abbreviated
 layout, allowing the rest of the extraction pipeline to work with a single
 predictable format.
@@ -68,7 +68,8 @@ def normalize_animation_document(data: Dict[str, Any]) -> Dict[str, Any]:
         return data
 
     if "AN" in data and "SD" in data:
-        return data
+        # Already abbreviated format, but may still need MX→M3D conversion
+        return _convert_mx_to_m3d_recursive(data)
 
     verbose_key_candidates = {
         key.lower(): key for key in data.keys() if isinstance(key, str)
@@ -78,7 +79,7 @@ def normalize_animation_document(data: Dict[str, Any]) -> Dict[str, Any]:
         or "symbol_dictionary" in verbose_key_candidates
     )
     if not has_verbose_keys:
-        return data
+        return _convert_mx_to_m3d_recursive(data)
 
     normalized = dict(data)
 
@@ -101,6 +102,72 @@ def normalize_animation_document(data: Dict[str, Any]) -> Dict[str, Any]:
         normalized["MD"] = merged
 
     return normalized
+
+
+def _convert_mx_to_m3d_recursive(data: Any) -> Any:
+    """Recursively convert MX (6-element) matrices to M3D (16-element) format.
+
+    Walks through the entire document structure and converts any MX keys
+    to M3D format in-place for SI (symbol instance) and ASI (atlas sprite
+    instance) elements.
+
+    Args:
+        data: Any JSON-compatible structure (dict, list, or primitive).
+
+    Returns:
+        The same structure with MX matrices converted to M3D.
+    """
+    if isinstance(data, dict):
+        result = {}
+        for key, value in data.items():
+            if key == "MX" and isinstance(value, list) and len(value) == 6:
+                result["M3D"] = _mx_to_m3d(value)
+            elif key == "M3D":
+                result[key] = value
+            else:
+                result[key] = _convert_mx_to_m3d_recursive(value)
+        return result
+    elif isinstance(data, list):
+        return [_convert_mx_to_m3d_recursive(item) for item in data]
+    else:
+        return data
+
+
+def _mx_to_m3d(mx: List[float]) -> List[float]:
+    """Convert a 6-element MX matrix to 16-element M3D format.
+
+    MX format is [a, b, c, d, tx, ty] representing the 2D affine matrix:
+        | a  c  tx |
+        | b  d  ty |
+        | 0  0  1  |
+
+    M3D is a 16-element column-major 4x4 matrix.
+
+    Args:
+        mx: 6-element list [a, b, c, d, tx, ty].
+
+    Returns:
+        16-element M3D list.
+    """
+    a, b, c, d, tx, ty = mx
+    return [
+        float(a),
+        float(b),
+        0.0,
+        0.0,
+        float(c),
+        float(d),
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        float(tx),
+        float(ty),
+        0.0,
+        1.0,
+    ]
 
 
 def _normalize_animation_section(section: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -357,6 +424,8 @@ def _normalize_symbol_instance(instance: Optional[Dict[str, Any]]) -> Dict[str, 
         }
     matrix_source = _get_first(instance, "M3D", "Matrix3D")
     if matrix_source is None:
+        matrix_source = _get_first(instance, "MX")
+    if matrix_source is None:
         matrix_source = _matrix_from_decomposed(instance)
     normalized["M3D"] = _normalize_matrix(matrix_source)
     color_effect = _get_first(instance, "C", "colorEffect", "colourEffect")
@@ -386,6 +455,8 @@ def _normalize_symbol_bitmap(instance: Optional[Dict[str, Any]]) -> Dict[str, An
     normalized: Dict[str, Any] = {"N": name}
     matrix_source = _get_first(instance, "M3D", "Matrix3D")
     if matrix_source is None:
+        matrix_source = _get_first(instance, "MX")
+    if matrix_source is None:
         matrix_source = _matrix_from_decomposed(instance)
     normalized["M3D"] = _normalize_matrix(matrix_source)
     return normalized
@@ -409,6 +480,8 @@ def _normalize_atlas_instance(instance: Optional[Dict[str, Any]]) -> Dict[str, A
     if name:
         normalized["N"] = name
     matrix_source = _get_first(instance, "M3D", "Matrix3D", "matrix3D")
+    if matrix_source is None:
+        matrix_source = _get_first(instance, "MX")
     if matrix_source is None:
         matrix_source = _matrix_from_decomposed(instance)
     normalized["M3D"] = _normalize_matrix(matrix_source)
@@ -479,7 +552,8 @@ def _normalize_matrix(matrix: Optional[Any]) -> List[float]:
     """Return a 16-value matrix list no matter the incoming representation.
 
     Args:
-        matrix: A 16-element list, a dict with ``m00``–``m33`` keys, or ``None``.
+        matrix: A 16-element list (M3D), a 6-element list (MX 2D affine),
+            a dict with ``m00``–``m33`` keys, or ``None``.
 
     Returns:
         A 16-element column-major matrix list; identity if input is invalid.
@@ -487,6 +561,30 @@ def _normalize_matrix(matrix: Optional[Any]) -> List[float]:
 
     if isinstance(matrix, list) and len(matrix) == 16:
         return matrix
+    if isinstance(matrix, list) and len(matrix) == 6:
+        # MX format: [a, b, c, d, tx, ty] representing 2D affine transform
+        # | a  c  tx |    Maps to M3D column-major 4x4:
+        # | b  d  ty |    [a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, tx, ty, 0, 1]
+        # | 0  0  1  |
+        a, b, c, d, tx, ty = matrix
+        return [
+            float(a),
+            float(b),
+            0.0,
+            0.0,
+            float(c),
+            float(d),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            float(tx),
+            float(ty),
+            0.0,
+            1.0,
+        ]
     if isinstance(matrix, dict):
         return [
             _get_first(matrix, "m00", "M00") or 1.0,

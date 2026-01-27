@@ -46,10 +46,13 @@ class TransformMatrix:
         Args:
             matrix_values: A 16-element list representing a 4x4 matrix in
                 column-major order; only the 2-D affine portion is used.
+                If ``None`` or empty, returns an identity transform.
 
         Returns:
             A new ``TransformMatrix`` instance.
         """
+        if not matrix_values:
+            return cls()
 
         return cls(
             a=matrix_values[0],
