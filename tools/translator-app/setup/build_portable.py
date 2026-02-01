@@ -563,9 +563,9 @@ import site
             )
             if result.returncode != 0:
                 failed_packages.append(package)
-                self.log(f"  ✗ {package}: FAILED - {result.stderr.strip()}")
+                self.log(f"  [FAIL] {package}: {result.stderr.strip()}")
             else:
-                self.log(f"  ✓ {package}")
+                self.log(f"  [OK] {package}")
 
         if failed_packages:
             raise RuntimeError(
