@@ -817,8 +817,17 @@ pause
         """Install requirements in Unix virtual environment."""
         if platform.system() == "Windows":
             pip_exe = venv_path / "Scripts" / "pip.exe"
+            site_packages = venv_path / "Lib" / "site-packages"
         else:
             pip_exe = venv_path / "bin" / "pip"
+            # Find site-packages in Unix venv (e.g., lib/python3.14/site-packages)
+            lib_dir = venv_path / "lib"
+            site_packages = None
+            if lib_dir.exists():
+                for py_dir in lib_dir.iterdir():
+                    if py_dir.name.startswith("python"):
+                        site_packages = py_dir / "site-packages"
+                        break
 
         self.log("Installing packages...")
 
@@ -829,10 +838,14 @@ pause
         )
 
         if result.returncode != 0:
-            print(f"STDERR: {result.stderr}")
+            print(f"STDERR: {result.stderr}", flush=True)
             raise RuntimeError("Failed to install requirements")
 
         self.log("All packages installed successfully")
+
+        # Strip unnecessary PySide6 components to reduce size
+        if site_packages and site_packages.exists():
+            self._strip_pyside6(site_packages)
 
     def _create_unix_launcher_scripts(self, dist_path: Path) -> None:
         """Create Unix launcher scripts."""
@@ -986,7 +999,8 @@ def main() -> int:
     print(f"  Python version: {args.python_version}", flush=True)
     print(
         f"  Target platform: {platform.system()} "
-        f"({get_os_identifier()}-{get_arch_identifier()})", flush=True
+        f"({get_os_identifier()}-{get_arch_identifier()})",
+        flush=True,
     )
     print(f"{'='*60}\n", flush=True)
 

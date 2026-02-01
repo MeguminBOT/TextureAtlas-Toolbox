@@ -61,10 +61,10 @@ def get_app_version(project_root: Path) -> str:
     version_file = project_root / "src" / "utils" / "version.py"
     if version_file.exists():
         content = version_file.read_text(encoding="utf-8")
-        for line in content.split('\n'):
+        for line in content.split("\n"):
             if line.startswith("APP_VERSION"):
                 # Extract version string: APP_VERSION = "2.0.0"
-                version = line.split('=')[1].strip().strip('"').strip("'")
+                version = line.split("=")[1].strip().strip('"').strip("'")
                 return version
     return "0.0.0"
 
@@ -107,12 +107,12 @@ class PortableBuilder:
         self.output_dir = output_dir
         self.python_version = python_version
         self.verbose = verbose
-        
+
         # Get app version and build asset name
         self.app_version = get_app_version(project_root)
         self.os_id = get_os_identifier()
         self.arch_id = get_arch_identifier()
-        
+
         # Archive naming: TextureAtlasToolbox-win-x64-embedded-python-v2.0.0
         self.archive_name = f"{APP_NAME}-{self.os_id}-{self.arch_id}-embedded-python-v{self.app_version}"
         # Folder name inside archive: user-friendly name
@@ -138,28 +138,28 @@ class PortableBuilder:
         total_steps = 7
         dist_path = self.output_dir / self.dist_name
         python_dir = dist_path / "python"
-        
+
         # Clean previous build
         if dist_path.exists():
             self.log(f"Removing previous build: {dist_path}")
             shutil.rmtree(dist_path)
-        
+
         dist_path.mkdir(parents=True, exist_ok=True)
 
         # Step 1: Download embedded Python
         self.log_step(1, total_steps, "Downloading Embedded Python")
         embed_url = PYTHON_EMBED_URL_TEMPLATE.format(version=self.python_version)
-        
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
             embed_zip = tmp_path / "python-embed.zip"
-            
+
             self.download_file(embed_url, embed_zip)
-            
+
             # Extract embedded Python
             self.log("Extracting embedded Python...")
             python_dir.mkdir(parents=True, exist_ok=True)
-            with zipfile.ZipFile(embed_zip, 'r') as zf:
+            with zipfile.ZipFile(embed_zip, "r") as zf:
                 zf.extractall(python_dir)
 
         # Step 2: Configure embedded Python for pip
@@ -202,7 +202,7 @@ class PortableBuilder:
         pth_files = list(python_dir.glob("python*._pth"))
         if not pth_files:
             raise FileNotFoundError("Could not find Python ._pth file")
-        
+
         pth_file = pth_files[0]
         self.log(f"Configuring: {pth_file.name}")
 
@@ -214,11 +214,11 @@ class PortableBuilder:
         # 3. . for current directory
         # 4. ../src so app modules are importable from python/ dir
         # 5. import site to enable site-packages mechanism
-        
+
         # Extract python version from filename (e.g., python314._pth -> 314)
         pth_stem = pth_file.stem  # e.g., "python314"
         version_suffix = pth_stem.replace("python", "")  # e.g., "314"
-        
+
         pth_content = f"""{pth_stem}.zip
 Lib/site-packages
 .
@@ -232,7 +232,7 @@ import site
         self.log("  - . (current directory)")
         self.log("  - ../src (application modules)")
         self.log("  - import site (enable site mechanism)")
-        
+
         # Create the Lib/site-packages directory
         site_packages = python_dir / "Lib" / "site-packages"
         site_packages.mkdir(parents=True, exist_ok=True)
@@ -241,11 +241,11 @@ import site
     def _install_pip(self, python_dir: Path) -> None:
         """Install pip into the embedded Python."""
         python_exe = python_dir / "python.exe"
-        
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             get_pip_path = Path(tmp_dir) / "get-pip.py"
             self.download_file(GET_PIP_URL, get_pip_path)
-            
+
             self.log("Running get-pip.py...")
             result = subprocess.run(
                 [str(python_exe), str(get_pip_path), "--no-warn-script-location"],
@@ -253,47 +253,51 @@ import site
                 text=True,
                 cwd=python_dir,
             )
-            
+
             if result.returncode != 0:
                 print(f"STDOUT: {result.stdout}")
                 print(f"STDERR: {result.stderr}")
                 raise RuntimeError("Failed to install pip")
-            
+
             self.log("pip installed successfully")
 
     def _install_requirements(self, python_dir: Path) -> None:
         """Install required packages from requirements.txt."""
         python_exe = python_dir / "python.exe"
         site_packages = python_dir / "Lib" / "site-packages"
-        
+
         # Try portable requirements first, then fall back to standard
         requirements_path = self.project_root / REQUIREMENTS_FILE
         if not requirements_path.exists():
             requirements_path = self.project_root / REQUIREMENTS_FILE_FALLBACK
-        
+
         if not requirements_path.exists():
             raise FileNotFoundError(f"Requirements file not found: {requirements_path}")
-        
+
         self.log(f"Installing packages from: {requirements_path}")
         self.log("Using binary-only packages (no source builds)...")
-        
+
         # Environment to disable user site-packages
         # This ensures packages are installed to our local site-packages only
         env = os.environ.copy()
         env["PYTHONNOUSERSITE"] = "1"
         env["PIP_NO_CACHE_DIR"] = "1"  # Don't use cached wheels
-        
+
         # Use pip to install requirements with binary-only preference
         # This avoids needing compilers for source builds
         # --target ensures packages go to our local site-packages
         result = subprocess.run(
             [
                 str(python_exe),
-                "-m", "pip",
+                "-m",
+                "pip",
                 "install",
-                "-r", str(requirements_path),
-                "--target", str(site_packages),
-                "--only-binary", ":all:",
+                "-r",
+                str(requirements_path),
+                "--target",
+                str(site_packages),
+                "--only-binary",
+                ":all:",
                 "--no-warn-script-location",
                 "--disable-pip-version-check",
             ],
@@ -302,24 +306,32 @@ import site
             cwd=python_dir,
             env=env,
         )
-        
+
         if result.returncode != 0:
             print(f"STDOUT: {result.stdout}")
             print(f"STDERR: {result.stderr}")
             raise RuntimeError("Failed to install requirements")
-        
+
         self.log("All packages installed successfully")
-        
+
         # List installed packages for verification (only local site-packages)
         result = subprocess.run(
-            [str(python_exe), "-m", "pip", "list", "--format=columns", "--path", str(site_packages)],
+            [
+                str(python_exe),
+                "-m",
+                "pip",
+                "list",
+                "--format=columns",
+                "--path",
+                str(site_packages),
+            ],
             capture_output=True,
             text=True,
             env=env,
         )
         if result.returncode == 0:
             self.log("Installed packages:")
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 self.log(f"  {line}")
 
         # Strip unnecessary PySide6 components to reduce size
@@ -330,41 +342,58 @@ import site
 
     def _strip_pyside6(self, site_packages: Path) -> None:
         """Remove unnecessary PySide6 components to reduce distribution size.
-        
+
         This app only uses QtCore, QtGui, and QtWidgets. All other Qt modules
         and tools (Designer, Linguist, QML, WebEngine, etc.) can be removed.
         """
         pyside6_dir = site_packages / "PySide6"
         if not pyside6_dir.exists():
             return
-        
+
         self.log("Stripping unnecessary PySide6 components...")
-        
+
         # Get size before cleanup
-        size_before = sum(f.stat().st_size for f in pyside6_dir.rglob("*") if f.is_file())
-        
+        size_before = sum(
+            f.stat().st_size for f in pyside6_dir.rglob("*") if f.is_file()
+        )
+
         # Modules to KEEP (only what we actually use)
         keep_modules = {
             # Core modules we use
-            "QtCore", "QtGui", "QtWidgets",
+            "QtCore",
+            "QtGui",
+            "QtWidgets",
             # Required base files
-            "pyside6", "shiboken6",
+            "pyside6",
+            "shiboken6",
         }
-        
+
         # Executables/tools to remove
         remove_executables = [
-            "assistant.exe", "designer.exe", "linguist.exe",
-            "lrelease.exe", "lupdate.exe", "qmllint.exe", "qmlls.exe",
-            "qmlformat.exe", "qmlcachegen.exe", "qmltyperegistrar.exe",
-            "qmlimportscanner.exe", "balsam.exe", "balsamui.exe",
-            "qsb.exe", "rcc.exe", "uic.exe", "svgtoqml.exe",
+            "assistant.exe",
+            "designer.exe",
+            "linguist.exe",
+            "lrelease.exe",
+            "lupdate.exe",
+            "qmllint.exe",
+            "qmlls.exe",
+            "qmlformat.exe",
+            "qmlcachegen.exe",
+            "qmltyperegistrar.exe",
+            "qmlimportscanner.exe",
+            "balsam.exe",
+            "balsamui.exe",
+            "qsb.exe",
+            "rcc.exe",
+            "uic.exe",
+            "svgtoqml.exe",
             "QtWebEngineProcess.exe",
         ]
-        
+
         # DLLs to remove (Qt modules we don't use)
         # Keep: Qt6Core, Qt6Gui, Qt6Widgets and their dependencies
         remove_dll_patterns = [
-            "Qt63D",          # Qt 3D
+            "Qt63D",  # Qt 3D
             "Qt6Bluetooth",
             "Qt6Charts",
             "Qt6DataVisualization",
@@ -375,7 +404,7 @@ import site
             "Qt6Labs",
             "Qt6Location",
             "Qt6Multimedia",
-            "Qt6Network",     # Network module
+            "Qt6Network",  # Network module
             "Qt6Nfc",
             "Qt6OpenGL",
             "Qt6Pdf",
@@ -401,38 +430,64 @@ import site
             "Qt6WebView",
             "Qt6Xml",
         ]
-        
+
         # Python bindings to remove (.pyd and .pyi files)
         remove_binding_patterns = [
-            "Qt3D", "QtBluetooth", "QtCharts", "QtConcurrent",
-            "QtDataVisualization", "QtDBus", "QtDesigner",
-            "QtGraphs", "QtHelp", "QtHttpServer", "QtLocation",
-            "QtMultimedia", "QtNetwork", "QtNfc", "QtOpenGL",
-            "QtPdf", "QtPositioning", "QtPrintSupport",
-            "QtQml", "QtQuick", "QtRemoteObjects", "QtScxml",
-            "QtSensors", "QtSerialBus", "QtSerialPort",
-            "QtSpatialAudio", "QtSql", "QtStateMachine",
+            "Qt3D",
+            "QtBluetooth",
+            "QtCharts",
+            "QtConcurrent",
+            "QtDataVisualization",
+            "QtDBus",
+            "QtDesigner",
+            "QtGraphs",
+            "QtHelp",
+            "QtHttpServer",
+            "QtLocation",
+            "QtMultimedia",
+            "QtNetwork",
+            "QtNfc",
+            "QtOpenGL",
+            "QtPdf",
+            "QtPositioning",
+            "QtPrintSupport",
+            "QtQml",
+            "QtQuick",
+            "QtRemoteObjects",
+            "QtScxml",
+            "QtSensors",
+            "QtSerialBus",
+            "QtSerialPort",
+            "QtSpatialAudio",
+            "QtSql",
+            "QtStateMachine",
             # QtSvg - KEEP for SVG icon support
-            "QtTest", "QtTextToSpeech", "QtUiTools", "QtWebChannel",
-            "QtWebEngine", "QtWebSockets", "QtWebView", "QtXml",
+            "QtTest",
+            "QtTextToSpeech",
+            "QtUiTools",
+            "QtWebChannel",
+            "QtWebEngine",
+            "QtWebSockets",
+            "QtWebView",
+            "QtXml",
             "QtAxContainer",
         ]
-        
+
         # Directories to remove entirely
         remove_dirs = [
-            "qml",           # QML files
+            "qml",  # QML files
             "translations",  # Qt translations (we have our own)
-            "resources",     # Qt resources
-            "typesystems",   # Type system XML files
-            "glue",          # Glue code
-            "include",       # C++ headers
-            "metatypes",     # Meta type info
-            "doc",           # Documentation
+            "resources",  # Qt resources
+            "typesystems",  # Type system XML files
+            "glue",  # Glue code
+            "include",  # C++ headers
+            "metatypes",  # Meta type info
+            "doc",  # Documentation
         ]
-        
+
         removed_count = 0
         removed_size = 0
-        
+
         # Remove executables
         for exe in remove_executables:
             exe_path = pyside6_dir / exe
@@ -440,14 +495,14 @@ import site
                 removed_size += exe_path.stat().st_size
                 exe_path.unlink()
                 removed_count += 1
-        
+
         # Remove DLLs by pattern
         for pattern in remove_dll_patterns:
             for dll in pyside6_dir.glob(f"{pattern}*.dll"):
                 removed_size += dll.stat().st_size
                 dll.unlink()
                 removed_count += 1
-        
+
         # Remove Python bindings (.pyd and .pyi files)
         for pattern in remove_binding_patterns:
             for ext in [".pyd", ".pyi"]:
@@ -456,12 +511,14 @@ import site
                     removed_size += binding.stat().st_size
                     binding.unlink()
                     removed_count += 1
-        
+
         # Remove directories (with retry for locked files from antivirus/indexing)
         for dirname in remove_dirs:
             dir_path = pyside6_dir / dirname
             if dir_path.exists() and dir_path.is_dir():
-                dir_size = sum(f.stat().st_size for f in dir_path.rglob("*") if f.is_file())
+                dir_size = sum(
+                    f.stat().st_size for f in dir_path.rglob("*") if f.is_file()
+                )
                 removed_size += dir_size
                 # Retry up to 3 times with delay for transient locks
                 for attempt in range(3):
@@ -474,7 +531,7 @@ import site
                         else:
                             raise
                 removed_count += 1
-        
+
         # Remove ffmpeg/multimedia DLLs (avcodec, avformat, etc.)
         for dll in pyside6_dir.glob("av*.dll"):
             removed_size += dll.stat().st_size
@@ -484,27 +541,31 @@ import site
             removed_size += dll.stat().st_size
             dll.unlink()
             removed_count += 1
-        
+
         # Get size after cleanup
-        size_after = sum(f.stat().st_size for f in pyside6_dir.rglob("*") if f.is_file())
-        
+        size_after = sum(
+            f.stat().st_size for f in pyside6_dir.rglob("*") if f.is_file()
+        )
+
         saved_mb = (size_before - size_after) / (1024 * 1024)
         self.log(f"  Removed {removed_count} items, saved {saved_mb:.1f} MB")
-        self.log(f"  PySide6 size: {size_before / (1024*1024):.1f} MB -> {size_after / (1024*1024):.1f} MB")
+        self.log(
+            f"  PySide6 size: {size_before / (1024*1024):.1f} MB -> {size_after / (1024*1024):.1f} MB"
+        )
 
     def _verify_critical_packages(self, python_exe: Path) -> None:
         """Verify that critical packages and their dependencies are importable.
-        
+
         This catches issues like missing urllib3 (requests dependency) that could
         cause runtime crashes if packages are incompletely installed.
-        
+
         Uses PYTHONNOUSERSITE to ensure we're only checking packages installed
         in the bundled site-packages, not user's global packages.
         """
         critical_packages = [
             # Core app dependencies - PySide6 modules we actually use
             "PySide6.QtCore",
-            "PySide6.QtGui", 
+            "PySide6.QtGui",
             "PySide6.QtWidgets",
             "PIL",  # Pillow
             "numpy",
@@ -520,14 +581,14 @@ import site
             "tqdm",
             "psutil",
         ]
-        
+
         # Disable user site-packages to ensure we only check bundled packages
         env = os.environ.copy()
         env["PYTHONNOUSERSITE"] = "1"
-        
+
         self.log("Verifying critical packages are importable (isolated environment)...")
         failed_packages = []
-        
+
         for package in critical_packages:
             result = subprocess.run(
                 [str(python_exe), "-c", f"import {package}; print('{package} OK')"],
@@ -540,7 +601,7 @@ import site
                 self.log(f"  [FAIL] {package}: {result.stderr.strip()}")
             else:
                 self.log(f"  [OK] {package}")
-        
+
         if failed_packages:
             raise RuntimeError(
                 f"Critical packages failed to import: {', '.join(failed_packages)}\n"
@@ -570,7 +631,7 @@ import site
                 )
             else:
                 self.log(f"Warning: Folder not found, skipping: {folder_name}/")
-        
+
         # Copy individual files
         for file_name in INCLUDE_FILES:
             src_file = self.project_root / file_name
@@ -584,7 +645,7 @@ import site
     def _create_launcher_scripts(self, dist_path: Path) -> None:
         """Create launcher scripts for the application."""
         # Main launcher - uses pythonw.exe for no console window
-        bat_content = r'''@echo off
+        bat_content = r"""@echo off
 cd /d "%~dp0"
 
 :: TextureAtlas Toolbox Launcher
@@ -601,13 +662,13 @@ if not exist "python\pythonw.exe" (
 
 :: Launch the application silently (no console)
 start "" "python\pythonw.exe" "src\Main.py" %*
-'''
+"""
         bat_path = dist_path / "TextureAtlas Toolbox.bat"
         bat_path.write_text(bat_content, encoding="utf-8")
         self.log(f"Created: {bat_path.name}")
 
         # Debug launcher - uses python.exe with console for troubleshooting
-        debug_bat_content = r'''@echo off
+        debug_bat_content = r"""@echo off
 chcp 65001 >nul 2>&1
 cd /d "%~dp0"
 
@@ -637,13 +698,13 @@ echo ============================================================
 echo  Application has exited.
 echo ============================================================
 pause
-'''
+"""
         debug_bat_path = dist_path / "TextureAtlas Toolbox Debug.bat"
         debug_bat_path.write_text(debug_bat_content, encoding="utf-8")
         self.log(f"Created: {debug_bat_path.name}")
 
         # Admin launcher - uses pythonw.exe with UAC elevation
-        admin_bat_content = r'''@echo off
+        admin_bat_content = r"""@echo off
 cd /d "%~dp0"
 
 :: TextureAtlas Toolbox Admin Launcher
@@ -660,13 +721,13 @@ if not exist "python\pythonw.exe" (
 
 :: Request UAC elevation and launch
 powershell -Command "Start-Process -FilePath 'python\pythonw.exe' -ArgumentList 'src\Main.py' -Verb RunAs -WorkingDirectory '%~dp0'"
-'''
+"""
         admin_bat_path = dist_path / "TextureAtlas Toolbox (Admin).bat"
         admin_bat_path.write_text(admin_bat_content, encoding="utf-8")
         self.log(f"Created: {admin_bat_path.name}")
 
         # Debug admin launcher - uses python.exe with console and UAC elevation
-        debug_admin_bat_content = r'''@echo off
+        debug_admin_bat_content = r"""@echo off
 chcp 65001 >nul 2>&1
 cd /d "%~dp0"
 
@@ -705,54 +766,56 @@ echo ============================================================
 echo  Application has exited.
 echo ============================================================
 pause
-'''
+"""
         debug_admin_bat_path = dist_path / "TextureAtlas Toolbox Debug (Admin).bat"
         debug_admin_bat_path.write_text(debug_admin_bat_content, encoding="utf-8")
         self.log(f"Created: {debug_admin_bat_path.name}")
 
     def _create_archive(self, dist_path: Path) -> tuple[Path, Path | None]:
         """Create ZIP and 7z archives of the distribution.
-        
+
         Returns:
             Tuple of (zip_path, sevenz_path). sevenz_path is None if 7z is not available.
         """
         zip_path = self.output_dir / f"{self.archive_name}.zip"
         sevenz_path = self.output_dir / f"{self.archive_name}.7z"
-        
+
         # Remove existing archives
         for path in (zip_path, sevenz_path):
             if path.exists():
                 path.unlink()
-        
+
         # Create ZIP archive
         self.log(f"Creating ZIP archive: {zip_path.name}")
-        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+        with zipfile.ZipFile(
+            zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9
+        ) as zf:
             for root, dirs, files in os.walk(dist_path):
                 # Skip __pycache__ directories
                 dirs[:] = [d for d in dirs if d != "__pycache__"]
-                
+
                 for file in files:
                     file_path = Path(root) / file
                     arc_name = file_path.relative_to(self.output_dir)
                     zf.write(file_path, arc_name)
-        
+
         zip_size_mb = zip_path.stat().st_size / (1024 * 1024)
         self.log(f"ZIP archive size: {zip_size_mb:.2f} MB")
-        
+
         # Try to create 7z archive (requires 7z to be installed)
         sevenz_created = self._create_7z_archive(dist_path, sevenz_path)
-        
+
         return zip_path, sevenz_path if sevenz_created else None
 
     def _create_7z_archive(self, dist_path: Path, sevenz_path: Path) -> bool:
         """Create a 7z archive using the 7z command-line tool.
-        
+
         Returns:
             True if successful, False if 7z is not available.
         """
         # Try to find 7z executable
         sevenz_cmd = None
-        
+
         if platform.system() == "Windows":
             # Common 7z locations on Windows
             possible_paths = [
@@ -768,14 +831,14 @@ pause
         else:
             # On Unix, try 7z or 7za
             sevenz_cmd = shutil.which("7z") or shutil.which("7za")
-        
+
         if not sevenz_cmd:
             self.log("7z not found - skipping 7z archive creation")
             self.log("Install 7-Zip to also generate .7z archives")
             return False
-        
+
         self.log(f"Creating 7z archive: {sevenz_path.name}")
-        
+
         try:
             # Use 7z to create archive with maximum compression
             # -t7z: 7z archive type
@@ -788,13 +851,13 @@ pause
             result = subprocess.run(
                 [
                     sevenz_cmd,
-                    "a",           # add to archive
-                    "-t7z",        # 7z format
-                    "-m0=LZMA2",   # LZMA2 compression (py7zr compatible)
-                    "-mf=off",     # Disable BCJ/BCJ2 filters (py7zr doesn't support BCJ2)
-                    "-mx=9",       # maximum compression
-                    "-mfb=273",    # fast bytes
-                    "-ms=on",      # solid archive
+                    "a",  # add to archive
+                    "-t7z",  # 7z format
+                    "-m0=LZMA2",  # LZMA2 compression (py7zr compatible)
+                    "-mf=off",  # Disable BCJ/BCJ2 filters (py7zr doesn't support BCJ2)
+                    "-mx=9",  # maximum compression
+                    "-mfb=273",  # fast bytes
+                    "-ms=on",  # solid archive
                     str(sevenz_path),
                     str(dist_path),
                 ],
@@ -802,15 +865,15 @@ pause
                 text=True,
                 cwd=self.output_dir,
             )
-            
+
             if result.returncode != 0:
                 self.log(f"7z creation failed: {result.stderr}")
                 return False
-            
+
             sevenz_size_mb = sevenz_path.stat().st_size / (1024 * 1024)
             self.log(f"7z archive size: {sevenz_size_mb:.2f} MB")
             return True
-            
+
         except Exception as e:
             self.log(f"7z creation failed: {e}")
             return False
@@ -819,12 +882,12 @@ pause
         """Build portable distribution for macOS/Linux."""
         total_steps = 6
         dist_path = self.output_dir / self.dist_name
-        
+
         # Clean previous build
         if dist_path.exists():
             self.log(f"Removing previous build: {dist_path}")
             shutil.rmtree(dist_path)
-        
+
         dist_path.mkdir(parents=True, exist_ok=True)
 
         # Step 1: Create virtual environment with system Python
@@ -868,6 +931,7 @@ pause
     def _create_venv(self, venv_path: Path) -> None:
         """Create a virtual environment."""
         import venv
+
         self.log(f"Creating venv at: {venv_path}")
         self.log("This may take a moment...")
         try:
@@ -881,29 +945,42 @@ pause
         """Install requirements in Unix virtual environment."""
         if platform.system() == "Windows":
             pip_exe = venv_path / "Scripts" / "pip.exe"
+            site_packages = venv_path / "Lib" / "site-packages"
         else:
             pip_exe = venv_path / "bin" / "pip"
-        
+            # Find site-packages in Unix venv (e.g., lib/python3.14/site-packages)
+            lib_dir = venv_path / "lib"
+            site_packages = None
+            if lib_dir.exists():
+                for py_dir in lib_dir.iterdir():
+                    if py_dir.name.startswith("python"):
+                        site_packages = py_dir / "site-packages"
+                        break
+
         requirements_path = self.project_root / REQUIREMENTS_FILE
-        
+
         self.log(f"Installing packages from: {requirements_path}")
-        
+
         result = subprocess.run(
             [str(pip_exe), "install", "-r", str(requirements_path)],
             capture_output=True,
             text=True,
         )
-        
+
         if result.returncode != 0:
-            print(f"STDERR: {result.stderr}")
+            print(f"STDERR: {result.stderr}", flush=True)
             raise RuntimeError("Failed to install requirements")
-        
+
         self.log("All packages installed successfully")
+
+        # Strip unnecessary PySide6 components to reduce size
+        if site_packages and site_packages.exists():
+            self._strip_pyside6(site_packages)
 
     def _create_unix_launcher_scripts(self, dist_path: Path) -> None:
         """Create Unix launcher scripts."""
         # Main launcher script
-        sh_content = '''#!/bin/bash
+        sh_content = """#!/bin/bash
 
 # TextureAtlas Toolbox Launcher
 # This script launches the application using the bundled Python environment.
@@ -927,24 +1004,24 @@ export PYTHONPATH="$SCRIPT_DIR/src"
 
 echo "Starting TextureAtlas Toolbox..."
 exec "$PYTHON_EXE" "src/Main.py" "$@"
-'''
+"""
         sh_path = dist_path / "TextureAtlas Toolbox.sh"
         sh_path.write_text(sh_content, encoding="utf-8")
         sh_path.chmod(0o755)
         self.log(f"Created: {sh_path.name}")
 
         # Simple start script
-        start_sh_content = '''#!/bin/bash
+        start_sh_content = """#!/bin/bash
 # Simple launcher - redirects to main launcher
 exec "$(dirname "$0")/TextureAtlas Toolbox.sh" "$@"
-'''
+"""
         start_sh_path = dist_path / "start.sh"
         start_sh_path.write_text(start_sh_content, encoding="utf-8")
         start_sh_path.chmod(0o755)
         self.log(f"Created: {start_sh_path.name}")
 
         # Debug launcher script
-        debug_sh_content = '''#!/bin/bash
+        debug_sh_content = """#!/bin/bash
 
 # TextureAtlas Toolbox Debug Launcher
 # This script runs with console output visible for troubleshooting.
@@ -985,14 +1062,14 @@ echo "============================================================"
 echo " Application has exited with code: $EXIT_CODE"
 echo "============================================================"
 read -p "Press Enter to close..."
-'''
+"""
         debug_sh_path = dist_path / "TextureAtlas Toolbox Debug.sh"
         debug_sh_path.write_text(debug_sh_content, encoding="utf-8")
         debug_sh_path.chmod(0o755)
         self.log(f"Created: {debug_sh_path.name}")
 
         # Admin launcher script - uses sudo for elevation
-        admin_sh_content = '''#!/bin/bash
+        admin_sh_content = """#!/bin/bash
 
 # TextureAtlas Toolbox Admin Launcher
 # This script launches the application with root privileges.
@@ -1017,14 +1094,14 @@ export PYTHONPATH="$SCRIPT_DIR/src"
 
 echo "Requesting administrator privileges..."
 exec sudo "$PYTHON_EXE" "src/Main.py" "$@"
-'''
+"""
         admin_sh_path = dist_path / "TextureAtlas Toolbox (Admin).sh"
         admin_sh_path.write_text(admin_sh_content, encoding="utf-8")
         admin_sh_path.chmod(0o755)
         self.log(f"Created: {admin_sh_path.name}")
 
         # Debug admin launcher script
-        debug_admin_sh_content = '''#!/bin/bash
+        debug_admin_sh_content = """#!/bin/bash
 
 # TextureAtlas Toolbox Debug Admin Launcher
 # This launcher runs with root privileges and keeps the console open.
@@ -1075,7 +1152,7 @@ echo "============================================================"
 echo " Application has exited with code: $EXIT_CODE"
 echo "============================================================"
 read -p "Press Enter to close..."
-'''
+"""
         debug_admin_sh_path = dist_path / "TextureAtlas Toolbox Debug (Admin).sh"
         debug_admin_sh_path.write_text(debug_admin_sh_content, encoding="utf-8")
         debug_admin_sh_path.chmod(0o755)
@@ -1083,7 +1160,7 @@ read -p "Press Enter to close..."
 
     def _create_unix_setup_script(self, dist_path: Path) -> None:
         """Create a setup script for Unix that ensures Python dependencies."""
-        setup_content = '''#!/bin/bash
+        setup_content = """#!/bin/bash
 
 # TextureAtlas Toolbox - First-time Setup
 # Run this script once after extracting if the launcher doesn't work.
@@ -1130,7 +1207,7 @@ echo
 echo "============================================================"
 echo " Setup complete! You can now run: ./TextureAtlas Toolbox.sh"
 echo "============================================================"
-'''
+"""
         setup_path = dist_path / "setup.sh"
         setup_path.write_text(setup_content, encoding="utf-8")
         setup_path.chmod(0o755)
@@ -1145,21 +1222,21 @@ echo "============================================================"
     def _create_tar_archive(self, dist_path: Path) -> Path:
         """Create a tar.gz archive of the distribution."""
         import tarfile
-        
+
         archive_filename = f"{self.archive_name}.tar.gz"
         archive_path = self.output_dir / archive_filename
-        
+
         if archive_path.exists():
             archive_path.unlink()
-        
+
         self.log(f"Creating archive: {archive_filename}")
-        
+
         with tarfile.open(archive_path, "w:gz") as tar:
             tar.add(dist_path, arcname=dist_path.name)
-        
+
         size_mb = archive_path.stat().st_size / (1024 * 1024)
         self.log(f"Archive size: {size_mb:.2f} MB")
-        
+
         return archive_path
 
     def build(self) -> Path:
@@ -1190,24 +1267,24 @@ def main():
         action="store_true",
         help="Suppress verbose output",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Determine project root (parent of setup/)
     script_path = Path(__file__).resolve()
     project_root = script_path.parent.parent
-    
+
     # Default output directory
     if args.output_dir is None:
         output_dir = project_root / "_build-output" / "portable"
     else:
         output_dir = args.output_dir.resolve()
-    
+
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Get app version for display
     app_version = get_app_version(project_root)
-    
+
     print(f"\n{'='*60}", flush=True)
     print("  TextureAtlas Toolbox - Embedded Python Distribution Builder", flush=True)
     print(f"{'='*60}", flush=True)
@@ -1215,20 +1292,23 @@ def main():
     print(f"  Output directory: {output_dir}", flush=True)
     print(f"  App version: v{app_version}", flush=True)
     print(f"  Python version: {args.python_version}", flush=True)
-    print(f"  Target platform: {platform.system()} ({get_os_identifier()}-{get_arch_identifier()})", flush=True)
+    print(
+        f"  Target platform: {platform.system()} ({get_os_identifier()}-{get_arch_identifier()})",
+        flush=True,
+    )
     print(f"{'='*60}\n", flush=True)
-    
+
     builder = PortableBuilder(
         project_root=project_root,
         output_dir=output_dir,
         python_version=args.python_version,
         verbose=not args.quiet,
     )
-    
+
     print(f"  Archive name: {builder.archive_name}", flush=True)
     print(f"  Folder name: {builder.dist_name}", flush=True)
     print(flush=True)
-    
+
     try:
         archive_path = builder.build()
         print(f"\nSuccess! Distribution created at:\n  {archive_path}", flush=True)
@@ -1236,6 +1316,7 @@ def main():
     except Exception as e:
         print(f"\nError: {e}", flush=True)
         import traceback
+
         traceback.print_exc()
         return 1
 
