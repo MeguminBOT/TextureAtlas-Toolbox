@@ -120,13 +120,13 @@ class PortableBuilder:
 
     def log(self, message: str) -> None:
         if self.verbose:
-            print(f"[BUILD] {message}")
+            print(f"[BUILD] {message}", flush=True)
 
     def log_step(self, step: int, total: int, message: str) -> None:
         if self.verbose:
-            print(f"\n{'='*60}")
-            print(f"  Step {step}/{total}: {message}")
-            print(f"{'='*60}")
+            print(f"\n{'='*60}", flush=True)
+            print(f"  Step {step}/{total}: {message}", flush=True)
+            print(f"{'='*60}", flush=True)
 
     def download_file(self, url: str, dest: Path) -> None:
         self.log(f"Downloading: {url}")
@@ -490,7 +490,7 @@ import site
         
         saved_mb = (size_before - size_after) / (1024 * 1024)
         self.log(f"  Removed {removed_count} items, saved {saved_mb:.1f} MB")
-        self.log(f"  PySide6 size: {size_before / (1024*1024):.1f} MB → {size_after / (1024*1024):.1f} MB")
+        self.log(f"  PySide6 size: {size_before / (1024*1024):.1f} MB -> {size_after / (1024*1024):.1f} MB")
 
     def _verify_critical_packages(self, python_exe: Path) -> None:
         """Verify that critical packages and their dependencies are importable.
@@ -869,7 +869,13 @@ pause
         """Create a virtual environment."""
         import venv
         self.log(f"Creating venv at: {venv_path}")
-        venv.create(venv_path, with_pip=True, clear=True)
+        self.log("This may take a moment...")
+        try:
+            venv.create(venv_path, with_pip=True, clear=True)
+            self.log("Virtual environment created successfully")
+        except Exception as e:
+            self.log(f"venv.create failed: {e}")
+            raise
 
     def _install_requirements_unix(self, venv_path: Path) -> None:
         """Install requirements in Unix virtual environment."""
@@ -1202,15 +1208,15 @@ def main():
     # Get app version for display
     app_version = get_app_version(project_root)
     
-    print(f"\n{'='*60}")
-    print("  TextureAtlas Toolbox - Embedded Python Distribution Builder")
-    print(f"{'='*60}")
-    print(f"  Project root: {project_root}")
-    print(f"  Output directory: {output_dir}")
-    print(f"  App version: v{app_version}")
-    print(f"  Python version: {args.python_version}")
-    print(f"  Target platform: {platform.system()} ({get_os_identifier()}-{get_arch_identifier()})")
-    print(f"{'='*60}\n")
+    print(f"\n{'='*60}", flush=True)
+    print("  TextureAtlas Toolbox - Embedded Python Distribution Builder", flush=True)
+    print(f"{'='*60}", flush=True)
+    print(f"  Project root: {project_root}", flush=True)
+    print(f"  Output directory: {output_dir}", flush=True)
+    print(f"  App version: v{app_version}", flush=True)
+    print(f"  Python version: {args.python_version}", flush=True)
+    print(f"  Target platform: {platform.system()} ({get_os_identifier()}-{get_arch_identifier()})", flush=True)
+    print(f"{'='*60}\n", flush=True)
     
     builder = PortableBuilder(
         project_root=project_root,
@@ -1219,16 +1225,16 @@ def main():
         verbose=not args.quiet,
     )
     
-    print(f"  Archive name: {builder.archive_name}")
-    print(f"  Folder name: {builder.dist_name}")
-    print()
+    print(f"  Archive name: {builder.archive_name}", flush=True)
+    print(f"  Folder name: {builder.dist_name}", flush=True)
+    print(flush=True)
     
     try:
         archive_path = builder.build()
-        print(f"\nSuccess! Distribution created at:\n  {archive_path}")
+        print(f"\nSuccess! Distribution created at:\n  {archive_path}", flush=True)
         return 0
     except Exception as e:
-        print(f"\nError: {e}")
+        print(f"\nError: {e}", flush=True)
         import traceback
         traceback.print_exc()
         return 1

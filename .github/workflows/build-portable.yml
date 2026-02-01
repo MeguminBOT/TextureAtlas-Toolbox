@@ -6,6 +6,7 @@ on:
 env:
   PYTHON_VERSION: '3.14'
   EMBEDDED_PYTHON_VERSION: '3.14.0'
+  PYTHONUNBUFFERED: '1'
 
 jobs:
   build-windows:
