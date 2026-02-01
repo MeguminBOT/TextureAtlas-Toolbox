@@ -14,9 +14,9 @@ echo " TextureAtlas Toolbox - Portable Distribution Builder"
 echo "============================================================"
 echo
 echo " This script creates a portable distribution that includes:"
-echo "   - Python virtual environment with all dependencies"
+echo "   - Embedded Python runtime (no installation required)"
+echo "   - All required packages pre-installed"
 echo "   - Single-click launcher scripts"
-echo "   - Setup script for first-time configuration"
 echo
 echo " The output will be placed in '_build-output/portable'"
 echo "============================================================"
@@ -34,8 +34,17 @@ else
 fi
 
 # Show Python version
-PY_VERSION=$($PYTHON_CMD --version)
-echo "Using: $PY_VERSION"
+SYSTEM_PY_VERSION=$($PYTHON_CMD --version)
+echo "Using: $SYSTEM_PY_VERSION"
+echo
+
+# Optional: Allow specifying Python version
+TARGET_PY_VERSION="3.14.0"
+if [ -n "$1" ]; then
+    TARGET_PY_VERSION="$1"
+fi
+
+echo "Target embedded Python version: $TARGET_PY_VERSION"
 echo
 
 # Confirm
@@ -51,7 +60,7 @@ echo "Starting build process..."
 echo
 
 # Run the Python build script
-$PYTHON_CMD setup/build_portable.py
+$PYTHON_CMD setup/build_portable.py --python-version "$TARGET_PY_VERSION"
 
 if [ $? -ne 0 ]; then
     echo

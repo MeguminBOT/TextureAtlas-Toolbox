@@ -1,4 +1,4 @@
-name: Build Portable Distributions
+name: Build Translation Editor Portable
 
 on:
   workflow_dispatch:
@@ -10,6 +10,9 @@ env:
 jobs:
   build-windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: tools/translator-app
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,14 +28,17 @@ jobs:
       - name: Upload Windows distribution
         uses: actions/upload-artifact@v4
         with:
-          name: TextureAtlasToolbox-win-x64-embedded-python
+          name: TranslationEditor-win-x64-embedded-python
           path: |
-            _build-output/portable/*.zip
-            _build-output/portable/*.7z
+            tools/translator-app/_build-output/portable/*.zip
+            tools/translator-app/_build-output/portable/*.7z
           if-no-files-found: error
 
   build-linux:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/translator-app
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,6 +49,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install system dependencies
+        working-directory: .
         run: |
           sudo apt-get update
           sudo apt-get install -y libxcb-cursor0 libxkbcommon-x11-0
@@ -53,15 +60,18 @@ jobs:
       - name: Upload Linux distribution
         uses: actions/upload-artifact@v4
         with:
-          name: TextureAtlasToolbox-linux-x64-embedded-python
+          name: TranslationEditor-linux-x64-embedded-python
           path: |
-            _build-output/portable/*.zip
-            _build-output/portable/*.7z
-            _build-output/portable/*.tar.gz
+            tools/translator-app/_build-output/portable/*.zip
+            tools/translator-app/_build-output/portable/*.7z
+            tools/translator-app/_build-output/portable/*.tar.gz
           if-no-files-found: error
 
   build-macos:
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: tools/translator-app
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -77,9 +87,9 @@ jobs:
       - name: Upload macOS distribution
         uses: actions/upload-artifact@v4
         with:
-          name: TextureAtlasToolbox-mac-x64-embedded-python
+          name: TranslationEditor-mac-x64-embedded-python
           path: |
-            _build-output/portable/*.zip
-            _build-output/portable/*.7z
-            _build-output/portable/*.tar.gz
+            tools/translator-app/_build-output/portable/*.zip
+            tools/translator-app/_build-output/portable/*.7z
+            tools/translator-app/_build-output/portable/*.tar.gz
           if-no-files-found: error
