@@ -32,6 +32,7 @@ LANGUAGE_METADATA: dict[str, dict[str, str]] = {
     "de_de": {"name": "Deutsch", "english_name": "German", "quality": "machine"},
     "es_es": {"name": "Español", "english_name": "Spanish", "quality": "machine"},
     "fr_fr": {"name": "Français", "english_name": "French", "quality": "reviewed"},
+    "id_id": {"name": "Indonesia", "english_name": "Indonesian", "quality": "machine"},
     "it_it": {"name": "Italiano", "english_name": "Italian", "quality": "unreviewed"},
     "ja_jp": {"name": "日本語", "english_name": "Japanese", "quality": "machine"},
     "ko_kr": {"name": "한국어", "english_name": "Korean", "quality": "machine"},
