@@ -438,7 +438,7 @@ Otros ajustes todavía afectan toda la animación.</translation>
         <message>
             <location filename="../gui/app_ui.py" line="1621" />
             <source>Adds some extra whitespace between textures or sprites to ensure they won't overlap</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Añade un poco de espacio blanco extra entre texturas o sprites para asegurar que no se solapan</translation>
         </message>
         <message>
@@ -2206,43 +2206,43 @@ Otros ajustes todavía afectan toda la animación.</translation>
         <message>
             <location filename="../utils/duration_utils.py" line="199" />
             <source>Frame delay (ds)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Frame delay (ds)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="202" />
             <source>Frame delay (cs)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Frame delay (cs)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="205" />
             <source>Frame delay (ms)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Frame delay (ms)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="252" />
             <source>Frames per second (1-1000)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Marcos por segundo (1-1000)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="255" />
             <source>Frame delay in deciseconds (1 = 100ms, 10 = 1 second)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Frame delay in deciseconds (1 = 100ms, 10 = 1 segundo)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="259" />
             <source>Frame delay in centiseconds (1 = 10ms, 100 = 1 second)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Frame delay in centiseconds (1 = 10ms, 100 = 1 second)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="263" />
             <source>Frame delay in milliseconds (1000 = 1 second)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Frame delay in milliseconds (1000 = 1 second)</translation>
         </message>
     </context>
@@ -2621,7 +2621,7 @@ especialmente cuando se utiliza el filtro de texturas o las mipáginas.</transla
         <message>
             <location filename="../gui/generate_tab_widget.py" line="384" />
             <source>Adds some extra whitespace between textures or sprites to ensure they won't overlap</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Añade un poco de espacio blanco extra entre texturas o sprites para asegurar que no se solapan</translation>
         </message>
         <message>

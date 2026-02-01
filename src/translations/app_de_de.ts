@@ -444,7 +444,7 @@ Andere Einstellungen beeinflussen noch die gesamte Animation.</translation>
         <message>
             <location filename="../gui/app_ui.py" line="1621" />
             <source>Adds some extra whitespace between textures or sprites to ensure they won't overlap</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Gibt einen zusätzlichen Weißraum zwischen Texturen oder Sprites hinzu, um sicherzustellen, dass sie sich nicht überschneiden</translation>
         </message>
         <message>
@@ -2206,43 +2206,43 @@ Andere Einstellungen beeinflussen noch die gesamte Animation.</translation>
         <message>
             <location filename="../utils/duration_utils.py" line="199" />
             <source>Frame delay (ds)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Rahmenverzögerung (ds)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="202" />
             <source>Frame delay (cs)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Rahmenverzögerung (cs)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="205" />
             <source>Frame delay (ms)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Rahmenverzögerung (ms)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="252" />
             <source>Frames per second (1-1000)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Bilder pro Sekunde (1-1000)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="255" />
             <source>Frame delay in deciseconds (1 = 100ms, 10 = 1 second)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Rahmenverzögerung in Dezisekunden (1 = 100ms, 10 = 1 Sekunde)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="259" />
             <source>Frame delay in centiseconds (1 = 10ms, 100 = 1 second)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Rahmenverzögerung in Zentisekunden (1 = 10ms, 100 = 1 Sekunde)</translation>
         </message>
         <message>
             <location filename="../utils/duration_utils.py" line="263" />
             <source>Frame delay in milliseconds (1000 = 1 second)</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Rahmenverzögerung in Millisekunden (1000 = 1 Sekunde)</translation>
         </message>
     </context>
@@ -2627,7 +2627,7 @@ insbesondere bei der Verwendung von Texturfilterung oder Mipmaps.</translation>
         <message>
             <location filename="../gui/generate_tab_widget.py" line="384" />
             <source>Adds some extra whitespace between textures or sprites to ensure they won't overlap</source>
-            <translatorcomment>[marker:machine]</translatorcomment>
+            <translatorcomment>[marker:machine] [machine]</translatorcomment>
             <translation>Gibt einen zusätzlichen Weißraum zwischen Texturen oder Sprites hinzu, um sicherzustellen, dass sie sich nicht überschneiden</translation>
         </message>
         <message>
