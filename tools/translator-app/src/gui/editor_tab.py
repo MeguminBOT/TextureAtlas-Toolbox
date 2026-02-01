@@ -278,6 +278,7 @@ class EditorTab(QWidget):
         self.translation_list.setAlternatingRowColors(True)
         self.translation_list.setModel(self._filter_proxy)
         self.translation_list.setSelectionMode(QListView.SingleSelection)
+        self.translation_list.setEditTriggers(QListView.NoEditTriggers)
         left_layout.addWidget(self.translation_list)
 
         self.stats_label = QLabel("No file loaded")
