@@ -1129,7 +1129,7 @@ def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("Translation Editor")
     app.setApplicationDisplayName("Translation Editor - TextureAtlas Toolbox")
-    app.setApplicationVersion("1.2.0")
+    app.setApplicationVersion("1.2.1")
     app.setOrganizationName("AutisticLulu")
 
     window = TranslationEditor()
