@@ -1097,6 +1097,12 @@ class Extractor:
                 filter_single_frame=settings.get(
                     "filter_single_frame_spritemaps", True
                 ),
+                filter_unused_symbols=settings.get(
+                    "filter_unused_spritemap_symbols", False
+                ),
+                root_animation_only=settings.get(
+                    "spritemap_root_animation_only", False
+                ),
             )
             renderer.ensure_animation_defaults(self.settings_manager, spritesheet_name)
             animations = renderer.build_animation_frames()

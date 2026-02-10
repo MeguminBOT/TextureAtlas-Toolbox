@@ -66,6 +66,8 @@ from utils.duration_utils import (
     resolve_native_duration_type,
 )
 from core.extractor.spritemap.metadata import (
+    collect_referenced_symbols,
+    compute_layers_length,
     compute_symbol_lengths,
     extract_label_ranges,
 )
@@ -231,11 +233,19 @@ class ExtractTabWidget(BaseTabWidget):
     def _init_state(self):
         """Initialize instance state before UI setup."""
         self.filter_single_frame_spritemaps = True
+        self.filter_unused_spritemap_symbols = False
+        self.spritemap_root_animation_only = False
         self.use_native_file_dialog = False
         if self.parent_app and hasattr(self.parent_app, "app_config"):
             interface = self.parent_app.app_config.get("interface", {})
             self.filter_single_frame_spritemaps = interface.get(
                 "filter_single_frame_spritemaps", True
+            )
+            self.filter_unused_spritemap_symbols = interface.get(
+                "filter_unused_spritemap_symbols", False
+            )
+            self.spritemap_root_animation_only = interface.get(
+                "spritemap_root_animation_only", False
             )
             self.use_native_file_dialog = interface.get("use_native_file_dialog", False)
         self.editor_composites = defaultdict(dict)
@@ -1179,7 +1189,12 @@ class ExtractTabWidget(BaseTabWidget):
 
         def register_entry(display_name, entry_type, entry_value, frame_count):
             """Store entries with unique labels so symbols and labels never collide."""
-            suffix = " (Timeline)" if entry_type == "timeline_label" else " (Symbol)"
+            suffix_map = {
+                "timeline_label": " (Timeline)",
+                "root_animation": " (Main Animation)",
+                "symbol": " (Symbol)",
+            }
+            suffix = suffix_map.get(entry_type, " (Symbol)")
             candidate = display_name
             if candidate in symbol_map:
                 candidate = f"{display_name}{suffix}"
@@ -1199,22 +1214,46 @@ class ExtractTabWidget(BaseTabWidget):
 
             symbol_lengths = compute_symbol_lengths(animation_json)
 
-            for symbol in animation_json.get("SD", {}).get("S", []):
-                raw_name = symbol.get("SN")
-                if not raw_name:
-                    continue
-                frame_count = symbol_lengths.get(raw_name, 0)
-                if self.filter_single_frame_spritemaps and frame_count <= 1:
-                    continue
-                display_name = Utilities.strip_trailing_digits(raw_name) or raw_name
-                register_entry(display_name, "symbol", raw_name, frame_count)
+            # Compute the set of symbols referenced by the root timeline
+            referenced_symbols = (
+                collect_referenced_symbols(animation_json)
+                if self.filter_unused_spritemap_symbols
+                else None
+            )
 
-            for label in extract_label_ranges(animation_json, None):
-                label_name = label["name"]
-                frame_count = label["end"] - label["start"]
-                if self.filter_single_frame_spritemaps and frame_count <= 1:
-                    continue
-                register_entry(label_name, "timeline_label", label_name, frame_count)
+            # Include the root animation (full AN timeline) if present
+            an = animation_json.get("AN", {})
+            root_name = an.get("SN") or an.get("N")
+            if root_name:
+                root_layers = an.get("TL", {}).get("L", [])
+                root_frame_count = compute_layers_length(root_layers)
+                if not (self.filter_single_frame_spritemaps and root_frame_count <= 1):
+                    register_entry(root_name, "root_animation", None, root_frame_count)
+
+            if not self.spritemap_root_animation_only:
+                for symbol in animation_json.get("SD", {}).get("S", []):
+                    raw_name = symbol.get("SN")
+                    if not raw_name:
+                        continue
+                    if (
+                        referenced_symbols is not None
+                        and raw_name not in referenced_symbols
+                    ):
+                        continue
+                    frame_count = symbol_lengths.get(raw_name, 0)
+                    if self.filter_single_frame_spritemaps and frame_count <= 1:
+                        continue
+                    display_name = Utilities.strip_trailing_digits(raw_name) or raw_name
+                    register_entry(display_name, "symbol", raw_name, frame_count)
+
+                for label in extract_label_ranges(animation_json, None):
+                    label_name = label["name"]
+                    frame_count = label["end"] - label["start"]
+                    if self.filter_single_frame_spritemaps and frame_count <= 1:
+                        continue
+                    register_entry(
+                        label_name, "timeline_label", label_name, frame_count
+                    )
         except Exception as exc:
             print(
                 f"Error parsing spritemap animation metadata {animation_json_path}: {exc}"
@@ -1380,6 +1419,8 @@ class ExtractTabWidget(BaseTabWidget):
                                 directory=str(Path(animation_path).parent),
                                 animation_filename=Path(animation_path).name,
                                 filter_single_frame=self.filter_single_frame_spritemaps,
+                                filter_unused_symbols=self.filter_unused_spritemap_symbols,
+                                root_animation_only=self.spritemap_root_animation_only,
                             )
                             self._populate_animation_names(parser.get_data())
                     except Exception as e:
@@ -2310,6 +2351,8 @@ class ExtractTabWidget(BaseTabWidget):
             "var_delay": getattr(self.parent_app, "variable_delay", False),
             "fnf_idle_loop": getattr(self.parent_app, "fnf_idle_loop", False),
             "filter_single_frame_spritemaps": self.filter_single_frame_spritemaps,
+            "filter_unused_spritemap_symbols": self.filter_unused_spritemap_symbols,
+            "spritemap_root_animation_only": self.spritemap_root_animation_only,
         }
 
         if hasattr(self.parent_app, "app_config"):

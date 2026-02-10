@@ -803,6 +803,8 @@ class CheckBoxLabels:
     REMEMBER_INPUT_DIR = "Remember last used input directory"
     REMEMBER_OUTPUT_DIR = "Remember last used output directory"
     HIDE_SINGLE_FRAME = "Hide single-frame spritemap animations"
+    HIDE_UNUSED_SYMBOLS = "Hide symbols not used by the main animation"
+    ROOT_ANIMATION_ONLY = "Only detect main animation"
     USE_NATIVE_FILE_PICKER = "Use native file picker when available"
     MERGE_DUPLICATES = "Merge duplicate frames"
 

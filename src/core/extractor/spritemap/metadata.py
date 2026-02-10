@@ -6,7 +6,67 @@ Animation.json structure, avoiding the overhead of full frame rendering.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
+
+
+def _collect_symbol_refs_from_layers(layers: Optional[List[dict]]) -> Set[str]:
+    """Collect symbol names directly referenced by ``SI`` elements in layers.
+
+    Args:
+        layers: List of layer dicts from a timeline.
+
+    Returns:
+        Set of symbol names found in ``SI.SN`` entries.
+    """
+    refs: Set[str] = set()
+    if not layers:
+        return refs
+    for layer in layers:
+        for frame in layer.get("FR", []):
+            for element in frame.get("E", []):
+                si = element.get("SI")
+                if si:
+                    name = si.get("SN")
+                    if name:
+                        refs.add(name)
+    return refs
+
+
+def collect_referenced_symbols(animation_json: dict) -> Set[str]:
+    """Return all symbol names reachable from the root ``AN`` timeline.
+
+    Performs a depth-first traversal starting from the root animation,
+    following ``SI.SN`` references through nested symbol timelines.
+    This identifies every symbol that participates in the main animation,
+    as opposed to standalone component symbols that are never composed
+    into the root timeline.
+
+    Args:
+        animation_json: Parsed and normalized Animation.json structure.
+
+    Returns:
+        Set of symbol names transitively referenced by the root timeline.
+    """
+    root_layers = animation_json.get("AN", {}).get("TL", {}).get("L", [])
+    symbols_by_name: Dict[str, List[dict]] = {}
+    for symbol in animation_json.get("SD", {}).get("S", []):
+        name = symbol.get("SN")
+        if name:
+            symbols_by_name[name] = symbol.get("TL", {}).get("L", [])
+
+    referenced: Set[str] = set()
+    stack = list(_collect_symbol_refs_from_layers(root_layers))
+    while stack:
+        name = stack.pop()
+        if name in referenced:
+            continue
+        referenced.add(name)
+        child_layers = symbols_by_name.get(name)
+        if child_layers:
+            for child in _collect_symbol_refs_from_layers(child_layers):
+                if child not in referenced:
+                    stack.append(child)
+    return referenced
 
 
 def _frame_duration(frame: dict) -> int:

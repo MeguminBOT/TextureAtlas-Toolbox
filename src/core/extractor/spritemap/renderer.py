@@ -16,6 +16,7 @@ from PIL import Image
 from utils.utilities import Utilities
 from .sprite_atlas import SpriteAtlas
 from .symbols import Symbols
+from .metadata import collect_referenced_symbols
 from .normalizer import normalize_animation_document
 from .transform_matrix import TransformMatrix
 
@@ -34,6 +35,8 @@ class AdobeSpritemapRenderer:
         animation_json: Parsed Animation.json dict.
         frame_rate: Frames-per-second from metadata (default 24).
         filter_single_frame: Whether to skip single-frame animations.
+        filter_unused_symbols: Whether to hide symbols not used by the root
+            animation timeline.
         sprite_atlas: ``SpriteAtlas`` instance for sprite lookup.
         symbols: ``Symbols`` instance for timeline/symbol management.
     """
@@ -46,6 +49,8 @@ class AdobeSpritemapRenderer:
         canvas_size=None,
         resample=Image.BICUBIC,
         filter_single_frame: bool = True,
+        filter_unused_symbols: bool = False,
+        root_animation_only: bool = False,
     ):
         """Load animation metadata, spritemap JSON, and the atlas image.
 
@@ -58,6 +63,10 @@ class AdobeSpritemapRenderer:
             resample: Pillow resample filter for scaling operations.
             filter_single_frame: When ``True``, animations with only one frame
                 are omitted from batch renders.
+            filter_unused_symbols: When ``True``, symbols not referenced by the
+                root animation timeline are excluded from batch operations.
+            root_animation_only: When ``True``, only the root animation is
+                included in batch operations; symbols and labels are excluded.
         """
 
         self.animation_path = animation_path
@@ -82,23 +91,66 @@ class AdobeSpritemapRenderer:
 
         self.frame_rate = self.animation_json.get("MD", {}).get("FRT", 24)
         self.filter_single_frame = filter_single_frame
+        self.filter_unused_symbols = filter_unused_symbols
+        self.root_animation_only = root_animation_only
+        self._referenced_symbols = (
+            collect_referenced_symbols(self.animation_json)
+            if filter_unused_symbols
+            else None
+        )
         self.sprite_atlas = SpriteAtlas(
             spritemap_json, atlas_image, canvas_size, resample
         )
         self.symbols = Symbols(self.animation_json, self.sprite_atlas, canvas_size)
 
-    def list_symbol_names(self) -> List[str]:
-        """Return all symbol names defined in the animation document.
+    def get_root_animation_name(self) -> Optional[str]:
+        """Return the display name of the root animation, if available.
+
+        The root animation is defined by the top-level ``AN`` section of
+        the Animation.json document.  Its display name comes from ``AN.SN``
+        (the symbol name) with a fallback to ``AN.N`` (the internal name).
+
+        Returns:
+            The root animation name, or ``None`` when the document has no
+            ``AN`` section.
+        """
+        an = self.animation_json.get("AN", {})
+        return an.get("SN") or an.get("N") or None
+
+    def is_symbol_referenced(self, symbol_name: str) -> bool:
+        """Check whether a symbol is used by the root animation timeline.
+
+        Always returns ``True`` when ``filter_unused_symbols`` is disabled.
+
+        Args:
+            symbol_name: The symbol name to check.
+
+        Returns:
+            True if the symbol is transitively referenced by the root
+            animation, or if filtering is disabled.
+        """
+        if self._referenced_symbols is None:
+            return True
+        return symbol_name in self._referenced_symbols
+
+    def list_symbol_names(self, include_all: bool = False) -> List[str]:
+        """Return symbol names defined in the animation document.
+
+        Args:
+            include_all: When ``True``, return every symbol regardless of
+                the ``filter_unused_symbols`` setting.
 
         Returns:
             List of symbol name strings.
         """
-
-        return [
+        names = [
             symbol.get("SN")
             for symbol in self.animation_json.get("SD", {}).get("S", [])
             if symbol.get("SN")
         ]
+        if include_all or self._referenced_symbols is None:
+            return names
+        return [n for n in names if n in self._referenced_symbols]
 
     def build_animation_frames(
         self,
@@ -118,28 +170,37 @@ class AdobeSpritemapRenderer:
             str, List[Tuple[str, Image.Image, Tuple[int, int, int, int, int, int]]]
         ] = {}
 
-        for symbol_name in self.list_symbol_names():
-            frames = self._render_symbol_frames(symbol_name)
-            if not frames:
-                continue
-            if self.filter_single_frame and len(frames) <= 1:
-                continue
-            folder_name = Utilities.strip_trailing_digits(symbol_name)
-            animations.setdefault(folder_name, []).extend(frames)
+        # Render the root animation (full AN timeline) if it exists
+        root_name = self.get_root_animation_name()
+        if root_name:
+            root_frames = self._render_symbol_frames(None)
+            if root_frames:
+                if not self.filter_single_frame or len(root_frames) > 1:
+                    animations.setdefault(root_name, []).extend(root_frames)
 
-        for label in self.symbols.get_label_ranges(None):
-            frames = self._render_symbol_frames(
-                None,
-                start_frame=label["start"],
-                end_frame=label["end"],
-                frame_name_prefix=label["name"],
-            )
-            if not frames:
-                continue
-            if self.filter_single_frame and len(frames) <= 1:
-                continue
-            folder_name = label["name"]
-            animations.setdefault(folder_name, []).extend(frames)
+        if not self.root_animation_only:
+            for symbol_name in self.list_symbol_names():
+                frames = self._render_symbol_frames(symbol_name)
+                if not frames:
+                    continue
+                if self.filter_single_frame and len(frames) <= 1:
+                    continue
+                folder_name = Utilities.strip_trailing_digits(symbol_name)
+                animations.setdefault(folder_name, []).extend(frames)
+
+            for label in self.symbols.get_label_ranges(None):
+                frames = self._render_symbol_frames(
+                    None,
+                    start_frame=label["start"],
+                    end_frame=label["end"],
+                    frame_name_prefix=label["name"],
+                )
+                if not frames:
+                    continue
+                if self.filter_single_frame and len(frames) <= 1:
+                    continue
+                folder_name = label["name"]
+                animations.setdefault(folder_name, []).extend(frames)
 
         return animations
 
@@ -250,21 +311,31 @@ class AdobeSpritemapRenderer:
             max(1, round(1000 / self.frame_rate)) if self.frame_rate > 0 else 42
         )
 
-        for animation_name in self.list_symbol_names():
-            folder_name = Utilities.strip_trailing_digits(animation_name)
-            full_name = f"{spritesheet_name}/{folder_name}"
+        # Ensure defaults for the root animation
+        root_name = self.get_root_animation_name()
+        if root_name:
+            full_name = f"{spritesheet_name}/{root_name}"
             sprite_settings = settings_manager.animation_settings.setdefault(
                 full_name, {}
             )
             sprite_settings.setdefault("duration", default_duration_ms)
 
-        for label in self.symbols.get_label_ranges(None):
-            label_name = label["name"]
-            full_name = f"{spritesheet_name}/{label_name}"
-            sprite_settings = settings_manager.animation_settings.setdefault(
-                full_name, {}
-            )
-            sprite_settings.setdefault("duration", default_duration_ms)
+        if not self.root_animation_only:
+            for animation_name in self.list_symbol_names():
+                folder_name = Utilities.strip_trailing_digits(animation_name)
+                full_name = f"{spritesheet_name}/{folder_name}"
+                sprite_settings = settings_manager.animation_settings.setdefault(
+                    full_name, {}
+                )
+                sprite_settings.setdefault("duration", default_duration_ms)
+
+            for label in self.symbols.get_label_ranges(None):
+                label_name = label["name"]
+                full_name = f"{spritesheet_name}/{label_name}"
+                sprite_settings = settings_manager.animation_settings.setdefault(
+                    full_name, {}
+                )
+                sprite_settings.setdefault("duration", default_duration_ms)
 
     def render_animation(self, target):
         """Render frames for a symbol or timeline label.
@@ -278,6 +349,10 @@ class AdobeSpritemapRenderer:
         """
 
         target_type, target_value = self._normalize_target(target)
+
+        if target_type == "root_animation":
+            root_name = self.get_root_animation_name()
+            return self._render_symbol_frames(None, frame_name_prefix=root_name)
 
         if target_type == "timeline_label":
             label_range = self.symbols.get_label_range(None, target_value)

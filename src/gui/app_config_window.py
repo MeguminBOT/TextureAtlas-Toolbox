@@ -164,6 +164,8 @@ class AppConfigWindow(QDialog):
         self.remember_input_dir_cb = None
         self.remember_output_dir_cb = None
         self.filter_single_frame_spritemaps_cb = None
+        self.filter_unused_spritemap_symbols_cb = None
+        self.spritemap_root_animation_only_cb = None
         self.use_native_file_dialog_cb = None
         self.merge_duplicates_cb = None
         self.duration_input_type_combo = None
@@ -1232,6 +1234,14 @@ class AppConfigWindow(QDialog):
             self.filter_single_frame_spritemaps_cb.setChecked(
                 interface.get("filter_single_frame_spritemaps", False)
             )
+        if self.filter_unused_spritemap_symbols_cb:
+            self.filter_unused_spritemap_symbols_cb.setChecked(
+                interface.get("filter_unused_spritemap_symbols", False)
+            )
+        if self.spritemap_root_animation_only_cb:
+            self.spritemap_root_animation_only_cb.setChecked(
+                interface.get("spritemap_root_animation_only", False)
+            )
         if self.use_native_file_dialog_cb:
             self.use_native_file_dialog_cb.setChecked(
                 interface.get("use_native_file_dialog", False)
@@ -1439,6 +1449,14 @@ class AppConfigWindow(QDialog):
                 interface["filter_single_frame_spritemaps"] = (
                     self.filter_single_frame_spritemaps_cb.isChecked()
                 )
+            if self.filter_unused_spritemap_symbols_cb:
+                interface["filter_unused_spritemap_symbols"] = (
+                    self.filter_unused_spritemap_symbols_cb.isChecked()
+                )
+            if self.spritemap_root_animation_only_cb:
+                interface["spritemap_root_animation_only"] = (
+                    self.spritemap_root_animation_only_cb.isChecked()
+                )
             if self.use_native_file_dialog_cb:
                 interface["use_native_file_dialog"] = (
                     self.use_native_file_dialog_cb.isChecked()
@@ -1588,6 +1606,30 @@ class AppConfigWindow(QDialog):
             )
         )
         spritemap_layout.addWidget(self.filter_single_frame_spritemaps_cb)
+
+        self.filter_unused_spritemap_symbols_cb = QCheckBox(
+            self.tr(CheckBoxLabels.HIDE_UNUSED_SYMBOLS)
+        )
+        self.filter_unused_spritemap_symbols_cb.setToolTip(
+            self.tr(
+                "When enabled, only symbols that are part of the main animation timeline will be shown.\n"
+                "Component symbols (body parts, effects, etc.) that aren't standalone animations will be hidden.\n"
+                "The main animation itself will always be available regardless of this setting."
+            )
+        )
+        spritemap_layout.addWidget(self.filter_unused_spritemap_symbols_cb)
+
+        self.spritemap_root_animation_only_cb = QCheckBox(
+            self.tr(CheckBoxLabels.ROOT_ANIMATION_ONLY)
+        )
+        self.spritemap_root_animation_only_cb.setToolTip(
+            self.tr(
+                "When enabled, only the main root animation will be listed for extraction.\n"
+                "Individual symbol timelines and timeline labels will be excluded.\n"
+                "This is useful when you only want the full composed animation output."
+            )
+        )
+        spritemap_layout.addWidget(self.spritemap_root_animation_only_cb)
 
         layout.addWidget(spritemap_group)
 
