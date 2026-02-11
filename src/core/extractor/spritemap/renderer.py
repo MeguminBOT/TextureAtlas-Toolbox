@@ -1,15 +1,25 @@
 """High-level Adobe Spritemap renderer for extracting symbol animations.
 
-This module provides ``AdobeSpritemapRenderer``, which loads an Adobe Animate
-export (Animation.json + spritemap JSON + atlas PNG) and renders each symbol
-or timeline label into a sequence of cropped RGBA frames.
+Provides ``AdobeSpritemapRenderer``, which loads an Adobe Animate export
+(Animation.json + spritemap JSON + atlas PNG) and renders each symbol or
+timeline label into cropped RGBA frames.
+
+Two rendering strategies are available:
+
+* **Batch** via :meth:`~AdobeSpritemapRenderer.build_animation_frames` —
+  renders every animation into memory at once.  Required when editor
+  composites need cross-animation frame references.
+* **Streaming** via :meth:`~AdobeSpritemapRenderer.iter_animations` —
+  yields one ``(name, lazy_frame_iterator)`` at a time so the caller can
+  export and free frames before the next animation is rendered, keeping
+  peak memory proportional to the largest single animation.
 """
 
 from __future__ import annotations
 
 import json
 import math
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple
 
 from PIL import Image
 
@@ -88,7 +98,6 @@ class AdobeSpritemapRenderer:
                 spritemap_json,
                 atlas_image.size,
             )
-
         self.frame_rate = self.animation_json.get("MD", {}).get("FRT", 24)
         self.filter_single_frame = filter_single_frame
         self.filter_unused_symbols = filter_unused_symbols
@@ -155,7 +164,11 @@ class AdobeSpritemapRenderer:
     def build_animation_frames(
         self,
     ) -> Dict[str, List[Tuple[str, Image.Image, Tuple[int, int, int, int, int, int]]]]:
-        """Render frames for every symbol and timeline label in the project.
+        """Render frames for every symbol and timeline label at once.
+
+        All rendered frames are held in memory simultaneously.  Prefer
+        :meth:`iter_animations` for large spritesheets unless editor
+        composites require cross-animation frame access.
 
         Symbols and labels that resolve to a single frame are skipped when
         ``filter_single_frame`` is enabled.
@@ -204,6 +217,59 @@ class AdobeSpritemapRenderer:
 
         return animations
 
+    #: Shape of a single rendered frame: ``(name, PIL Image, bounds_6tuple)``.
+    FrameTuple = Tuple[str, Image.Image, Tuple[int, int, int, int, int, int]]
+
+    def iter_animations(
+        self,
+    ) -> Generator[
+        Tuple[str, Iterator["AdobeSpritemapRenderer.FrameTuple"]],
+        None,
+        None,
+    ]:
+        """Yield ``(folder_name, frame_iterator)`` one animation at a time.
+
+        Each ``frame_iterator`` is a lazy generator that renders frames
+        one at a time via :meth:`_iter_symbol_frames`.  Only one compact
+        canvas is alive at any moment, keeping rendering memory at O(1)
+        rather than O(N) frames.
+
+        The caller **must fully consume** (or discard) the ``frame_iterator``
+        before advancing this outer generator to the next animation.
+
+        Yields:
+            Tuples of ``(folder_name, frame_iterator)`` where
+            ``frame_iterator`` yields ``(frame_name, image, bounds)``.
+        """
+        root_name = self.get_root_animation_name()
+        if root_name:
+            total = self.symbols.length(None)
+            if not self.filter_single_frame or total > 1:
+                yield root_name, self._iter_symbol_frames(None)
+
+        if not self.root_animation_only:
+            for symbol_name in self.list_symbol_names():
+                total = self.symbols.length(symbol_name)
+                if total == 0:
+                    continue
+                if self.filter_single_frame and total <= 1:
+                    continue
+                folder_name = Utilities.strip_trailing_digits(symbol_name)
+                yield folder_name, self._iter_symbol_frames(symbol_name)
+
+            for label in self.symbols.get_label_ranges(None):
+                total = label["end"] - label["start"]
+                if total <= 0:
+                    continue
+                if self.filter_single_frame and total <= 1:
+                    continue
+                yield label["name"], self._iter_symbol_frames(
+                    None,
+                    start_frame=label["start"],
+                    end_frame=label["end"],
+                    frame_name_prefix=label["name"],
+                )
+
     def _render_symbol_frames(
         self,
         symbol_name: Optional[str],
@@ -213,8 +279,19 @@ class AdobeSpritemapRenderer:
     ):
         """Render a contiguous range of frames for a symbol or timeline label.
 
-        Frames are normalized to a common canvas size and cropped to their
-        combined bounding box before being returned.
+        Uses a three-phase strategy to minimise memory consumption:
+
+        1. **Bounds pass** — walks the symbol tree with transform math only
+           (no images allocated) to compute the tightest viewport that
+           contains every frame in the range.
+        2. **Compact render pass** — renders each frame onto a canvas sized
+           to just the viewport instead of the full inferred canvas.
+        3. **Pixel crop pass** — computes the pixel-content union bounding
+           box across all rendered frames, then crops each frame to that
+           box and closes the intermediate compact canvas.
+
+        Used by :meth:`build_animation_frames`.  For low-memory streaming,
+        see :meth:`_iter_symbol_frames` which omits Phase 3.
 
         Args:
             symbol_name: Name of the symbol, or ``None`` for the root timeline.
@@ -237,39 +314,25 @@ class AdobeSpritemapRenderer:
         if start_frame >= end_frame:
             return []
 
-        rendered_frames: List[
-            Tuple[str, Image.Image, Tuple[int, int, int, int, int, int]]
-        ] = []
-        frames_with_index = []
+        union_bounds = self.symbols.compute_union_bounds(
+            symbol_name, start_frame, end_frame
+        )
+        if union_bounds is None:
+            return []
 
+        frames_with_index: List[Tuple[int, Image.Image]] = []
         for frame_index in range(start_frame, end_frame):
-            frame_image = self.symbols.render_symbol(symbol_name, frame_index)
-            if frame_image is None:
-                continue
-            frames_with_index.append((frame_index - start_frame, frame_image))
+            frame_image = self.symbols.render_symbol_compact(
+                symbol_name, frame_index, union_bounds
+            )
+            if frame_image is not None:
+                frames_with_index.append((frame_index - start_frame, frame_image))
 
         if not frames_with_index:
             return []
 
-        sizes = [frame.size for _, frame in frames_with_index]
-        max_width = max(width for width, _ in sizes)
-        max_height = max(height for _, height in sizes)
-        canvas_size = (max_width, max_height)
-
-        normalized_frames = []
-        for frame_index, frame in frames_with_index:
-            if frame.size != canvas_size:
-                new_frame = Image.new("RGBA", canvas_size)
-                offset = (
-                    (canvas_size[0] - frame.size[0]) // 2,
-                    (canvas_size[1] - frame.size[1]) // 2,
-                )
-                new_frame.paste(frame, offset)
-                frame = new_frame
-            normalized_frames.append((frame_index, frame))
-
         min_x, min_y, max_x, max_y = float("inf"), float("inf"), 0, 0
-        for _, frame in normalized_frames:
+        for _, frame in frames_with_index:
             bbox = frame.getbbox()
             if bbox:
                 min_x = min(min_x, bbox[0])
@@ -282,8 +345,12 @@ class AdobeSpritemapRenderer:
 
         prefix = frame_name_prefix or (symbol_name if symbol_name else "timeline")
 
-        for frame_index, frame in normalized_frames:
+        rendered_frames: List[
+            Tuple[str, Image.Image, Tuple[int, int, int, int, int, int]]
+        ] = []
+        for frame_index, frame in frames_with_index:
             cropped_frame = frame.crop((min_x, min_y, max_x, max_y))
+            frame.close()
             frame_name = f"{prefix}_{frame_index:04d}"
             rendered_frames.append(
                 (
@@ -294,6 +361,66 @@ class AdobeSpritemapRenderer:
             )
 
         return rendered_frames
+
+    def _iter_symbol_frames(
+        self,
+        symbol_name: Optional[str],
+        start_frame: int = 0,
+        end_frame: Optional[int] = None,
+        frame_name_prefix: Optional[str] = None,
+    ) -> Generator[
+        Tuple[str, Image.Image, Tuple[int, int, int, int, int, int]],
+        None,
+        None,
+    ]:
+        """Yield rendered frames one at a time for a symbol or label.
+
+        Like :meth:`_render_symbol_frames` but renders lazily: only one
+        compact canvas is alive at any moment.  The Phase 3 pixel-level
+        union crop from ``_render_symbol_frames`` is omitted so frames can
+        be yielded immediately.  Downstream callers (e.g.
+        ``pad_frames_to_canvas`` and the GIF exporter ``crop_option``)
+        handle size normalisation.
+
+        Args:
+            symbol_name: Name of the symbol, or ``None`` for the root timeline.
+            start_frame: First frame index to render (inclusive).
+            end_frame: Last frame index (exclusive); defaults to total length.
+            frame_name_prefix: Prefix for generated frame names.
+
+        Yields:
+            ``(frame_name, pil_image, bounds_tuple)`` for each rendered frame.
+        """
+        total_frames = self.symbols.length(symbol_name)
+        if total_frames == 0:
+            return
+
+        if end_frame is None or end_frame > total_frames:
+            end_frame = total_frames
+
+        if start_frame >= end_frame:
+            return
+
+        viewport = self.symbols.compute_union_bounds(
+            symbol_name, start_frame, end_frame
+        )
+        if viewport is None:
+            return
+
+        prefix = frame_name_prefix or (symbol_name if symbol_name else "timeline")
+
+        for frame_index in range(start_frame, end_frame):
+            frame_image = self.symbols.render_symbol_compact(
+                symbol_name, frame_index, viewport
+            )
+            if frame_image is None:
+                continue
+            frame_name = f"{prefix}_{frame_index - start_frame:04d}"
+            yield (
+                frame_name,
+                frame_image,
+                (0, 0, frame_image.width, frame_image.height, 0, 0),
+            )
 
     def ensure_animation_defaults(self, settings_manager, spritesheet_name):
         """Populate animation duration defaults in the settings manager if missing.

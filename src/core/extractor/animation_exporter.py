@@ -212,10 +212,13 @@ class AnimationExporter:
         """Save frames as an animated GIF using ImageMagick via Wand.
 
         Applies optional cropping, alpha thresholding, duplicate removal,
-        quantization, and scaling before writing the file.
+        quantization, and scaling before writing the file.  Each frame's
+        NumPy array is freed as soon as it is loaded into the Wand
+        sequence to avoid holding both representations simultaneously.
 
         Args:
-            images: Sequence of frame images.
+            images: Mutable sequence of frame images (entries are set to
+                ``None`` after transfer to Wand to reduce peak memory).
             filename: Base filename without extension.
             fps: Frames per second for timing.
             delay: Per-frame delay override list or ``None``.
@@ -297,6 +300,9 @@ class AnimationExporter:
                     wand_frame.delay = int(durations[index] / 10)
                     wand_frame.dispose = "background"
                     animation.sequence.append(wand_frame)
+                # Free numpy array once loaded into Wand to reduce peak memory
+                frame_arrays[index] = None
+                images[index] = None
             signature_cache = None
             if dedupe_required and merge_duplicates:
                 self.remove_dups(animation)

@@ -30,7 +30,11 @@ except ImportError:  # pragma: no cover - psutil is part of app requirements
     psutil = None
 
 # Import our own modules
+from core.extractor.animation_exporter import AnimationExporter
 from core.extractor.atlas_processor import AtlasProcessor
+from core.extractor.frame_exporter import FrameExporter
+from core.extractor.frame_pipeline import FramePipeline
+from core.extractor.image_utils import ensure_rgba_array, scale_image
 from core.extractor.sprite_processor import SpriteProcessor
 from core.extractor.animation_processor import AnimationProcessor
 from core.extractor.preview_generator import PreviewGenerator
@@ -1065,6 +1069,14 @@ class Extractor:
     ) -> Dict[str, int]:
         """Process an Adobe Spritemap project (Animation.json + per-sheet JSON).
 
+        Uses a streaming approach when no editor composites are defined:
+        each animation is rendered, exported, and freed before the next one
+        begins, keeping peak memory proportional to the largest single
+        animation instead of the sum of all animations.
+
+        Falls back to the buffered ``AnimationProcessor`` path when editor
+        composites are present (they need cross-animation frame references).
+
         Args:
             atlas_path (str): Path to atlas image referenced by the project.
             animation_json_path (str): Path to Animation.json.
@@ -1076,17 +1088,12 @@ class Extractor:
         Returns:
             dict[str, int]: Counts dictionary similar to ``extract_sprites``.
         """
-        frames_generated = 0
-        anims_generated = 0
-        sprites_failed = 0
-        renderer: Optional[AdobeSpritemapRenderer] = None
-        animation_processor: Optional[AnimationProcessor] = None
-        animations = None
-        result = {
+        result: Dict[str, int] = {
             "frames_generated": 0,
             "anims_generated": 0,
             "sprites_failed": 0,
         }
+        renderer: Optional[AdobeSpritemapRenderer] = None
 
         try:
             spritesheet_name = spritesheet_label or os.path.basename(atlas_path)
@@ -1105,10 +1112,143 @@ class Extractor:
                 ),
             )
             renderer.ensure_animation_defaults(self.settings_manager, spritesheet_name)
+
+            if self._has_editor_composites(spritesheet_name):
+                self._extract_spritemap_buffered(
+                    renderer, atlas_path, output_dir, spritesheet_name, result
+                )
+            else:
+                self._extract_spritemap_streaming(
+                    renderer, atlas_path, output_dir, spritesheet_name, result
+                )
+
+        except Exception as exc:
+            result["sprites_failed"] = result.get("sprites_failed", 0) + 1
+            print(f"[extract_spritemap_project] Error processing {atlas_path}: {exc}")
+        finally:
+            if renderer is not None:
+                try:
+                    renderer.close()
+                except Exception:
+                    pass
+            renderer = None
+
+        return result
+
+    def _has_editor_composites(self, spritesheet_name: str) -> bool:
+        """Check whether any editor composites are defined for this spritesheet."""
+        if not self.settings_manager:
+            return False
+        sheet_settings = self.settings_manager.get_settings(spritesheet_name)
+        composites = sheet_settings.get("editor_composites")
+        return isinstance(composites, dict) and bool(composites)
+
+    def _extract_spritemap_streaming(
+        self,
+        renderer: AdobeSpritemapRenderer,
+        atlas_path: str,
+        output_dir: str,
+        spritesheet_name: str,
+        result: Dict[str, int],
+    ) -> None:
+        """Stream animations one at a time — render, export, free.
+
+        Frames are rendered lazily: each PIL image is converted to a NumPy
+        array and the PIL image is closed immediately, so at most one
+        compact canvas is alive during rendering.  Peak memory during the
+        render phase is O(1) per frame instead of O(N).
+        """
+        resampling_method = self.settings_manager.global_settings.get(
+            "resampling_method", "Lanczos"
+        )
+
+        def _scale(img, size):
+            return scale_image(img, size, resampling_method=resampling_method)
+
+        frame_pipeline = FramePipeline()
+        frame_exporter = FrameExporter(output_dir, self.current_version, _scale)
+        animation_exporter = AnimationExporter(output_dir, self.current_version, _scale)
+
+        frames_generated = 0
+        anims_generated = 0
+
+        for animation_name, frame_iter in renderer.iter_animations():
+            # Eagerly consume the lazy frame iterator, converting each
+            # PIL image to a numpy array and closing the PIL image so
+            # only lightweight numpy arrays accumulate.
+            numpy_frames = []
+            for frame_name, pil_img, bounds in frame_iter:
+                arr = ensure_rgba_array(pil_img)
+                pil_img.close()
+                numpy_frames.append((frame_name, arr, bounds))
+
+            if not numpy_frames:
+                continue
+
+            anim_settings = self.settings_manager.get_settings(
+                spritesheet_name, f"{spritesheet_name}/{animation_name}"
+            )
+            context = frame_pipeline.build_context(
+                spritesheet_name,
+                animation_name,
+                numpy_frames,
+                anim_settings,
+            )
+
+            if anim_settings.get("fnf_idle_loop") and "idle" in animation_name.lower():
+                anim_settings["delay"] = 0
+
+            frame_export = anim_settings.get("frame_export", False)
+            if frame_export and anim_settings.get("frame_format") != "None":
+                frames_generated += frame_exporter.save_frames(
+                    context.frames,
+                    context.kept_indices,
+                    spritesheet_name,
+                    animation_name,
+                    anim_settings.get("scale"),
+                    anim_settings,
+                    False,
+                )
+
+            animation_export = anim_settings.get("animation_export", False)
+            animation_format = anim_settings.get("animation_format")
+            if (
+                not context.single_frame
+                and animation_export
+                and animation_format != "None"
+            ):
+                anims_generated += animation_exporter.save_animations(
+                    context.frames, spritesheet_name, animation_name, anim_settings
+                )
+
+            # Free this animation's frames before rendering the next one
+            del numpy_frames
+            del context
+            gc.collect()
+
+        result["frames_generated"] = frames_generated
+        result["anims_generated"] = anims_generated
+
+    def _extract_spritemap_buffered(
+        self,
+        renderer: AdobeSpritemapRenderer,
+        atlas_path: str,
+        output_dir: str,
+        spritesheet_name: str,
+        result: Dict[str, int],
+    ) -> None:
+        """Buffered fallback that loads all animations for editor composite support.
+
+        Editor composites require cross-animation frame references, so the
+        full ``AnimationProcessor`` path is used instead of streaming.
+        """
+        animation_processor: Optional[AnimationProcessor] = None
+        animations = None
+        try:
             animations = renderer.build_animation_frames()
 
             if not animations:
-                return result
+                return
 
             animation_processor = AnimationProcessor(
                 animations,
@@ -1121,29 +1261,16 @@ class Extractor:
             frames_generated, anims_generated = animation_processor.process_animations()
             result["frames_generated"] = frames_generated
             result["anims_generated"] = anims_generated
-
-        except Exception as exc:
-            sprites_failed += 1
-            result["sprites_failed"] = sprites_failed
-            print(f"[extract_spritemap_project] Error processing {atlas_path}: {exc}")
         finally:
             if animation_processor is not None:
                 try:
                     animation_processor.dispose()
                 except Exception:
                     pass
-            if renderer is not None:
-                try:
-                    renderer.close()
-                except Exception:
-                    pass
             if isinstance(animations, dict):
                 animations.clear()
             animations = None
             animation_processor = None
-            renderer = None
-
-        return result
 
     def generate_temp_animation_for_preview(
         self,

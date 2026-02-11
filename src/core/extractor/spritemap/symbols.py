@@ -7,8 +7,9 @@ recursively evaluating symbol instances.
 
 from __future__ import annotations
 
+import math
 import warnings
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from PIL import Image, ImageChops
@@ -35,6 +36,26 @@ IDENTITY_M3D = [
     0,
     1,
 ]
+
+
+def _union_bounds(
+    a: Optional[Tuple[int, int, int, int]],
+    b: Optional[Tuple[int, int, int, int]],
+) -> Optional[Tuple[int, int, int, int]]:
+    """Return the axis-aligned union of two bounding boxes.
+
+    Either argument may be ``None``; ``None`` values are treated as empty.
+    """
+    if a is None:
+        return b
+    if b is None:
+        return a
+    return (
+        min(a[0], b[0]),
+        min(a[1], b[1]),
+        max(a[2], b[2]),
+        max(a[3], b[3]),
+    )
 
 
 class Symbols:
@@ -113,6 +134,218 @@ class Symbols:
             canvas, name, frame_index, self.center_in_canvas, ColorEffect()
         )
         return canvas
+
+    def compute_frame_bounds(
+        self, name: Optional[str], frame_index: int
+    ) -> Optional[Tuple[int, int, int, int]]:
+        """Compute the pixel bounding box for a single frame without rendering.
+
+        Walks the symbol tree and applies transform math to each sprite to
+        determine where it would land on the full canvas.  No images are
+        created, making this very cheap compared to ``render_symbol``.
+
+        Args:
+            name: Symbol name, or ``None`` for the root timeline.
+            frame_index: Zero-based frame index.
+
+        Returns:
+            ``(min_x, min_y, max_x, max_y)`` in full-canvas coordinates,
+            or ``None`` if the frame contains no visible sprites.
+        """
+        return self._compute_bounds(name, frame_index, self.center_in_canvas)
+
+    def compute_union_bounds(
+        self,
+        name: Optional[str],
+        start_frame: int,
+        end_frame: int,
+        padding: int = 2,
+    ) -> Optional[Tuple[int, int, int, int]]:
+        """Compute the union bounding box across a contiguous range of frames.
+
+        Args:
+            name: Symbol name, or ``None`` for the root timeline.
+            start_frame: First frame index (inclusive).
+            end_frame: Last frame index (exclusive).
+            padding: Extra pixels around the result for anti-alias safety.
+
+        Returns:
+            ``(min_x, min_y, max_x, max_y)`` encompassing all frames,
+            or ``None`` if every frame is empty.
+        """
+        union: Optional[Tuple[int, int, int, int]] = None
+        for frame_index in range(start_frame, end_frame):
+            frame_bounds = self._compute_bounds(
+                name, frame_index, self.center_in_canvas
+            )
+            union = _union_bounds(union, frame_bounds)
+
+        if union is None:
+            return None
+
+        return (
+            max(0, union[0] - padding),
+            max(0, union[1] - padding),
+            union[2] + padding,
+            union[3] + padding,
+        )
+
+    def render_symbol_compact(
+        self,
+        name: Optional[str],
+        frame_index: int,
+        viewport: Tuple[int, int, int, int],
+    ) -> Image.Image:
+        """Render a frame onto a compact canvas covering only *viewport*.
+
+        Instead of allocating a full-size canvas (e.g. 4096x4096) this
+        creates a canvas sized to ``viewport`` and adjusts transforms so
+        sprites land at the correct compact-canvas positions.  Clipping
+        layers also use the compact size, dramatically reducing peak memory.
+
+        Args:
+            name: Symbol name, or ``None`` for the root timeline.
+            frame_index: Zero-based frame index.
+            viewport: ``(min_x, min_y, max_x, max_y)`` in full-canvas
+                coordinates defining the region to render.
+
+        Returns:
+            An RGBA ``Image`` sized to the viewport.
+        """
+        vp_x, vp_y, vp_x2, vp_y2 = viewport
+        compact_w = max(1, vp_x2 - vp_x)
+        compact_h = max(1, vp_y2 - vp_y)
+
+        # Save original state
+        orig_canvas_size = self.canvas_size
+        orig_atlas_w = self.sprite_atlas.canvas_width
+        orig_atlas_h = self.sprite_atlas.canvas_height
+
+        # Switch to compact viewport
+        self.canvas_size = (compact_w, compact_h)
+        self.sprite_atlas.canvas_width = compact_w
+        self.sprite_atlas.canvas_height = compact_h
+
+        # Shift the center transform so full-canvas coords map to compact coords
+        compact_center = TransformMatrix(
+            c=orig_canvas_size[0] // 2 - vp_x,
+            f=orig_canvas_size[1] // 2 - vp_y,
+        )
+
+        try:
+            canvas = Image.new(
+                "RGBA", (compact_w, compact_h), color=self.background_color
+            )
+            self._render_symbol(
+                canvas, name, frame_index, compact_center, ColorEffect()
+            )
+            return canvas
+        finally:
+            # Restore original state
+            self.canvas_size = orig_canvas_size
+            self.sprite_atlas.canvas_width = orig_atlas_w
+            self.sprite_atlas.canvas_height = orig_atlas_h
+
+    def _compute_bounds(
+        self,
+        name: Optional[str],
+        frame_index: int,
+        matrix: TransformMatrix,
+    ) -> Optional[Tuple[int, int, int, int]]:
+        """Recursively compute the bounding box for a symbol frame.
+
+        Mirrors the traversal of :meth:`_render_symbol` but only performs
+        coordinate math — no images are allocated or composited.
+        Clipping-layer restrictions are intentionally ignored to keep
+        things simple; the result may slightly overestimate the visible area.
+
+        Args:
+            name: Symbol name, or ``None`` for the root timeline.
+            frame_index: Zero-based frame index.
+            matrix: Accumulated affine transform from parent instances.
+
+        Returns:
+            ``(min_x, min_y, max_x, max_y)`` in canvas coordinates,
+            or ``None`` if the frame contains no visible sprites.
+        """
+        combined: Optional[Tuple[int, int, int, int]] = None
+
+        for layer in reversed(self.timelines.get(name, [])):
+            frames = layer.get("FR", [])
+            if not frames:
+                continue
+
+            # Binary search — identical to _render_symbol
+            low = 0
+            high = len(frames) - 1
+            while low != high:
+                mid = (low + high + 1) // 2
+                if frame_index < frames[mid]["I"]:
+                    high = mid - 1
+                else:
+                    low = mid
+            frame = frames[low]
+            if not (frame["I"] <= frame_index < frame["I"] + frame["DU"]):
+                continue
+
+            for element in frame.get("E", []):
+                if "SI" in element:
+                    instance = element["SI"]
+                    element_name = instance.get("SN")
+                    if not element_name:
+                        continue
+                    instance_frame = self._resolve_instance_frame(
+                        element_name, instance, frame["I"], frame_index
+                    )
+                    transform = TransformMatrix.parse(instance.get("M3D", IDENTITY_M3D))
+                    child_bounds = self._compute_bounds(
+                        element_name, instance_frame, matrix @ transform
+                    )
+                    combined = _union_bounds(combined, child_bounds)
+                elif "ASI" in element:
+                    atlas_instance = element["ASI"]
+                    sprite_name = atlas_instance.get("N")
+                    if not sprite_name:
+                        continue
+                    transform = TransformMatrix.parse(
+                        atlas_instance.get("M3D", IDENTITY_M3D)
+                    )
+                    sprite_bounds = self._compute_sprite_bounds(
+                        sprite_name, matrix @ transform
+                    )
+                    combined = _union_bounds(combined, sprite_bounds)
+
+        return combined
+
+    def _compute_sprite_bounds(
+        self,
+        sprite_name: str,
+        matrix: TransformMatrix,
+    ) -> Optional[Tuple[int, int, int, int]]:
+        """Compute a sprite's transformed bounding box from atlas metadata.
+
+        Uses the same corner-transform math as ``SpriteAtlas.get_sprite``
+        but without loading or cropping any pixel data.
+        """
+        info = self.sprite_atlas.sprite_info.get(sprite_name)
+        if not info:
+            return None
+
+        box = info["box"]
+        width = box[2] - box[0]
+        height = box[3] - box[1]
+        if info.get("rotated"):
+            width, height = height, width
+
+        corners = matrix.m @ np.array(
+            [[0, width, 0, width], [0, 0, height, height], [1, 1, 1, 1]]
+        )
+        return (
+            math.floor(float(min(corners[0]))),
+            math.floor(float(min(corners[1]))),
+            math.ceil(float(max(corners[0]))),
+            math.ceil(float(max(corners[1]))),
+        )
 
     def _render_symbol(self, canvas, name, frame_index, matrix, color):
         """Recursively composite symbol layers onto an existing canvas.
