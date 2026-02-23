@@ -480,7 +480,17 @@ class Symbols:
             first_frame = 0
         first_frame = max(0, min(first_frame, symbol_length - 1))
 
+        # MovieClip symbols are frozen at *first_frame* during extraction.
+        # In non-swfRender mode (the standard game-engine convention) the
+        # MC playhead is externally controlled and defaults to frame 0.
+        # Graphic symbols use the parent-keyframe-relative offset together
+        # with the loop mode (LP) to determine the child frame.
+        symbol_type = (instance.get("ST") or "G").upper()
+        if symbol_type == "MC":
+            return first_frame
+
         offset = max(0, parent_frame_index - frame_start)
+
         loop_mode = instance.get("LP") or "LP"
         if isinstance(loop_mode, str):
             loop_mode = loop_mode.upper()
