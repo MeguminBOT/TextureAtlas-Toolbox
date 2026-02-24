@@ -792,6 +792,7 @@ class CheckBoxLabels:
     ALLOW_FLIP = "Allow flip X/Y (non-standard)"
     TRIM_TRANSPARENT = "Trim transparent edges"
     TRIM_SPRITES = "Trim Sprites"
+    SMART_ANIMATION_GROUPING = "Smart animation grouping"
 
     # Update options
     CHECK_UPDATES_STARTUP = "Check for updates on startup"

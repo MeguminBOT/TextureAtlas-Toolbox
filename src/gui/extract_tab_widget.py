@@ -1353,6 +1353,14 @@ class ExtractTabWidget(BaseTabWidget):
         spritesheet_name = current.text()
         self.populate_animation_list(spritesheet_name)
 
+    def _is_smart_grouping_enabled(self) -> bool:
+        """Check whether smart animation grouping is active in app config."""
+        if self.parent_app and hasattr(self.parent_app, "app_config"):
+            return self.parent_app.app_config.get("interface", {}).get(
+                "smart_animation_grouping", True
+            )
+        return True
+
     def populate_animation_list(self, spritesheet_name):
         """Populate the animation listbox for a spritesheet.
 
@@ -1382,11 +1390,14 @@ class ExtractTabWidget(BaseTabWidget):
                 try:
                     from parsers.xml_parser import XmlParser
 
+                    smart = self._is_smart_grouping_enabled()
                     xml_parser = XmlParser(
                         directory=str(Path(data_files["xml"]).parent),
                         xml_filename=Path(data_files["xml"]).name,
                     )
-                    self._populate_animation_names(xml_parser.get_data())
+                    self._populate_animation_names(
+                        xml_parser.get_data(smart_grouping=smart)
+                    )
                 except Exception as e:
                     print(f"Error parsing XML: {e}")
 
@@ -1394,11 +1405,14 @@ class ExtractTabWidget(BaseTabWidget):
                 try:
                     from parsers.txt_parser import TxtParser
 
+                    smart = self._is_smart_grouping_enabled()
                     txt_parser = TxtParser(
                         directory=str(Path(data_files["txt"]).parent),
                         txt_filename=Path(data_files["txt"]).name,
                     )
-                    self._populate_animation_names(txt_parser.get_data())
+                    self._populate_animation_names(
+                        txt_parser.get_data(smart_grouping=smart)
+                    )
                 except Exception as e:
                     print(f"Error parsing TXT: {e}")
 
@@ -1422,7 +1436,11 @@ class ExtractTabWidget(BaseTabWidget):
                                 filter_unused_symbols=self.filter_unused_spritemap_symbols,
                                 root_animation_only=self.spritemap_root_animation_only,
                             )
-                            self._populate_animation_names(parser.get_data())
+                            self._populate_animation_names(
+                                parser.get_data(
+                                    smart_grouping=self._is_smart_grouping_enabled()
+                                )
+                            )
                     except Exception as e:
                         print(f"Error parsing spritemap animations: {e}")
 
@@ -1491,7 +1509,9 @@ class ExtractTabWidget(BaseTabWidget):
                 else:
                     parser = parser_cls(directory=directory, filename=filename)
 
-                self._populate_animation_names(parser.get_data())
+                self._populate_animation_names(
+                    parser.get_data(smart_grouping=self._is_smart_grouping_enabled())
+                )
             else:
                 print(f"No parser found for: {metadata_path}")
                 self._populate_unknown_parser_fallback()
@@ -1521,7 +1541,11 @@ class ExtractTabWidget(BaseTabWidget):
                 directory=str(Path(spritesheet_path).parent),
                 image_filename=Path(spritesheet_path).name,
             )
-            self._populate_animation_names(unknown_parser.get_data())
+            self._populate_animation_names(
+                unknown_parser.get_data(
+                    smart_grouping=self._is_smart_grouping_enabled()
+                )
+            )
         except Exception as exc:
             print(f"Error using unknown parser: {exc}")
 

@@ -31,15 +31,17 @@ class PreviewGenerator:
         current_version: Version string embedded in exported metadata.
     """
 
-    def __init__(self, settings_manager, current_version: str):
+    def __init__(self, settings_manager, current_version: str, app_config=None):
         """Initialise the preview generator.
 
         Args:
             settings_manager: Settings provider for export options.
             current_version: Version string for file metadata.
+            app_config: Optional config with interface settings.
         """
         self.settings_manager = settings_manager
         self.current_version = current_version
+        self.app_config = app_config
         self._frame_pipeline = FramePipeline()
 
     def generate_temp_animation(
@@ -208,11 +210,38 @@ class PreviewGenerator:
     def _render_spritesheet_preview(self, atlas_path, metadata_path, animation_name):
         """Render frames for a standard spritesheet animation.
 
+        When smart animation grouping is enabled, uses ``process_sprites``
+        so that sub-indexed names (e.g. ``banban1``, ``banban2``) resolve
+        correctly.  Falls back to per-animation filtering when grouping is
+        disabled.
+
+        Args:
+            atlas_path: Path to the source atlas image.
+            metadata_path: Path to the spritesheet metadata file
+                (``.xml`` or ``.txt``).
+            animation_name: Name of the animation to extract frames for.
+
         Returns:
             List of frame tuples, or ``None`` if parsing fails.
         """
         if not metadata_path:
             return None
+
+        smart = self._get_smart_grouping()
+
+        if smart:
+            atlas_processor = AtlasProcessor(atlas_path, metadata_path)
+            sprite_processor = SpriteProcessor(
+                atlas_processor.atlas,
+                atlas_processor.sprites,
+                smart_animation_grouping=True,
+            )
+            all_animations = sprite_processor.process_sprites()
+            frames = all_animations.get(animation_name)
+            if not frames:
+                print(f"Animation {animation_name} not found in processed sprites")
+                return None
+            return frames
 
         atlas_processor = AtlasProcessor(atlas_path, metadata_path)
         if metadata_path.endswith(".xml"):
@@ -227,7 +256,9 @@ class PreviewGenerator:
             print(f"No sprites found for animation: {animation_name}")
             return None
 
-        sprite_processor = SpriteProcessor(atlas_processor.atlas, animation_sprites)
+        sprite_processor = SpriteProcessor(
+            atlas_processor.atlas, animation_sprites, smart_animation_grouping=False
+        )
         processed = sprite_processor.process_specific_animation(animation_name)
         frames = processed.get(animation_name)
         if not frames:
@@ -288,7 +319,9 @@ class PreviewGenerator:
             if not metadata_path:
                 return {}
 
-            return self._load_metadata_source_frames(atlas_path, metadata_path)
+            return self._load_metadata_source_frames(
+                atlas_path, metadata_path, self._get_smart_grouping()
+            )
         except Exception as exc:
             print(f"[PreviewGenerator] Failed to load source frames for preview: {exc}")
             return {}
@@ -316,8 +349,18 @@ class PreviewGenerator:
         animations = renderer.build_animation_frames()
         return clone_animation_map(animations)
 
+    def _get_smart_grouping(self) -> bool:
+        """Return the smart_animation_grouping setting from app_config."""
+        if self.app_config:
+            return self.app_config.get("interface", {}).get(
+                "smart_animation_grouping", True
+            )
+        return True
+
     @staticmethod
-    def _load_metadata_source_frames(atlas_path, metadata_path):
+    def _load_metadata_source_frames(
+        atlas_path, metadata_path, smart_animation_grouping: bool = True
+    ):
         """Load all animations from standard spritesheet metadata.
 
         Returns:
@@ -325,7 +368,9 @@ class PreviewGenerator:
         """
         atlas_processor = AtlasProcessor(atlas_path, metadata_path)
         sprite_processor = SpriteProcessor(
-            atlas_processor.atlas, atlas_processor.sprites
+            atlas_processor.atlas,
+            atlas_processor.sprites,
+            smart_animation_grouping=smart_animation_grouping,
         )
         animations = sprite_processor.process_sprites()
         return clone_animation_map(animations)

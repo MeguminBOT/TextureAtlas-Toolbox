@@ -70,12 +70,51 @@ class BaseParser(ABC):
         """
         pass
 
-    def get_data(self) -> Set[str]:
+    def extract_raw_sprite_names(self) -> list[str]:
+        """Return raw sprite names before any trailing-digit stripping.
+
+        Used by :meth:`get_data` when *smart_grouping* is enabled so that
+        ``group_names_by_animation`` can analyse the full numeric suffixes.
+
+        The default implementation re-parses the file via :meth:`parse_file`
+        and collects the ``name`` field from each sprite.  Subclasses may
+        override this for a cheaper path.
+
+        Returns:
+            List of raw sprite name strings, or empty if unavailable.
+        """
+        try:
+            result = self.__class__.parse_file(self.file_path)
+            return [s["name"] for s in result.sprites if s.get("name")]
+        except Exception:
+            return []
+
+    def get_data(self, smart_grouping: bool = False) -> Set[str]:
         """Extract names and invoke callback for each.
+
+        When *smart_grouping* is ``True``, raw sprite names are analysed
+        with :func:`~utils.utilities.Utilities.group_names_by_animation`
+        so that sub-indexed sequences produce distinct animation entries.
+
+        Args:
+            smart_grouping: Use batch-aware grouping instead of simple
+                trailing-digit stripping.
 
         Returns:
             Set of extracted names.
         """
+        if smart_grouping:
+            raw_names = self.extract_raw_sprite_names()
+            if raw_names:
+                from utils.utilities import Utilities
+
+                groups = Utilities.group_names_by_animation(raw_names)
+                names = set(groups.keys())
+                if self.name_callback:
+                    for name in names:
+                        self.name_callback(name)
+                return names
+
         names = self.extract_names()
         if self.name_callback:
             for name in names:

@@ -22,29 +22,39 @@ class SpriteProcessor:
         sprites: List of sprite metadata dicts from a parser.
     """
 
-    def __init__(self, atlas, sprites):
+    def __init__(self, atlas, sprites, smart_animation_grouping: bool = True):
         """Initialise the processor with an atlas image and sprite metadata.
 
         Args:
             atlas: PIL image of the full atlas.
             sprites: List of sprite dicts with keys like ``name``, ``x``, ``y``, etc.
+            smart_animation_grouping: When True, use batch-aware analysis to
+                detect animation boundaries for non-tagged sprites. When False,
+                fall back to simple trailing-digit stripping.
         """
         self.atlas = atlas
         self._atlas_rgba = atlas if atlas.mode == "RGBA" else atlas.convert("RGBA")
         self._atlas_array = np.ascontiguousarray(np.asarray(self._atlas_rgba))
         self.sprites = sprites
+        self.smart_animation_grouping = smart_animation_grouping
 
     def process_sprites(self):
         """Process all sprites and group them into animations.
 
         For formats with animation tags (like Aseprite), groups by tag.
-        Otherwise, groups by name prefix (strips trailing digits).
+        Otherwise, when ``smart_animation_grouping`` is enabled, uses
+        batch-aware analysis to detect animation boundaries; when disabled,
+        groups by name prefix (strips trailing digits).
 
         Returns:
             Dict mapping animation names to lists of ``(name, image, metadata)``
             tuples where image is a NumPy array.
         """
-        animations = {}
+        # Separate tagged from untagged sprites
+        tagged_frames: dict[str, list] = {}
+        untagged_sprites: list = []
+        untagged_frame_tuples: dict[str, list[tuple]] = {}
+
         for sprite in self.sprites:
             frame_tuple = self._build_frame_tuple(sprite)
             if frame_tuple is None:
@@ -52,12 +62,33 @@ class SpriteProcessor:
 
             animation_tag = sprite.get("animation_tag")
             if animation_tag:
-                folder_name = animation_tag
+                tagged_frames.setdefault(animation_tag, []).append(frame_tuple)
             else:
+                untagged_sprites.append(sprite)
                 name = frame_tuple[0]
-                folder_name = Utilities.strip_trailing_digits(name)
+                untagged_frame_tuples.setdefault(name, []).append(frame_tuple)
 
-            animations.setdefault(folder_name, []).append(frame_tuple)
+        animations: dict[str, list] = dict(tagged_frames)
+
+        if untagged_sprites:
+            if self.smart_animation_grouping:
+                name_groups = Utilities.group_names_by_animation(
+                    [s["name"] for s in untagged_sprites]
+                )
+                for animation_name, frame_names in name_groups.items():
+                    group: list = []
+                    for fname in frame_names:
+                        group.extend(untagged_frame_tuples.get(fname, []))
+                    animations.setdefault(animation_name, []).extend(group)
+            else:
+                for sprite in untagged_sprites:
+                    frame_tuple = self._build_frame_tuple(sprite)
+                    if frame_tuple is None:
+                        continue
+                    name = frame_tuple[0]
+                    folder_name = Utilities.strip_trailing_digits(name)
+                    animations.setdefault(folder_name, []).append(frame_tuple)
+
         return animations
 
     def process_specific_animation(self, animation_name):

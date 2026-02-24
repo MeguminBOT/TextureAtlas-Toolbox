@@ -124,6 +124,144 @@ class Utilities:
             .rstrip()
         )
 
+    # Pre-compiled patterns for group_names_by_animation
+    _SEP_SUFFIX_RE = re.compile(r"^(.+?)([\s_.\-])(\d+)$")
+    _BARE_SUFFIX_RE = re.compile(r"^(.*?)(\d+)$")
+    _EXT_RE = re.compile(
+        r"\.(png|jpe?g|gif|webp|bmp|tiff?|tga|avif|dds)$", re.IGNORECASE
+    )
+
+    @staticmethod
+    def group_names_by_animation(names: list[str]) -> dict[str, list[str]]:
+        """Group sprite/frame names into animations using batch-aware analysis.
+
+        Handles the common game-asset convention where numeric suffixes
+        encode both an animation sub-index and a zero-padded frame index
+        (e.g. ``Anim10001`` → animation ``1``, frame ``0001``).
+
+        The method splits by sub-index when detected::
+
+            Anim10001, Anim10002, Anim20001, Anim20002
+            → {Anim1: [Anim10001, Anim10002],
+               Anim2: [Anim20001, Anim20002]}
+
+            Anim10001, Anim10002, Anim20003, Anim20004
+            → {Anim1: [Anim10001, Anim10002],
+               Anim2: [Anim20003, Anim20004]}
+
+        Sub-indices always denote separate animations because real-world
+        tools (e.g. Adobe Animate) use them to distinguish clips, even
+        when global frame numbers happen to be continuous.
+
+        Simple suffixes (< 5 digits) are always grouped by their text
+        prefix without sub-index analysis.
+
+        Args:
+            names: Sprite or frame names to group.
+
+        Returns:
+            Dict mapping animation names to lists of original names.
+        """
+        parsed: list[tuple[str, str, str, str]] = []
+        unparsed: list[str] = []
+
+        for name in names:
+            clean = name
+            ext_m = Utilities._EXT_RE.search(clean)
+            if ext_m:
+                clean = clean[: ext_m.start()]
+
+            m = Utilities._SEP_SUFFIX_RE.match(clean)
+            if m:
+                parsed.append((name, m.group(1).strip(), m.group(2), m.group(3)))
+                continue
+
+            m = Utilities._BARE_SUFFIX_RE.match(clean)
+            if m and m.group(1):
+                parsed.append((name, m.group(1), "", m.group(2)))
+                continue
+
+            unparsed.append(name)
+
+        # Group by (text_prefix, separator_char)
+        prefix_groups: dict[tuple[str, str], list[tuple[str, str]]] = {}
+        for original, prefix, sep, digits in parsed:
+            prefix_groups.setdefault((prefix, sep), []).append((original, digits))
+
+        result: dict[str, list[str]] = {}
+
+        for (prefix, sep), items in prefix_groups.items():
+            items.sort(key=lambda x: int(x[1]))
+
+            digit_strs = [d for _, d in items]
+            max_val = max(int(d) for d in digit_strs)
+            max_len = max(len(d) for d in digit_strs)
+
+            if max_len >= 5 and max_val >= 10000:
+                split = Utilities._try_sub_index_split(prefix, sep, items, max_len)
+                if split is not None:
+                    for anim_name, orig_names in split.items():
+                        result.setdefault(anim_name, []).extend(orig_names)
+                    continue
+
+            result.setdefault(prefix, []).extend(orig for orig, _ in items)
+
+        for name in unparsed:
+            result.setdefault(name, []).append(name)
+
+        return result
+
+    @staticmethod
+    def _try_sub_index_split(
+        prefix: str,
+        sep: str,
+        items: list[tuple[str, str]],
+        max_len: int,
+    ) -> dict[str, list[str]] | None:
+        """Try splitting numeric suffixes into sub-index + frame-index.
+
+        Tests whether leading digit(s) form an animation sub-index while
+        remaining digits form a frame index.
+
+        Sub-indices are always treated as separate animations because
+        real-world tools (e.g. Adobe Animate) use the sub-index to
+        distinguish animation clips, even when global frame numbers
+        happen to be continuous across clips.
+
+        Args:
+            prefix: Text portion of the sprite name before the numeric suffix.
+            sep: Separator character between prefix and digits (empty string
+                when there is no separator).
+            items: List of ``(original_name, digit_string)`` tuples, sorted
+                by numeric value.
+            max_len: Length of the longest digit string in *items*.
+
+        Returns:
+            Dict mapping sub-animation names to lists of original sprite
+            names, or ``None`` when only a single sub-index exists.
+        """
+        for n_sub_digits in range(1, min(3, max_len - 2)):
+            divisor = 10 ** (max_len - n_sub_digits)
+
+            sub_groups: dict[int, list[tuple[int, str]]] = {}
+            for orig, digit_str in items:
+                val = int(digit_str)
+                sub_idx = val // divisor
+                frame_idx = val % divisor
+                sub_groups.setdefault(sub_idx, []).append((frame_idx, orig))
+
+            if len(sub_groups) <= 1:
+                continue
+
+            sorted_keys = sorted(sub_groups.keys())
+            result: dict[str, list[str]] = {}
+            for sub_key in sorted_keys:
+                anim_name = f"{prefix}{sep}{sub_key}" if sep else f"{prefix}{sub_key}"
+                result[anim_name] = [orig for _, orig in sub_groups[sub_key]]
+            return result
+
+        return None
+
     _NATURAL_SORT_PATTERN = re.compile(r"(\d+)")
 
     @staticmethod

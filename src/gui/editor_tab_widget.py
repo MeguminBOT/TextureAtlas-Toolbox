@@ -1472,26 +1472,47 @@ class EditorTabWidget(BaseTabWidget):
                 from core.extractor.atlas_processor import AtlasProcessor
                 from core.extractor.sprite_processor import SpriteProcessor
 
-                atlas_processor = AtlasProcessor(spritesheet_path, metadata_path)
-                if metadata_path.endswith(".xml"):
-                    animation_sprites = atlas_processor.parse_xml_for_preview(
-                        animation_name
+                smart = False
+                config = getattr(self.parent_app, "app_config", None)
+                if config:
+                    smart = config.get("interface", {}).get(
+                        "smart_animation_grouping", True
                     )
-                elif metadata_path.endswith(".txt"):
-                    animation_sprites = atlas_processor.parse_txt_for_preview(
-                        animation_name
+
+                if smart:
+                    atlas_processor = AtlasProcessor(spritesheet_path, metadata_path)
+                    sprite_processor = SpriteProcessor(
+                        atlas_processor.atlas,
+                        atlas_processor.sprites,
+                        smart_animation_grouping=True,
                     )
+                    all_animations = sprite_processor.process_sprites()
+                    raw_frames = all_animations.get(animation_name, [])
                 else:
-                    animation_sprites = []
+                    atlas_processor = AtlasProcessor(spritesheet_path, metadata_path)
+                    if metadata_path.endswith(".xml"):
+                        animation_sprites = atlas_processor.parse_xml_for_preview(
+                            animation_name
+                        )
+                    elif metadata_path.endswith(".txt"):
+                        animation_sprites = atlas_processor.parse_txt_for_preview(
+                            animation_name
+                        )
+                    else:
+                        animation_sprites = []
 
-                if not animation_sprites:
-                    return None
+                    if not animation_sprites:
+                        return None
 
-                sprite_processor = SpriteProcessor(
-                    atlas_processor.atlas, animation_sprites
-                )
-                processed = sprite_processor.process_specific_animation(animation_name)
-                raw_frames = processed.get(animation_name, [])
+                    sprite_processor = SpriteProcessor(
+                        atlas_processor.atlas,
+                        animation_sprites,
+                        smart_animation_grouping=False,
+                    )
+                    processed = sprite_processor.process_specific_animation(
+                        animation_name
+                    )
+                    raw_frames = processed.get(animation_name, [])
 
             if not raw_frames:
                 return None

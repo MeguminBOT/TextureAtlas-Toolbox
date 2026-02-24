@@ -601,18 +601,36 @@ class GenerateTabWidget(BaseTabWidget):
 
             temp_dir = Path(tempfile.mkdtemp(prefix="atlas_frames_"))
 
-            # Group frames by animation name
-            animation_groups = {}
-            for sprite_data in sprites_data:
-                frame_name = sprite_data["name"]
+            # Group frames by animation name.
+            # When smart grouping is enabled, batch-aware analysis detects
+            # whether sub-indexed sequences (Anim10001, Anim20001) are
+            # separate animations or a continuous sequence.
+            use_smart_grouping = self.main_app.app_config.get("interface", {}).get(
+                "smart_animation_grouping", True
+            )
 
-                # Extract animation name from frame name
-                # Common patterns: "animName_0000", "animName0001", "animName 0", "animName.0", etc.
-                animation_name = self._extract_animation_name(frame_name)
+            if use_smart_grouping:
+                name_groups = Utilities.group_names_by_animation(
+                    [s["name"] for s in sprites_data]
+                )
+                name_to_sprites: dict[str, list] = {}
+                for sprite_data in sprites_data:
+                    name_to_sprites.setdefault(sprite_data["name"], []).append(
+                        sprite_data
+                    )
 
-                if animation_name not in animation_groups:
-                    animation_groups[animation_name] = []
-                animation_groups[animation_name].append(sprite_data)
+                animation_groups: dict[str, list] = {}
+                for animation_name, frame_names in name_groups.items():
+                    group: list = []
+                    for fname in frame_names:
+                        group.extend(name_to_sprites.get(fname, []))
+                    animation_groups[animation_name] = group
+            else:
+                # Legacy per-name grouping
+                animation_groups = {}
+                for sprite_data in sprites_data:
+                    animation_name = self._extract_animation_name(sprite_data["name"])
+                    animation_groups.setdefault(animation_name, []).append(sprite_data)
 
             # Create animation groups and extract frames
             total_frames_added = 0

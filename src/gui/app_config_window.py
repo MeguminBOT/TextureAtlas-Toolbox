@@ -168,6 +168,7 @@ class AppConfigWindow(QDialog):
         self.spritemap_root_animation_only_cb = None
         self.use_native_file_dialog_cb = None
         self.merge_duplicates_cb = None
+        self.smart_grouping_cb = None
         self.duration_input_type_combo = None
         self.color_scheme_combo = None
         self.duration_label = None
@@ -1250,6 +1251,10 @@ class AppConfigWindow(QDialog):
             self.merge_duplicates_cb.setChecked(
                 interface.get("merge_duplicate_frames", True)
             )
+        if self.smart_grouping_cb:
+            self.smart_grouping_cb.setChecked(
+                interface.get("smart_animation_grouping", True)
+            )
         if self.duration_input_type_combo:
             duration_type = interface.get("duration_input_type", "fps")
             index = self.duration_input_type_combo.findData(duration_type)
@@ -1338,6 +1343,8 @@ class AppConfigWindow(QDialog):
 
             if self.merge_duplicates_cb:
                 self.merge_duplicates_cb.setChecked(True)
+            if self.smart_grouping_cb:
+                self.smart_grouping_cb.setChecked(True)
             if self.duration_input_type_combo:
                 default_type = self.app_config.DEFAULTS.get("interface", {}).get(
                     "duration_input_type", "fps"
@@ -1464,6 +1471,10 @@ class AppConfigWindow(QDialog):
             if self.merge_duplicates_cb:
                 interface["merge_duplicate_frames"] = (
                     self.merge_duplicates_cb.isChecked()
+                )
+            if self.smart_grouping_cb:
+                interface["smart_animation_grouping"] = (
+                    self.smart_grouping_cb.isChecked()
                 )
             if self.duration_input_type_combo:
                 interface["duration_input_type"] = (
@@ -1663,6 +1674,24 @@ class AppConfigWindow(QDialog):
             )
         )
         anim_behavior_layout.addWidget(self.merge_duplicates_cb)
+
+        self.smart_grouping_cb = QCheckBox(
+            self.tr(CheckBoxLabels.SMART_ANIMATION_GROUPING)
+        )
+        self.smart_grouping_cb.setChecked(True)
+        self.smart_grouping_cb.setToolTip(
+            self.tr(
+                "Use batch-aware analysis to detect animation boundaries\n"
+                "when extracting spritesheets and importing atlases.\n\n"
+                "When enabled, sub-indexed sequences like Anim10001..Anim20003\n"
+                "are analysed as a group to decide whether the sub-index\n"
+                "(1, 2, \u2026) represents separate animations or a single one\n"
+                "with a continuous frame count.\n\n"
+                "When disabled, trailing digits are simply stripped to\n"
+                "derive the animation name (legacy behaviour)."
+            )
+        )
+        anim_behavior_layout.addWidget(self.smart_grouping_cb)
 
         duration_layout = QHBoxLayout()
         duration_label = QLabel(self.tr("Duration input type:"))

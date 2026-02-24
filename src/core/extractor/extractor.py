@@ -115,7 +115,9 @@ class Extractor:
         self.error_prompt_callback = error_prompt_callback
         self._cancel_reason = None
         self.fnf_idle_loop = False
-        self.preview_generator = PreviewGenerator(settings_manager, current_version)
+        self.preview_generator = PreviewGenerator(
+            settings_manager, current_version, app_config=app_config
+        )
         self.unknown_handler = UnknownSpritesheetHandler()
         self._trace_stats = False
         # UI updates and worker management
@@ -1005,8 +1007,17 @@ class Extractor:
             is_unknown_spritesheet = metadata_path is None
 
             atlas_processor = AtlasProcessor(atlas_path, metadata_path, parent_window)
+            smart_grouping = (
+                self.app_config.get("interface", {}).get(
+                    "smart_animation_grouping", True
+                )
+                if self.app_config
+                else True
+            )
             sprite_processor = SpriteProcessor(
-                atlas_processor.atlas, atlas_processor.sprites
+                atlas_processor.atlas,
+                atlas_processor.sprites,
+                smart_animation_grouping=smart_grouping,
             )
             animations = sprite_processor.process_sprites()
             animation_processor = AnimationProcessor(

@@ -96,6 +96,7 @@ class AppConfig:
             "use_native_file_dialog": False,
             "merge_duplicate_frames": True,
             "duration_input_type": "fps",
+            "smart_animation_grouping": True,
             "color_scheme": "auto",
         },
     }
