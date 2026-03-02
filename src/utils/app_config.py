@@ -174,13 +174,11 @@ class AppConfig:
 
         if not os.path.isfile(self.config_path):
             print(
-                f"[Config] Configuration file not found at '{self.config_path}'. Creating default config..."
+                f"[Config] No config file found. Creating defaults at '{self.config_path}'."
             )
             self.save()
         else:
-            print(
-                f"[Config] Configuration file found at '{self.config_path}'. Loading settings..."
-            )
+            print(f"[Config] Loading settings from '{self.config_path}'.")
 
         self.load()
         self.migrate()
@@ -227,9 +225,6 @@ class AppConfig:
             try:
                 with open(self.config_path, "r", encoding="utf-8") as f:
                     self.settings.update(json.load(f))
-                print(
-                    f"[Config] Configuration loaded successfully from '{self.config_path}'."
-                )
             except Exception as e:
                 print(f"[Config] Failed to load configuration: {e}")
                 pass
@@ -240,7 +235,6 @@ class AppConfig:
         try:
             with open(self.config_path, "w", encoding="utf-8") as f:
                 json.dump(self.settings, f, indent=4)
-            print(f"[Config] Configuration saved to '{self.config_path}'.")
         except Exception as e:
             print(f"[Config] Failed to save configuration: {e}")
             pass
@@ -298,9 +292,9 @@ class AppConfig:
 
         if needs_migration:
             self.save()
-            print("[Config] Configuration migration completed successfully.")
+            print("[Config] Migration completed — settings updated.")
         else:
-            print("[Config] No migration needed - configuration is up to date.")
+            print("[Config] Settings are up to date.")
 
     def get(self, key, default=None):
         """Retrieve a setting value by key.
@@ -323,7 +317,6 @@ class AppConfig:
             key: Setting name.
             value: New value to store.
         """
-        print(f"[Config] Setting '{key}' to: {value}")
         self.settings[key] = value
         self.save()
 

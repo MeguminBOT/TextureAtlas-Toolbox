@@ -139,12 +139,12 @@ class TextureAtlasToolboxApp(QMainWindow):
     # Signal emitted when animation preview settings are saved
     preview_settings_saved = Signal(str)  # animation_name
 
-    def __init__(self):
+    def __init__(self, app_config: AppConfig | None = None):
         super().__init__()
 
         # Initialize core attributes
         self.current_version = APP_VERSION
-        self.app_config = AppConfig()
+        self.app_config = app_config if app_config is not None else AppConfig()
         self.settings_manager = SettingsManager()
         self.temp_dir = tempfile.mkdtemp()
         self.manual_selection_temp_dir = (
@@ -276,7 +276,7 @@ class TextureAtlasToolboxApp(QMainWindow):
         # Create the generate tab widget and pass the UI reference
         self.generate_tab_widget = GenerateTabWidget(self.ui, self)
 
-        print("Generate tab setup completed successfully")
+        print("[Startup] Generate tab initialized.")
 
     def setup_editor_tab(self):
         """Add the editor tab for manual alignment workflows."""
@@ -300,7 +300,7 @@ class TextureAtlasToolboxApp(QMainWindow):
                 self.editor_tab_widget, self.tr("Editor")
             )
 
-        print("Editor tab setup completed successfully")
+        print("[Startup] Editor tab initialized.")
 
     def update_dynamic_tab_labels(self):
         """Refresh translated titles for tabs that are added at runtime."""
@@ -313,7 +313,6 @@ class TextureAtlasToolboxApp(QMainWindow):
 
         self.extract_tab_widget = ExtractTabWidget(self, use_existing_ui=True)
 
-        print("Extract tab setup completed successfully")
         self.ui.frame_format_combobox = self.extract_tab_widget.frame_format_combobox
         self.ui.frame_rate_entry = self.extract_tab_widget.frame_rate_entry
         self.ui.loop_delay_entry = self.extract_tab_widget.loop_delay_entry
@@ -352,7 +351,7 @@ class TextureAtlasToolboxApp(QMainWindow):
             self.extract_tab_widget.compression_settings_button
         )
 
-        print("Extract tab setup completed successfully")
+        print("[Startup] Extract tab initialized.")
 
     def setup_gui(self):
         """Sets up the GUI components of the application."""
@@ -1303,8 +1302,8 @@ def main():
     color_scheme = config.get_color_scheme()
     apply_color_scheme(app, color_scheme)
 
-    # Create and show the main window
-    window = TextureAtlasToolboxApp()
+    # Create and show the main window (reuse the config instance)
+    window = TextureAtlasToolboxApp(app_config=config)
     window.show()
 
     # Start the event loop
@@ -1460,7 +1459,7 @@ if __name__ == "__main__":
             )
         else:
             # Normal mode: run the main application
-            print("Starting main application...")
+            print("[Startup] Starting main application...")
             main()
 
     except Exception as e:

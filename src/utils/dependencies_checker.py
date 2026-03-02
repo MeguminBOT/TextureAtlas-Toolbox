@@ -156,7 +156,7 @@ class DependenciesChecker:
         if os.path.isdir(coders_path):
             os.environ["MAGICK_CODER_MODULE_PATH"] = coders_path
 
-        print(f"Using bundled ImageMagick from: {dll_path}")
+        print(f"[ImageMagick] Using bundled installation from: {dll_path}")
 
     @staticmethod
     def configure_imagemagick_unix():
@@ -169,7 +169,7 @@ class DependenciesChecker:
             True if MAGICK_HOME was set, False otherwise.
         """
         if os.environ.get("MAGICK_HOME"):
-            print(f"MAGICK_HOME already set: {os.environ['MAGICK_HOME']}")
+            print(f"[ImageMagick] MAGICK_HOME already set: {os.environ['MAGICK_HOME']}")
             return True
 
         magick_home = None
@@ -200,7 +200,7 @@ class DependenciesChecker:
 
         if magick_home:
             os.environ["MAGICK_HOME"] = magick_home
-            print(f"Set MAGICK_HOME to: {magick_home}")
+            print(f"[ImageMagick] Set MAGICK_HOME to: {magick_home}")
             return True
 
         return False
@@ -213,7 +213,7 @@ class DependenciesChecker:
             True if ImageMagick is ready for use, False otherwise.
         """
         if DependenciesChecker.check_imagemagick():
-            print("Using the user's existing ImageMagick.")
+            print("[ImageMagick] Using system ImageMagick.")
             # On Unix, also set MAGICK_HOME to help Wand find the libraries
             if platform.system() != "Windows":
                 DependenciesChecker.configure_imagemagick_unix()
@@ -221,21 +221,21 @@ class DependenciesChecker:
 
         if platform.system() == "Windows":
             print(
-                "System ImageMagick not found. Attempting to configure bundled version."
+                "[ImageMagick] System ImageMagick not found. Attempting bundled version..."
             )
             try:
                 DependenciesChecker.configure_imagemagick()
-                print("Configured bundled ImageMagick.")
+                print("[ImageMagick] Bundled ImageMagick configured successfully.")
                 return True
             except Exception as e:
-                print(f"Failed to configure bundled ImageMagick: {e}")
+                print(f"[ImageMagick] Failed to configure bundled ImageMagick: {e}")
         else:
             # On Unix, try to set MAGICK_HOME even if magick command not found
             print(
-                "ImageMagick command not found. Attempting to configure MAGICK_HOME..."
+                "[ImageMagick] Command not found. Attempting to configure MAGICK_HOME..."
             )
             if DependenciesChecker.configure_imagemagick_unix():
-                print("Set MAGICK_HOME for Wand library.")
+                print("[ImageMagick] MAGICK_HOME configured for Wand library.")
 
         msg = (
             "ImageMagick not found or failed to initialize.\n\n"
