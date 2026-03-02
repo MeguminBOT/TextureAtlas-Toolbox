@@ -91,6 +91,32 @@ class SettingsManager:
         if animation_name in self.animation_settings:
             del self.animation_settings[animation_name]
 
+    def get_parent_settings(self, settings_type: str, spritesheet_name: str) -> dict:
+        """Return the settings a local override would inherit.
+
+        For spritesheet overrides the parent is the global settings.
+        For animation overrides the parent is global + spritesheet settings.
+
+        Args:
+            settings_type: Either ``"spritesheet"`` or ``"animation"``.
+            spritesheet_name: Spritesheet filename used to look up
+                spritesheet-level overrides when *settings_type* is
+                ``"animation"``.
+
+        Returns:
+            A settings dict representing the inherited values.
+        """
+
+        parent = self.global_settings.copy()
+        if settings_type == "animation":
+            ss_settings = self.spritesheet_settings.get(spritesheet_name)
+            if not ss_settings:
+                basename = os.path.basename(spritesheet_name)
+                if basename != spritesheet_name:
+                    ss_settings = self.spritesheet_settings.get(basename)
+            parent.update(ss_settings or {})
+        return parent
+
     def get_settings(self, filename: str, animation_name: str | None = None) -> dict:
         """Retrieve merged settings for a spritesheet or animation.
 

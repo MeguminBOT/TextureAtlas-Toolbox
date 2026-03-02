@@ -291,7 +291,8 @@ class OverrideSettingsWindow(QDialog):
 
         row = 0
 
-        layout.addWidget(QLabel(self.tr(Labels.ANIMATION_FORMAT)), row, 0)
+        self._label_animation_format = QLabel(self.tr(Labels.ANIMATION_FORMAT))
+        layout.addWidget(self._label_animation_format, row, 0)
         self.animation_format_combo = QComboBox()
         self.animation_format_combo.addItems(
             get_display_texts(ANIMATION_FORMAT_OPTIONS_WITH_NONE, self.tr)
@@ -309,21 +310,24 @@ class OverrideSettingsWindow(QDialog):
         layout.addWidget(self.fps_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.LOOP_DELAY)), row, 0)
+        self._label_delay = QLabel(self.tr(Labels.LOOP_DELAY))
+        layout.addWidget(self._label_delay, row, 0)
         self.delay_spinbox = QSpinBox()
         self.delay_spinbox.setRange(0, 10000)
         self.delay_spinbox.setSuffix(" ms")
         layout.addWidget(self.delay_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.MINIMUM_PERIOD)), row, 0)
+        self._label_period = QLabel(self.tr(Labels.MINIMUM_PERIOD))
+        layout.addWidget(self._label_period, row, 0)
         self.period_spinbox = QSpinBox()
         self.period_spinbox.setRange(0, 10000)
         self.period_spinbox.setSuffix(" ms")
         layout.addWidget(self.period_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.SCALE)), row, 0)
+        self._label_scale = QLabel(self.tr(Labels.SCALE))
+        layout.addWidget(self._label_scale, row, 0)
         self.scale_spinbox = QDoubleSpinBox()
         self.scale_spinbox.setRange(-10.0, 10.0)
         self.scale_spinbox.setSingleStep(0.1)
@@ -331,14 +335,16 @@ class OverrideSettingsWindow(QDialog):
         layout.addWidget(self.scale_spinbox, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.RESAMPLING)), row, 0)
+        self._label_resampling = QLabel(self.tr(Labels.RESAMPLING))
+        layout.addWidget(self._label_resampling, row, 0)
         self.resampling_combo = QComboBox()
         self.resampling_combo.addItems(RESAMPLING_DISPLAY_NAMES)
         self.resampling_combo.setToolTip(self.tr(Tooltips.RESAMPLING_ANIMATION))
         layout.addWidget(self.resampling_combo, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.ALPHA_THRESHOLD)), row, 0)
+        self._label_threshold = QLabel(self.tr(Labels.ALPHA_THRESHOLD))
+        layout.addWidget(self._label_threshold, row, 0)
         self.threshold_spinbox = QSpinBox()
         self.threshold_spinbox.setRange(0, 100)
         self.threshold_spinbox.setSingleStep(1)
@@ -371,19 +377,22 @@ class OverrideSettingsWindow(QDialog):
 
         row = 0
 
-        layout.addWidget(QLabel(self.tr(Labels.FRAME_SELECTION)), row, 0)
+        self._label_frames = QLabel(self.tr(Labels.FRAME_SELECTION))
+        layout.addWidget(self._label_frames, row, 0)
         self.frames_edit = QLineEdit()
         self.frames_edit.setPlaceholderText(self.tr(Placeholders.INDICES_HINT))
         layout.addWidget(self.frames_edit, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.FRAME_FORMAT)), row, 0)
+        self._label_frame_format = QLabel(self.tr(Labels.FRAME_FORMAT))
+        layout.addWidget(self._label_frame_format, row, 0)
         self.frame_format_combo = QComboBox()
         self.frame_format_combo.addItems(get_display_texts(FRAME_FORMAT_OPTIONS))
         layout.addWidget(self.frame_format_combo, row, 1)
         row += 1
 
-        layout.addWidget(QLabel(self.tr(Labels.FRAME_SCALE)), row, 0)
+        self._label_frame_scale = QLabel(self.tr(Labels.FRAME_SCALE))
+        layout.addWidget(self._label_frame_scale, row, 0)
         self.frame_scale_spinbox = QDoubleSpinBox()
         configure_spinbox(
             self.frame_scale_spinbox,
@@ -601,6 +610,49 @@ class OverrideSettingsWindow(QDialog):
             )
 
         self.on_animation_format_change()
+        self._update_override_indicators()
+
+    def _update_override_indicators(self):
+        """Highlight labels whose values are locally overridden.
+
+        Labels for fields present in ``local_settings`` are rendered bold
+        while labels for inherited fields use a normal weight.  This gives
+        users an at-a-glance view of which values are explicit overrides
+        vs. values inherited from the global / spritesheet tier.
+        """
+
+        overridden_keys = set(self.local_settings.keys())
+
+        # Map settings keys to their associated label widgets
+        label_map: dict[str, QLabel] = {
+            "animation_format": getattr(self, "_label_animation_format", None),
+            "duration": self.fps_label,
+            "delay": getattr(self, "_label_delay", None),
+            "period": getattr(self, "_label_period", None),
+            "scale": getattr(self, "_label_scale", None),
+            "resampling_method": getattr(self, "_label_resampling", None),
+            "threshold": getattr(self, "_label_threshold", None),
+        }
+
+        if self.settings_type == "spritesheet":
+            label_map["frames"] = getattr(self, "_label_frames", None)
+            label_map["frame_format"] = getattr(self, "_label_frame_format", None)
+            label_map["frame_scale"] = getattr(self, "_label_frame_scale", None)
+
+        bold_font = QFont()
+        bold_font.setBold(True)
+        normal_font = QFont()
+        normal_font.setBold(False)
+
+        for key, label in label_map.items():
+            if label is None:
+                continue
+            if key in overridden_keys:
+                label.setFont(bold_font)
+                label.setToolTip(self.tr("This field overrides the global setting"))
+            else:
+                label.setFont(normal_font)
+                label.setToolTip("")
 
     def on_animation_format_change(self):
         """Update control states based on selected animation format.
@@ -725,39 +777,74 @@ class OverrideSettingsWindow(QDialog):
                     self.tr("Could not open preview: {error}").format(error=str(e)),
                 )
 
+    @staticmethod
+    def _float_equal(a: float, b: float, tolerance: float = 1e-6) -> bool:
+        """Return ``True`` when *a* and *b* are within *tolerance*."""
+        return abs(a - b) < tolerance
+
     def store_input(self):
         """Validate inputs, build settings dict, and invoke the callback.
 
-        Collects all user-entered values, validates indices and frames as
-        comma-separated integers, calls the on_store_callback with the
-        resulting settings, and closes the dialog on success.
+        Only values that differ from the inherited parent settings are
+        stored.  This keeps override dicts small and ensures that later
+        changes to global settings propagate automatically to any field
+        that was not explicitly overridden.
         """
-        settings = {}
+        settings: dict = {}
 
-        # General settings
+        parent = self.settings_manager.get_parent_settings(
+            self.settings_type, self.spritesheet_name
+        )
+
+        # --- General settings ---
         if self.filename_edit:
             filename = self.filename_edit.text().strip()
             if filename:
                 settings["filename"] = filename
 
+        # Animation format — "None" means inherit from parent
         anim_format = self.animation_format_combo.currentText()
         if anim_format != "None":
-            settings["animation_format"] = anim_format
+            if anim_format != parent.get("animation_format", "GIF"):
+                settings["animation_format"] = anim_format
 
+        # --- Duration (stored as a group) ---
         display_value = self.fps_spinbox.value()
         duration_ms = self._display_value_to_duration_ms(display_value)
-        settings["duration"] = duration_ms
-        settings["duration_display_value"] = display_value
-        settings["duration_display_type"] = self._get_effective_duration_type()
-        settings["delay"] = self.delay_spinbox.value()
-        settings["period"] = self.period_spinbox.value()
-        settings["scale"] = self.scale_spinbox.value()
-        settings["resampling_method"] = get_resampling_name(
-            self.resampling_combo.currentIndex()
-        )
-        settings["threshold"] = self.threshold_spinbox.value() / 100.0
-        settings["var_delay"] = self.var_delay_check.isChecked()
+        parent_duration = parent.get("duration")
+        if parent_duration is None or int(duration_ms) != int(parent_duration):
+            settings["duration"] = duration_ms
+            settings["duration_display_value"] = display_value
+            settings["duration_display_type"] = self._get_effective_duration_type()
 
+        # --- Individual numeric / boolean fields ---
+        delay_value = self.delay_spinbox.value()
+        if delay_value != parent.get("delay", 250):
+            settings["delay"] = delay_value
+
+        period_value = self.period_spinbox.value()
+        if period_value != parent.get("period", 0):
+            settings["period"] = period_value
+
+        scale_value = self.scale_spinbox.value()
+        if not self._float_equal(scale_value, parent.get("scale", 1.0)):
+            settings["scale"] = scale_value
+
+        resampling_value = get_resampling_name(self.resampling_combo.currentIndex())
+        if resampling_value != parent.get(
+            "resampling_method", DEFAULT_RESAMPLING_METHOD
+        ):
+            settings["resampling_method"] = resampling_value
+
+        threshold_value = self.threshold_spinbox.value() / 100.0
+        if not self._float_equal(threshold_value, parent.get("threshold", 0.5)):
+            settings["threshold"] = threshold_value
+
+        var_delay_value = self.var_delay_check.isChecked()
+        if var_delay_value != parent.get("var_delay", False):
+            settings["var_delay"] = var_delay_value
+
+        # --- Indices (already optional) ---
         indices_text = self.indices_edit.text().strip()
         if indices_text:
             try:
@@ -771,6 +858,7 @@ class OverrideSettingsWindow(QDialog):
                 )
                 return
 
+        # --- Spritesheet-only fields ---
         if self.settings_type == "spritesheet":
             frames_text = self.frames_edit.text().strip()
             if frames_text:
@@ -789,8 +877,13 @@ class OverrideSettingsWindow(QDialog):
                     )
                     return
 
-            settings["frame_format"] = self.frame_format_combo.currentText()
-            settings["frame_scale"] = self.frame_scale_spinbox.value()
+            frame_format_value = self.frame_format_combo.currentText()
+            if frame_format_value != parent.get("frame_format", "PNG"):
+                settings["frame_format"] = frame_format_value
+
+            frame_scale_value = self.frame_scale_spinbox.value()
+            if not self._float_equal(frame_scale_value, parent.get("frame_scale", 1.0)):
+                settings["frame_scale"] = frame_scale_value
 
         self.on_store_callback(settings)
         self.accept()
