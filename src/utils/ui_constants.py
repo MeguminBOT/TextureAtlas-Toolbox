@@ -252,6 +252,142 @@ _FILE_FILTER_STRINGS = (
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Animation files (*.gif *.apng *.png *.webp);;All files (*.*)"),
 )
 
+# Optimizer tab labels - shared between optimize_tab_widget and app_config_window
+_OPTIMIZER_LABEL_STRINGS = (
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Preset:"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Compress level (0-9):"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Color mode:"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Max colors:"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Method:"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Dither:"),
+)
+
+_OPTIMIZER_GROUP_TITLE_STRINGS = (
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Compression"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Quantization (lossy)"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Output"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Default Preset"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Preview"),
+)
+
+_OPTIMIZER_CHECKBOX_STRINGS = (
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Optimize"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Strip metadata"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Skip if larger"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Enable color quantization"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Overwrite originals"),
+)
+
+# Optimizer combo item labels (from core/optimizer/constants.py dicts)
+_OPTIMIZER_COMBO_STRINGS = (
+    # Preset names
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Lossless (recompress only)"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "All Around"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Pixel Art"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Heavy Transparency"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Aggressive"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Custom"),
+    # Color mode labels
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Keep original"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "RGBA (32-bit)"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "RGB (24-bit, no alpha)"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Grayscale + Alpha"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Grayscale"),
+    # Quantize method labels
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Median Cut"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Max Coverage"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Fast Octree"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "libimagequant"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "pngquant"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "ImageMagick"),
+    # Dither method labels
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "None"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Floyd-Steinberg"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Ordered (Bayer)"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Blue Noise"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Atkinson"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Riemersma"),
+)
+
+_OPTIMIZER_TOOLTIP_STRINGS = (
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "Quick presets:\n"
+        "\u2022 Lossless: recompress without color changes\n"
+        "\u2022 All Around: general-purpose lossy (256 colors)\n"
+        "\u2022 Pixel Art: sharp edges, no dithering\n"
+        "\u2022 Heavy Transparency: best for semi-transparent sprites\n"
+        "\u2022 Aggressive: maximum size reduction (64 colors)\n"
+        "\u2022 Custom: configure each setting manually"
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "The default preset applied when the Optimize tab opens.\n"
+        "\u2022 Lossless: recompress without color changes\n"
+        "\u2022 All Around: general-purpose lossy (256 colors)\n"
+        "\u2022 Pixel Art: sharp edges, no dithering\n"
+        "\u2022 Heavy Transparency: best for semi-transparent sprites\n"
+        "\u2022 Aggressive: maximum size reduction (64 colors)\n"
+        "\u2022 Custom: use the individual settings below"
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "PNG compression level (0-9):\n"
+        "0 = No compression (fastest)\n"
+        "9 = Maximum compression (slowest, smallest file)"
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "Enable Pillow's PNG optimizer for better compression"
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "Remove EXIF, text chunks, and other metadata from the image"
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "Do not write the output file if it would be larger than "
+        "the original (like pngquant --skip-if-larger)"
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "Color mode conversion:\n"
+        "\u2022 Keep original: No change\n"
+        "\u2022 RGBA: 32-bit with alpha\n"
+        "\u2022 RGB: 24-bit, alpha removed\n"
+        "\u2022 Grayscale + Alpha / Grayscale"
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "Reduce the image to an indexed palette with a limited\n"
+        "number of colors (like pngquant). This is lossy but can\n"
+        "dramatically reduce file size."
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "Maximum palette colors (2-256)"
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "Quantization algorithm:\n"
+        "\u2022 Median Cut: Good balance of quality and speed\n"
+        "\u2022 Max Coverage: Better color representation\n"
+        "\u2022 Fast Octree: Fastest, acceptable quality\n"
+        "\u2022 libimagequant: High-quality quantizer\n"
+        "  (requires Pillow compiled with libimagequant)\n"
+        "\u2022 pngquant: Premultiplied-alpha quantization\n"
+        "  (best for sprites with semi-transparent edges)\n"
+        "\u2022 ImageMagick: Best RGBA quantization (requires Wand)"
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "Dithering reduces color banding in quantized images:\n"
+        "\u2022 Floyd-Steinberg: Classic error-diffusion dithering\n"
+        "\u2022 Ordered (Bayer): Regular dot pattern,\n"
+        "  compresses very well with PNG\n"
+        "\u2022 Blue Noise: Uniform noise without grid artefacts,\n"
+        "  visually pleasant and compresses well\n"
+        "\u2022 Atkinson: Light error-diffusion (3/4 error),\n"
+        "  crisp and high-contrast (slower on large images)\n"
+        "\u2022 Riemersma: Hilbert-curve error-diffusion,\n"
+        "  organic noise pattern (requires Wand/ImageMagick)"
+    ),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp",
+        "Replace original files with optimized versions.\n"
+        "Only replaces if the new file is actually smaller\n"
+        "(when 'Skip if larger' is enabled)."
+    ),
+)
+
 # Editor tab labels and messages - COMMENTED OUT: Most are one-off, editor-specific strings
 # _EDITOR_LABEL_STRINGS = (
 #     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Animations & Frames"),
@@ -434,6 +570,14 @@ class Labels:
     SPEED_0_10 = "Speed (0-10):"
     COMPRESSION_TYPE = "Compression Type:"
 
+    # Optimizer tab labels
+    OPTIMIZER_PRESET = "Preset:"
+    OPTIMIZER_COMPRESS_LEVEL = "Compress level (0-9):"
+    OPTIMIZER_COLOR_MODE = "Color mode:"
+    OPTIMIZER_MAX_COLORS = "Max colors:"
+    OPTIMIZER_METHOD = "Method:"
+    OPTIMIZER_DITHER = "Dither:"
+
     # Generator/filename labels
     HEURISTIC = "Heuristic"
     PREFIX = "Prefix"
@@ -474,6 +618,13 @@ class GroupTitles:
     # Editor tab groups
     ALIGNMENT_CONTROLS = "Alignment Controls"
     DISPLAY_SNAPPING = "Display & snapping"
+
+    # Optimizer tab groups
+    COMPRESSION = "Compression"
+    QUANTIZATION_LOSSY = "Quantization (lossy)"
+    OUTPUT = "Output"
+    DEFAULT_PRESET = "Default Preset"
+    PREVIEW = "Preview"
 
 
 class Tooltips:
@@ -533,6 +684,91 @@ class Tooltips:
     LOAD_ANIMATIONS = "Load GIF/WebP/APNG/PNG files into the editor"
     COMBINE_SELECTED = (
         "Create a composite entry from all selected animations for group alignment"
+    )
+
+    # Optimizer tooltips
+    OPTIMIZER_PRESET = (
+        "Quick presets:\n"
+        "\u2022 Lossless: recompress without color changes\n"
+        "\u2022 All Around: general-purpose lossy (256 colors)\n"
+        "\u2022 Pixel Art: sharp edges, no dithering\n"
+        "\u2022 Heavy Transparency: best for semi-transparent sprites\n"
+        "\u2022 Aggressive: maximum size reduction (64 colors)\n"
+        "\u2022 Custom: configure each setting manually"
+    )
+
+    OPTIMIZER_PRESET_DEFAULT = (
+        "The default preset applied when the Optimize tab opens.\n"
+        "\u2022 Lossless: recompress without color changes\n"
+        "\u2022 All Around: general-purpose lossy (256 colors)\n"
+        "\u2022 Pixel Art: sharp edges, no dithering\n"
+        "\u2022 Heavy Transparency: best for semi-transparent sprites\n"
+        "\u2022 Aggressive: maximum size reduction (64 colors)\n"
+        "\u2022 Custom: use the individual settings below"
+    )
+
+    OPTIMIZER_COMPRESS_LEVEL = (
+        "PNG compression level (0-9):\n"
+        "0 = No compression (fastest)\n"
+        "9 = Maximum compression (slowest, smallest file)"
+    )
+
+    OPTIMIZER_OPTIMIZE = "Enable Pillow's PNG optimizer for better compression"
+
+    OPTIMIZER_STRIP_METADATA = (
+        "Remove EXIF, text chunks, and other metadata from the image"
+    )
+
+    OPTIMIZER_SKIP_IF_LARGER = (
+        "Do not write the output file if it would be larger than "
+        "the original (like pngquant --skip-if-larger)"
+    )
+
+    OPTIMIZER_COLOR_MODE = (
+        "Color mode conversion:\n"
+        "\u2022 Keep original: No change\n"
+        "\u2022 RGBA: 32-bit with alpha\n"
+        "\u2022 RGB: 24-bit, alpha removed\n"
+        "\u2022 Grayscale + Alpha / Grayscale"
+    )
+
+    OPTIMIZER_QUANTIZE = (
+        "Reduce the image to an indexed palette with a limited\n"
+        "number of colors (like pngquant). This is lossy but can\n"
+        "dramatically reduce file size."
+    )
+
+    OPTIMIZER_MAX_COLORS = "Maximum palette colors (2-256)"
+
+    OPTIMIZER_METHOD = (
+        "Quantization algorithm:\n"
+        "\u2022 Median Cut: Good balance of quality and speed\n"
+        "\u2022 Max Coverage: Better color representation\n"
+        "\u2022 Fast Octree: Fastest, acceptable quality\n"
+        "\u2022 libimagequant: High-quality quantizer\n"
+        "  (requires Pillow compiled with libimagequant)\n"
+        "\u2022 pngquant: Premultiplied-alpha quantization\n"
+        "  (best for sprites with semi-transparent edges)\n"
+        "\u2022 ImageMagick: Best RGBA quantization (requires Wand)"
+    )
+
+    OPTIMIZER_DITHER = (
+        "Dithering reduces color banding in quantized images:\n"
+        "\u2022 Floyd-Steinberg: Classic error-diffusion dithering\n"
+        "\u2022 Ordered (Bayer): Regular dot pattern,\n"
+        "  compresses very well with PNG\n"
+        "\u2022 Blue Noise: Uniform noise without grid artefacts,\n"
+        "  visually pleasant and compresses well\n"
+        "\u2022 Atkinson: Light error-diffusion (3/4 error),\n"
+        "  crisp and high-contrast (slower on large images)\n"
+        "\u2022 Riemersma: Hilbert-curve error-diffusion,\n"
+        "  organic noise pattern (requires Wand/ImageMagick)"
+    )
+
+    OPTIMIZER_OVERWRITE = (
+        "Replace original files with optimized versions.\n"
+        "Only replaces if the new file is actually smaller\n"
+        "(when 'Skip if larger' is enabled)."
     )
 
 
@@ -655,6 +891,7 @@ class TabTitles:
     INTERFACE = "Interface"
     EXTRACTION_DEFAULTS = "Extraction Defaults"
     GENERATOR_DEFAULTS = "Generator Defaults"
+    OPTIMIZER_DEFAULTS = "Optimizer Defaults"
     COMPRESSION_DEFAULTS = "Compression Defaults"
     UPDATES = "Updates"
     EDITOR = "Editor"
@@ -813,6 +1050,13 @@ class CheckBoxLabels:
     REGEX = "Regular Expression"
     ENABLE = "Enable"
     SKIP_ALL_ERRORS = "Skip all files with errors"
+
+    # Optimizer options
+    OPTIMIZER_OPTIMIZE = "Optimize"
+    STRIP_METADATA = "Strip metadata"
+    SKIP_IF_LARGER = "Skip if larger"
+    ENABLE_COLOR_QUANTIZATION = "Enable color quantization"
+    OVERWRITE_ORIGINALS = "Overwrite originals"
 
 
 class Placeholders:

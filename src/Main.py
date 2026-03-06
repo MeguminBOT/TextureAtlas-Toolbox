@@ -42,8 +42,8 @@ except ImportError as _qt_err:
     sys.exit(1)
 
 # Import our own modules
-from utils.dependencies_checker import DependenciesChecker
-from utils.version import APP_VERSION
+from utils.dependencies_checker import DependenciesChecker  # noqa: E402
+from utils.version import APP_VERSION  # noqa: E402
 
 DependenciesChecker.check_and_configure_imagemagick()  # This function must be called before any other operations that require ImageMagick (DO NOT MOVE THIS IMPORT LINE)
 from utils.app_config import AppConfig  # noqa: E402
@@ -186,6 +186,7 @@ class TextureAtlasToolboxApp(QMainWindow):
         self.setup_extract_tab()
         self.setup_generate_tab()
         self.setup_editor_tab()
+        self.setup_optimize_tab()
         self.setup_connections()
         self.ui.retranslateUi(self)
 
@@ -302,10 +303,23 @@ class TextureAtlasToolboxApp(QMainWindow):
 
         print("[Startup] Editor tab initialized.")
 
+    def setup_optimize_tab(self):
+        """Add the Optimize tab for batch PNG compression / optimization."""
+        from gui.optimize_tab_widget import OptimizeTabWidget
+
+        self.optimize_tab_widget = OptimizeTabWidget(parent_app=self)
+        self._optimize_tab_index = self.ui.tools_tab.addTab(
+            self.optimize_tab_widget, self.tr("Optimize")
+        )
+
+        print("[Startup] Optimize tab initialized.")
+
     def update_dynamic_tab_labels(self):
         """Refresh translated titles for tabs that are added at runtime."""
         if hasattr(self, "_editor_tab_index") and self._editor_tab_index != -1:
             self.ui.tools_tab.setTabText(self._editor_tab_index, self.tr("Editor"))
+        if hasattr(self, "_optimize_tab_index") and self._optimize_tab_index != -1:
+            self.ui.tools_tab.setTabText(self._optimize_tab_index, self.tr("Optimize"))
 
     def setup_extract_tab(self):
         """Set up the Extract tab with proper functionality."""

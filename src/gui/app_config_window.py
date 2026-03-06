@@ -3,7 +3,8 @@
 """Modal dialog for editing global application settings.
 
 Provides tabbed access to system resource limits, extraction defaults,
-image compression options, UI preferences, and update behavior.
+image compression options, optimizer defaults, UI preferences, and
+update behavior.
 """
 
 import platform
@@ -34,6 +35,16 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
 from utils.translation_manager import tr as translate
+from core.optimizer import (
+    COLOR_MODE_LABELS,
+    ColorMode,
+    DITHER_METHOD_LABELS,
+    DitherMethod,
+    OptimizePreset,
+    PRESET_LABELS,
+    QUANTIZE_METHOD_LABELS,
+    QuantizeMethod,
+)
 from utils.combo_options import (
     ANIMATION_FORMAT_OPTIONS,
     CROPPING_METHOD_OPTIONS,
@@ -178,6 +189,7 @@ class AppConfigWindow(QDialog):
         self.extraction_fields = {}
         self.compression_fields = {}
         self.generator_fields = {}
+        self.optimizer_fields = {}
 
     def setup_ui(self):
         """Build and configure all UI components for the dialog."""
@@ -197,6 +209,9 @@ class AppConfigWindow(QDialog):
 
         generator_tab = self.create_generator_tab()
         tab_widget.addTab(generator_tab, self.tr(TabTitles.GENERATOR_DEFAULTS))
+
+        optimizer_tab = self.create_optimizer_tab()
+        tab_widget.addTab(optimizer_tab, self.tr(TabTitles.OPTIMIZER_DEFAULTS))
 
         compression_tab = self.create_compression_tab()
         tab_widget.addTab(compression_tab, self.tr(TabTitles.COMPRESSION_DEFAULTS))
@@ -865,6 +880,198 @@ class AppConfigWindow(QDialog):
 
         return self._wrap_in_scroll_area(widget)
 
+    # ------------------------------------------------------------------
+    # Optimizer defaults tab
+    # ------------------------------------------------------------------
+
+    # Mapping from display names to internal enum values for optimizer combos
+    _PRESET_VALUE_MAP: dict[str, str] = {
+        label: preset.value for label, preset in PRESET_LABELS.items()
+    }
+    _PRESET_REVERSE_MAP: dict[str, str] = {v: k for k, v in _PRESET_VALUE_MAP.items()}
+
+    _COLOR_MODE_VALUE_MAP: dict[str, str] = {
+        label: mode.value for label, mode in COLOR_MODE_LABELS.items()
+    }
+    _COLOR_MODE_REVERSE_MAP: dict[str, str] = {
+        v: k for k, v in _COLOR_MODE_VALUE_MAP.items()
+    }
+
+    _QUANTIZE_METHOD_VALUE_MAP: dict[str, str] = {
+        label: method.value for label, method in QUANTIZE_METHOD_LABELS.items()
+    }
+    _QUANTIZE_METHOD_REVERSE_MAP: dict[str, str] = {
+        v: k for k, v in _QUANTIZE_METHOD_VALUE_MAP.items()
+    }
+
+    _DITHER_VALUE_MAP: dict[str, str] = {
+        label: method.value for label, method in DITHER_METHOD_LABELS.items()
+    }
+    _DITHER_REVERSE_MAP: dict[str, str] = {v: k for k, v in _DITHER_VALUE_MAP.items()}
+
+    def create_optimizer_tab(self):
+        """Build the optimizer defaults tab with compression and quantization settings.
+
+        Returns:
+            QWidget containing optimizer default controls.
+        """
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+
+        # -- Preset --
+        preset_group = QGroupBox(self.tr(GroupTitles.DEFAULT_PRESET))
+        preset_layout = QGridLayout(preset_group)
+
+        preset_layout.addWidget(QLabel(self.tr(Labels.OPTIMIZER_PRESET)), 0, 0)
+        preset_combo = QComboBox()
+        for label in PRESET_LABELS:
+            preset_combo.addItem(self.tr(label), PRESET_LABELS[label].value)
+        preset_combo.setToolTip(self.tr(Tooltips.OPTIMIZER_PRESET_DEFAULT))
+        self.optimizer_fields["preset"] = preset_combo
+        preset_layout.addWidget(preset_combo, 0, 1)
+        layout.addWidget(preset_group)
+
+        # -- Compression group --
+        compression_group = QGroupBox(self.tr(GroupTitles.COMPRESSION))
+        comp_layout = QGridLayout(compression_group)
+
+        row = 0
+        comp_layout.addWidget(QLabel(self.tr(Labels.OPTIMIZER_COMPRESS_LEVEL)), row, 0)
+        compress_spin = QSpinBox()
+        compress_spin.setRange(0, 9)
+        compress_spin.setValue(9)
+        compress_spin.setToolTip(self.tr(Tooltips.OPTIMIZER_COMPRESS_LEVEL))
+        self.optimizer_fields["compress_level"] = compress_spin
+        comp_layout.addWidget(compress_spin, row, 1)
+        row += 1
+
+        optimize_cb = QCheckBox(self.tr(CheckBoxLabels.OPTIMIZER_OPTIMIZE))
+        optimize_cb.setChecked(True)
+        optimize_cb.setToolTip(self.tr(Tooltips.OPTIMIZER_OPTIMIZE))
+        self.optimizer_fields["optimize"] = optimize_cb
+        comp_layout.addWidget(optimize_cb, row, 0, 1, 2)
+        row += 1
+
+        strip_meta_cb = QCheckBox(self.tr(CheckBoxLabels.STRIP_METADATA))
+        strip_meta_cb.setChecked(True)
+        strip_meta_cb.setToolTip(self.tr(Tooltips.OPTIMIZER_STRIP_METADATA))
+        self.optimizer_fields["strip_metadata"] = strip_meta_cb
+        comp_layout.addWidget(strip_meta_cb, row, 0, 1, 2)
+        row += 1
+
+        skip_if_larger_cb = QCheckBox(self.tr(CheckBoxLabels.SKIP_IF_LARGER))
+        skip_if_larger_cb.setChecked(True)
+        skip_if_larger_cb.setToolTip(self.tr(Tooltips.OPTIMIZER_SKIP_IF_LARGER))
+        self.optimizer_fields["skip_if_larger"] = skip_if_larger_cb
+        comp_layout.addWidget(skip_if_larger_cb, row, 0, 1, 2)
+        row += 1
+
+        comp_layout.addWidget(QLabel(self.tr(Labels.OPTIMIZER_COLOR_MODE)), row, 0)
+        color_mode_combo = QComboBox()
+        for label in COLOR_MODE_LABELS:
+            color_mode_combo.addItem(self.tr(label), COLOR_MODE_LABELS[label].value)
+        color_mode_combo.setToolTip(self.tr(Tooltips.OPTIMIZER_COLOR_MODE))
+        self.optimizer_fields["color_mode"] = color_mode_combo
+        comp_layout.addWidget(color_mode_combo, row, 1)
+
+        layout.addWidget(compression_group)
+
+        # -- Quantization group --
+        quantize_group = QGroupBox(self.tr(GroupTitles.QUANTIZATION_LOSSY))
+        quant_layout = QGridLayout(quantize_group)
+
+        row = 0
+        quantize_cb = QCheckBox(self.tr(CheckBoxLabels.ENABLE_COLOR_QUANTIZATION))
+        quantize_cb.setChecked(False)
+        quantize_cb.setToolTip(self.tr(Tooltips.OPTIMIZER_QUANTIZE))
+        self.optimizer_fields["quantize"] = quantize_cb
+        quant_layout.addWidget(quantize_cb, row, 0, 1, 2)
+        row += 1
+
+        quant_layout.addWidget(QLabel(self.tr(Labels.OPTIMIZER_MAX_COLORS)), row, 0)
+        max_colors_spin = QSpinBox()
+        max_colors_spin.setRange(2, 256)
+        max_colors_spin.setValue(256)
+        max_colors_spin.setToolTip(self.tr(Tooltips.OPTIMIZER_MAX_COLORS))
+        self.optimizer_fields["max_colors"] = max_colors_spin
+        quant_layout.addWidget(max_colors_spin, row, 1)
+        row += 1
+
+        quant_layout.addWidget(QLabel(self.tr(Labels.OPTIMIZER_METHOD)), row, 0)
+        quantize_method_combo = QComboBox()
+        for label in QUANTIZE_METHOD_LABELS:
+            quantize_method_combo.addItem(
+                self.tr(label), QUANTIZE_METHOD_LABELS[label].value
+            )
+        quantize_method_combo.setToolTip(self.tr(Tooltips.OPTIMIZER_METHOD))
+        self.optimizer_fields["quantize_method"] = quantize_method_combo
+        quant_layout.addWidget(quantize_method_combo, row, 1)
+        row += 1
+
+        quant_layout.addWidget(QLabel(self.tr(Labels.OPTIMIZER_DITHER)), row, 0)
+        dither_combo = QComboBox()
+        for label in DITHER_METHOD_LABELS:
+            dither_combo.addItem(self.tr(label), DITHER_METHOD_LABELS[label].value)
+        dither_combo.setCurrentIndex(1)  # Floyd-Steinberg default
+        dither_combo.setToolTip(self.tr(Tooltips.OPTIMIZER_DITHER))
+        self.optimizer_fields["dither"] = dither_combo
+        quant_layout.addWidget(dither_combo, row, 1)
+
+        layout.addWidget(quantize_group)
+
+        # -- Output group --
+        output_group = QGroupBox(self.tr(GroupTitles.OUTPUT))
+        output_layout = QGridLayout(output_group)
+
+        overwrite_cb = QCheckBox(self.tr(CheckBoxLabels.OVERWRITE_ORIGINALS))
+        overwrite_cb.setChecked(False)
+        overwrite_cb.setToolTip(self.tr(Tooltips.OPTIMIZER_OVERWRITE))
+        self.optimizer_fields["overwrite"] = overwrite_cb
+        output_layout.addWidget(overwrite_cb, 0, 0, 1, 2)
+
+        layout.addWidget(output_group)
+        layout.addStretch()
+
+        return self._wrap_in_scroll_area(widget)
+
+    def _load_optimizer_settings(self, optimizer_defaults: dict):
+        """Populate optimizer controls from persisted configuration.
+
+        Args:
+            optimizer_defaults: Dictionary of optimizer settings.
+        """
+        for key, control in self.optimizer_fields.items():
+            value = optimizer_defaults.get(key)
+            if value is None:
+                continue
+
+            if isinstance(control, QComboBox):
+                index = control.findData(str(value))
+                if index >= 0:
+                    control.setCurrentIndex(index)
+            elif isinstance(control, QSpinBox):
+                control.setValue(int(value))
+            elif isinstance(control, QCheckBox):
+                control.setChecked(bool(value))
+
+    def _collect_optimizer_settings(self) -> dict:
+        """Collect optimizer settings from UI controls.
+
+        Returns:
+            Dictionary of optimizer settings for persistence.
+        """
+        optimizer_defaults: dict = {}
+
+        for key, control in self.optimizer_fields.items():
+            if isinstance(control, QComboBox):
+                optimizer_defaults[key] = control.currentData() or ""
+            elif isinstance(control, QSpinBox):
+                optimizer_defaults[key] = control.value()
+            elif isinstance(control, QCheckBox):
+                optimizer_defaults[key] = control.isChecked()
+
+        return optimizer_defaults
+
     def create_compression_tab(self):
         """Build the compression settings tab with per-format controls.
 
@@ -1270,6 +1477,10 @@ class AppConfigWindow(QDialog):
         generator_defaults = self.app_config.get("generator_defaults", {})
         self._load_generator_settings(generator_defaults)
 
+        # Load optimizer defaults
+        optimizer_defaults = self.app_config.get("optimizer_defaults", {})
+        self._load_optimizer_settings(optimizer_defaults)
+
         self.on_check_updates_change(self.check_updates_cb.checkState())
 
     def reset_to_defaults(self):
@@ -1362,6 +1573,9 @@ class AppConfigWindow(QDialog):
 
             gen_defaults = self.app_config.DEFAULTS["generator_defaults"]
             self._load_generator_settings(gen_defaults)
+
+            opt_defaults = self.app_config.DEFAULTS["optimizer_defaults"]
+            self._load_optimizer_settings(opt_defaults)
 
     def save_config(self):
         """Validate inputs, update the config object, and persist to disk."""
@@ -1486,11 +1700,15 @@ class AppConfigWindow(QDialog):
             # Save generator defaults
             generator_defaults = self._collect_generator_settings()
 
+            # Save optimizer defaults
+            optimizer_defaults = self._collect_optimizer_settings()
+
             self.app_config.settings["resource_limits"] = resource_limits
             self.app_config.settings["extraction_defaults"] = extraction_defaults
             self.app_config.settings["compression_defaults"] = compression_defaults
             self.app_config.settings["update_settings"] = update_settings
             self.app_config.settings["generator_defaults"] = generator_defaults
+            self.app_config.settings["optimizer_defaults"] = optimizer_defaults
             self.app_config.settings["interface"] = interface
 
             self.app_config.save()

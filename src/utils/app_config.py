@@ -85,6 +85,19 @@ class AppConfig:
         "editor_settings": {
             "origin_mode": "center",
         },
+        "optimizer_defaults": {
+            "preset": "lossless",
+            "compress_level": 9,
+            "optimize": True,
+            "strip_metadata": True,
+            "skip_if_larger": True,
+            "color_mode": "keep",
+            "quantize": False,
+            "quantize_method": "pngquant",
+            "max_colors": 256,
+            "dither": "floyd_steinberg",
+            "overwrite": False,
+        },
         "interface": {
             "last_input_directory": "",
             "last_output_directory": "",
@@ -156,6 +169,17 @@ class AppConfig:
         "use_native_file_dialog": bool,
         "origin_mode": str,
         "color_scheme": str,
+        "opt_preset": str,
+        "opt_compress_level": int,
+        "opt_optimize": bool,
+        "opt_strip_metadata": bool,
+        "opt_skip_if_larger": bool,
+        "opt_color_mode": str,
+        "opt_quantize": bool,
+        "opt_quantize_method": str,
+        "opt_max_colors": int,
+        "opt_dither": str,
+        "opt_overwrite": bool,
     }
 
     def __init__(self, config_path=None):
@@ -217,6 +241,22 @@ class AppConfig:
         current = self.get_editor_settings()
         current.update(kwargs)
         self.set("editor_settings", current)
+
+    def get_optimizer_defaults(self):
+        """Return a copy of the optimizer default settings."""
+
+        return dict(self.get("optimizer_defaults", self.DEFAULTS["optimizer_defaults"]))
+
+    def set_optimizer_defaults(self, **kwargs):
+        """Update optimizer defaults and persist to disk.
+
+        Args:
+            **kwargs: Key-value pairs to merge into optimizer defaults.
+        """
+        defaults = self.get_optimizer_defaults()
+        defaults.update(kwargs)
+        self.set("optimizer_defaults", defaults)
+        self.save()
 
     def load(self):
         """Load settings from the config file, merging with current values."""
