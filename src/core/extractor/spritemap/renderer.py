@@ -6,10 +6,11 @@ timeline label into cropped RGBA frames.
 
 Two rendering strategies are available:
 
-* **Batch** via :meth:`~AdobeSpritemapRenderer.build_animation_frames` —
+* **Batch** via ``AdobeSpritemapRenderer.build_animation_frames`` —
   renders every animation into memory at once.  Required when editor
   composites need cross-animation frame references.
-* **Streaming** via :meth:`~AdobeSpritemapRenderer.iter_animations` —
+
+* **Streaming** via ``AdobeSpritemapRenderer.iter_animations`` —
   yields one ``(name, lazy_frame_iterator)`` at a time so the caller can
   export and free frames before the next animation is rendered, keeping
   peak memory proportional to the largest single animation.
@@ -233,7 +234,7 @@ class AdobeSpritemapRenderer:
         """Yield ``(folder_name, frame_iterator)`` one animation at a time.
 
         Each ``frame_iterator`` is a lazy generator that renders frames
-        one at a time via :meth:`_iter_symbol_frames`.  Only one compact
+        one at a time via ``_iter_symbol_frames``.  Only one compact
         canvas is alive at any moment, keeping rendering memory at O(1)
         rather than O(N) frames.
 
@@ -293,8 +294,8 @@ class AdobeSpritemapRenderer:
            box across all rendered frames, then crops each frame to that
            box and closes the intermediate compact canvas.
 
-        Used by :meth:`build_animation_frames`.  For low-memory streaming,
-        see :meth:`_iter_symbol_frames` which omits Phase 3.
+        Used by ``build_animation_frames``.  For low-memory streaming,
+        see ``_iter_symbol_frames`` which omits Phase 3.
 
         Args:
             symbol_name: Name of the symbol, or ``None`` for the root timeline.
@@ -378,7 +379,7 @@ class AdobeSpritemapRenderer:
     ]:
         """Yield rendered frames one at a time for a symbol or label.
 
-        Like :meth:`_render_symbol_frames` but renders lazily: only one
+        Like ``_render_symbol_frames`` but renders lazily: only one
         compact canvas is alive at any moment.  The Phase 3 pixel-level
         union crop from ``_render_symbol_frames`` is omitted so frames can
         be yielded immediately.  Downstream callers (e.g.
