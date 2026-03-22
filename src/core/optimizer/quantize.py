@@ -280,7 +280,13 @@ def quantize_pngquant(
     premul = arr.copy()
     premul[:, :, :3] *= alpha
     premul = np.clip(premul, 0, 255).astype(np.uint8)
-    premul_img = Image.fromarray(premul, "RGBA")
+    try:
+        premul_img = Image.fromarray(premul, "RGBA")
+    except TypeError:
+        h, w = premul.shape[:2]
+        premul_img = Image.frombytes(
+            "RGBA", (w, h), np.ascontiguousarray(premul).tobytes()
+        )
 
     # Prefer libimagequant, else fall back to Median Cut.
     try:
@@ -346,7 +352,14 @@ def quantize_pngquant(
     res_arr[:, :, :3] /= safe_alpha[:, :, np.newaxis]
     res_arr[:, :, :3] = np.clip(res_arr[:, :, :3], 0, 255)
     res_arr[:, :, 3] = orig_alpha_arr
-    result = Image.fromarray(res_arr.astype(np.uint8), "RGBA")
+    result_arr = res_arr.astype(np.uint8)
+    try:
+        result = Image.fromarray(result_arr, "RGBA")
+    except TypeError:
+        h, w = result_arr.shape[:2]
+        result = Image.frombytes(
+            "RGBA", (w, h), np.ascontiguousarray(result_arr).tobytes()
+        )
 
     if log:
         log("[ImageOptimizer]   pngquant: un-premultiplied, done")

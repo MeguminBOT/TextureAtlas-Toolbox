@@ -441,9 +441,14 @@ class Symbols:
                         if np.max(mask_alpha) == 0
                         else mask_alpha / np.max(mask_alpha) * 255
                     )
-                    mask_alpha = Image.fromarray(
-                        mask_alpha.clip(0, 255).astype("uint8"), "L"
-                    )
+                    mask_alpha_arr = mask_alpha.clip(0, 255).astype("uint8")
+                    try:
+                        mask_alpha = Image.fromarray(mask_alpha_arr, "L")
+                    except TypeError:
+                        h, w = mask_alpha_arr.shape[:2]
+                        mask_alpha = Image.frombytes(
+                            "L", (w, h), np.ascontiguousarray(mask_alpha_arr).tobytes()
+                        )
                     masked_canvas.putalpha(
                         ImageChops.multiply(masked_alpha, mask_alpha)
                     )

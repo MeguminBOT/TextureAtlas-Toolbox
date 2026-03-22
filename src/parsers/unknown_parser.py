@@ -251,7 +251,13 @@ class UnknownParser(BaseParser):
 
             img_array[mask, 3] = 0
 
-            return Image.fromarray(img_array, "RGBA")
+            try:
+                return Image.fromarray(img_array, "RGBA")
+            except TypeError:
+                h, w = img_array.shape[:2]
+                return Image.frombytes(
+                    "RGBA", (w, h), np.ascontiguousarray(img_array).tobytes()
+                )
         except Exception as e:
             print(f"Error applying color keying: {e}")
             return image

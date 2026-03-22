@@ -91,10 +91,12 @@ class ColorEffect:
         mode = image.mode
         image = image.convert("RGBA")
         multiplier, offset = self.effect
-        image = Image.fromarray(
-            (np.array(image) * multiplier + offset).clip(0, 255).astype("uint8"),
-            mode="RGBA",
-        )
+        arr = (np.array(image) * multiplier + offset).clip(0, 255).astype("uint8")
+        try:
+            image = Image.fromarray(arr, mode="RGBA")
+        except TypeError:
+            h, w = arr.shape[:2]
+            image = Image.frombytes("RGBA", (w, h), arr.tobytes())
         return image.convert(mode)
 
     def __eq__(self, other):

@@ -138,9 +138,15 @@ def array_to_rgba_image(array: np.ndarray) -> Image.Image:
         PIL Image in RGBA mode.
     """
 
+    if array.dtype != np.uint8:
+        array = array.astype(np.uint8)
     if not array.flags["C_CONTIGUOUS"]:
         array = np.ascontiguousarray(array)
-    return Image.fromarray(array, mode="RGBA")
+    try:
+        return Image.fromarray(array, mode="RGBA")
+    except TypeError:
+        h, w = array.shape[:2]
+        return Image.frombytes("RGBA", (w, h), array.tobytes())
 
 
 def ensure_rgba_array(source: FrameSource) -> np.ndarray:

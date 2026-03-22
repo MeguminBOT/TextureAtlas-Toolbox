@@ -2723,7 +2723,12 @@ class EditorTabWidget(BaseTabWidget):
 
             channels = array.shape[2] if array.ndim == 3 else 1
             mode = "RGBA" if channels >= 4 else "RGB"
-            return Image.fromarray(np.ascontiguousarray(array), mode)
+            array = np.ascontiguousarray(array)
+            try:
+                return Image.fromarray(array, mode)
+            except TypeError:
+                h, w = array.shape[:2]
+                return Image.frombytes(mode, (w, h), array.tobytes())
 
         raise TypeError(
             f"Unsupported frame type {type(image)}; expected Pillow image or ndarray"
