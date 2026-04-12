@@ -1603,10 +1603,6 @@ class ExtractTabWidget(BaseTabWidget):
         self.parent_app.settings_manager.spritesheet_settings.clear()
         self.parent_app.data_dict.clear()
 
-        self.parent_app.settings_manager.animation_settings.clear()
-        self.parent_app.settings_manager.spritesheet_settings.clear()
-        self.parent_app.data_dict.clear()
-
     def delete_selected_spritesheet(self):
         """Delete one or more selected spritesheets and their settings."""
         if not self.parent_app:
