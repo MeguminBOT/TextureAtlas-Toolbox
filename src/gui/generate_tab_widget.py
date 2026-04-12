@@ -49,6 +49,7 @@ SUPPORTED_ROTATION_FORMATS = frozenset(
         "phaser3",
         "plist",
         "paper2d",
+        "gdx",
     }
 )
 
@@ -68,6 +69,7 @@ SUPPORTED_TRIM_FORMATS = frozenset(
         "plist",  # spriteOffset, spriteSourceSize
         "uikit-plist",  # oX, oY offset fields
         "paper2d",  # spriteSourceSize metadata
+        "gdx",  # bounds/offsets fields
     }
 )
 
@@ -992,6 +994,7 @@ class GenerateTabWidget(BaseTabWidget):
             ("Egret2D JSON", "egret2d", ".json"),
             ("Paper2D (Unreal)", "paper2d", ".paper2dsprites"),
             ("Unity TexturePacker", "unity", ".tpsheet"),
+            ("libGDX Atlas", "gdx", ".atlas"),
         ]
 
         self.atlas_type_combo.blockSignals(True)
