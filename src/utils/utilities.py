@@ -100,6 +100,42 @@ class Utilities:
         return re.sub(r'[\\/:*?"<>|]', "_", name).rstrip()
 
     @staticmethod
+    def sanitize_path_name(name: str) -> str:
+        """Sanitize a name that may contain forward-slash folder separators.
+
+        Splits on ``/`` (and ``\\``), sanitizes each component individually
+        using :meth:`replace_invalid_chars`, discards empty segments, and
+        rejoins with :data:`os.sep`.  This preserves folder hierarchy
+        encoded in atlas sprite names (e.g. ``"player/idle"``).
+
+        Args:
+            name: Sprite or animation name, possibly containing ``/``.
+
+        Returns:
+            Filesystem-safe relative path preserving the folder structure.
+        """
+        parts = re.split(r"[/\\]", name)
+        sanitized = [Utilities.replace_invalid_chars(p) for p in parts if p]
+        return os.sep.join(sanitized) if sanitized else Utilities.replace_invalid_chars(name)
+
+    @staticmethod
+    def basename_from_sprite_name(name: str) -> str:
+        """Extract the final component of a sprite name with folder separators.
+
+        Given ``"player/idle_0001"``, returns ``"idle_0001"``.
+        Returns the original name unchanged when no separator is present.
+
+        Args:
+            name: Sprite name possibly containing ``/`` or ``\\``.
+
+        Returns:
+            The basename portion of the sprite name.
+        """
+        # Use PurePosixPath since atlas formats use forward slashes
+        parts = re.split(r"[/\\]", name)
+        return parts[-1] if parts else name
+
+    @staticmethod
     def strip_trailing_digits(name: str) -> str:
         """Remove trailing frame numbers and optional ``.png`` extension.
 
