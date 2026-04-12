@@ -118,9 +118,7 @@ class DependenciesChecker:
         if app is None:
             app = QApplication([])
 
-        QMessageBox.critical(
-            parent, translate("DependenciesChecker", "Error"), message
-        )
+        QMessageBox.critical(parent, translate("DependenciesChecker", "Error"), message)
 
     @staticmethod
     def check_imagemagick():

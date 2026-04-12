@@ -110,9 +110,7 @@ class AtlasImportWorker(QThread):
             processed = 0
 
             for animation_name, frames_data in self.animation_groups.items():
-                frames_data.sort(
-                    key=lambda x: Utilities.natural_sort_key(x["name"])
-                )
+                frames_data.sort(key=lambda x: Utilities.natural_sort_key(x["name"]))
 
                 frame_paths = []
                 for sprite_data in frames_data:
@@ -121,9 +119,7 @@ class AtlasImportWorker(QThread):
                         width, height = sprite_data["width"], sprite_data["height"]
                         rotated = sprite_data.get("rotated", False)
 
-                        sprite_region = atlas_image.crop(
-                            (x, y, x + width, y + height)
-                        )
+                        sprite_region = atlas_image.crop((x, y, x + width, y + height))
 
                         if rotated:
                             sprite_region = sprite_region.transpose(
@@ -183,9 +179,7 @@ class AtlasImportWorker(QThread):
 
             atlas_image.close()
 
-            self.progress_updated.emit(
-                total_sprites, total_sprites, "Import complete"
-            )
+            self.progress_updated.emit(total_sprites, total_sprites, "Import complete")
             self.import_completed.emit(results)
 
         except Exception as e:
@@ -715,9 +709,7 @@ class GenerateTabWidget(BaseTabWidget):
             QMessageBox.critical(
                 self,
                 self.APP_NAME,
-                self.tr(
-                    "PIL (Pillow) is required to extract frames from atlas files."
-                ),
+                self.tr("PIL (Pillow) is required to extract frames from atlas files."),
             )
             return
 
@@ -732,9 +724,7 @@ class GenerateTabWidget(BaseTabWidget):
             )
             name_to_sprites: dict[str, list] = {}
             for sprite_data in sprites_data:
-                name_to_sprites.setdefault(sprite_data["name"], []).append(
-                    sprite_data
-                )
+                name_to_sprites.setdefault(sprite_data["name"], []).append(sprite_data)
 
             animation_groups: dict[str, list] = {}
             for animation_name, frame_names in name_groups.items():

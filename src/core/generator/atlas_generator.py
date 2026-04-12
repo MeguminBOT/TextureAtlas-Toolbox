@@ -343,12 +343,16 @@ class AtlasGenerator:
                     f"packing {len(unique_frames)} unique frames"
                 )
 
-            self._emit_progress(LOAD_WEIGHT, TOTAL, f"Packing with {options.algorithm}...")
+            self._emit_progress(
+                LOAD_WEIGHT, TOTAL, f"Packing with {options.algorithm}..."
+            )
             pack_result = self._pack_frames(
                 unique_frames,
                 options,
                 progress_callback=lambda msg: self._emit_progress(
-                    LOAD_WEIGHT + PACK_WEIGHT // 2, TOTAL, msg,
+                    LOAD_WEIGHT + PACK_WEIGHT // 2,
+                    TOTAL,
+                    msg,
                 ),
             )
 
@@ -357,7 +361,9 @@ class AtlasGenerator:
                     result.errors.append(err.message)
                 return result
 
-            self._emit_progress(LOAD_WEIGHT + PACK_WEIGHT, TOTAL, "Compositing atlas...")
+            self._emit_progress(
+                LOAD_WEIGHT + PACK_WEIGHT, TOTAL, "Compositing atlas..."
+            )
             num_packed = len(pack_result.packed_frames)
             atlas_image = self._composite_atlas(
                 pack_result.packed_frames,
@@ -366,7 +372,9 @@ class AtlasGenerator:
                 pack_result.atlas_height,
                 options.padding,
                 progress_callback=lambda done, total: self._emit_progress(
-                    LOAD_WEIGHT + PACK_WEIGHT + int(COMPOSITE_WEIGHT * done / max(total, 1)),
+                    LOAD_WEIGHT
+                    + PACK_WEIGHT
+                    + int(COMPOSITE_WEIGHT * done / max(total, 1)),
                     TOTAL,
                     f"Compositing frame {done}/{total}...",
                 ),
@@ -383,7 +391,9 @@ class AtlasGenerator:
                 all_frame_data,
             )
 
-            self._emit_progress(LOAD_WEIGHT + PACK_WEIGHT + COMPOSITE_WEIGHT, TOTAL, "Saving files...")
+            self._emit_progress(
+                LOAD_WEIGHT + PACK_WEIGHT + COMPOSITE_WEIGHT, TOTAL, "Saving files..."
+            )
             atlas_path, metadata_path = self._save_output(
                 atlas_image,
                 pack_result,
