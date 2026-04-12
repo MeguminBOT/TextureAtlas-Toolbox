@@ -70,7 +70,7 @@ class AsepriteExporter(BaseExporter):
         }
 
         meta = self._build_meta_block(
-            atlas_width, atlas_height, image_name, generator_metadata
+            packed_sprites, atlas_width, atlas_height, image_name, generator_metadata
         )
 
         data = {"frames": frames, "meta": meta}
@@ -117,6 +117,7 @@ class AsepriteExporter(BaseExporter):
 
     def _build_meta_block(
         self,
+        packed_sprites: List[PackedSprite],
         atlas_width: int,
         atlas_height: int,
         image_name: str,
@@ -132,7 +133,7 @@ class AsepriteExporter(BaseExporter):
             "format": opts.format_string,
             "size": {"w": atlas_width, "h": atlas_height},
             "scale": opts.scale_string,
-            "frameTags": [],
+            "frameTags": self._build_frame_tags(packed_sprites),
             "layers": [],
             "slices": [],
         }
@@ -149,6 +150,54 @@ class AsepriteExporter(BaseExporter):
                 meta["textureAtlasToolbox"] = tatt_meta
 
         return meta
+
+    def _build_frame_tags(
+        self, packed_sprites: List[PackedSprite]
+    ) -> List[Dict[str, Any]]:
+        """Build frameTags array from animation groups in packed sprites.
+
+        Groups consecutive sprites by their animation name and produces
+        Aseprite-compatible frame tag entries.
+
+        Args:
+            packed_sprites: Sprites with their atlas positions assigned.
+
+        Returns:
+            List of frameTag dicts with name, from, to, direction fields.
+        """
+        tags: List[Dict[str, Any]] = []
+        current_anim: Optional[str] = None
+        current_direction: str = "forward"
+        start_idx = 0
+
+        for i, packed in enumerate(packed_sprites):
+            anim = packed.sprite.get("animation", "")
+            if anim != current_anim:
+                if current_anim is not None and current_anim:
+                    tags.append(
+                        {
+                            "name": current_anim,
+                            "from": start_idx,
+                            "to": i - 1,
+                            "direction": current_direction,
+                        }
+                    )
+                current_anim = anim
+                current_direction = packed.sprite.get("direction", "forward")
+                start_idx = i
+
+        # Close the last group
+        if current_anim is not None and current_anim and packed_sprites:
+            tags.append(
+                {
+                    "name": current_anim,
+                    "from": start_idx,
+                    "to": len(packed_sprites) - 1,
+                    "direction": current_direction,
+                }
+            )
+
+        return tags
 
 
 __all__ = ["AsepriteExporter", "AsepriteExportOptions"]

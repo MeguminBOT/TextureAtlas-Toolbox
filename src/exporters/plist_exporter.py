@@ -132,9 +132,15 @@ class PlistExporter(BaseExporter):
         opts = self._format_options
 
         # Build frames dict
+        # Cocos2d plist convention: frame keys include .png extension
         frames: Dict[str, Dict[str, Any]] = {}
         for packed in packed_sprites:
-            frames[packed.name] = self._build_frame_entry(packed)
+            frame_key = packed.name
+            if not frame_key.lower().endswith(
+                (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tga")
+            ):
+                frame_key = f"{frame_key}.png"
+            frames[frame_key] = self._build_frame_entry(packed)
 
         # Build root dict
         root: Dict[str, Any] = {"frames": frames}

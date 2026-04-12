@@ -62,8 +62,8 @@ class JsonArrayExportOptions:
     include_meta: bool = True
     format_string: str = "RGBA8888"
     scale_string: str = "1"
-    app_name: str = "TextureAtlas-to-GIF"
-    app_version: str = "1.0"
+    app_name: str = "TextureAtlas Toolbox"
+    app_version: str = "2.0.5"
 
 
 @ExporterRegistry.register

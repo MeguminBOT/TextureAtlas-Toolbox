@@ -180,6 +180,11 @@ class SpineExporter(BaseExporter):
         # Atlas dimensions: swap width/height when rotated (standard TexturePacker convention)
         atlas_w, atlas_h = (height, width) if rotated else (width, height)
 
+        # Use the animation frame index if available; -1 means not indexed
+        frame_index = sprite.get("index", -1)
+        if frame_index is None:
+            frame_index = -1
+
         lines = [
             sprite["name"],
             f"  rotate: {'true' if rotated else 'false'}",
@@ -187,7 +192,7 @@ class SpineExporter(BaseExporter):
             f"  size: {atlas_w}, {atlas_h}",
             f"  orig: {frame_w}, {frame_h}",
             f"  offset: {-frame_x}, {-frame_y}",
-            "  index: -1",
+            f"  index: {frame_index}",
         ]
 
         return lines
