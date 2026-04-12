@@ -303,7 +303,9 @@ class GdxAtlasParser(BaseParser):
             with open(file_path, "r", encoding="utf-8") as f:
                 for line in f:
                     stripped = line.strip()
-                    if stripped.startswith("bounds:") or stripped.startswith("offsets:"):
+                    if stripped.startswith("bounds:") or stripped.startswith(
+                        "offsets:"
+                    ):
                         return True
         except (OSError, UnicodeDecodeError):
             pass

@@ -116,7 +116,11 @@ class Utilities:
         """
         parts = re.split(r"[/\\]", name)
         sanitized = [Utilities.replace_invalid_chars(p) for p in parts if p]
-        return os.sep.join(sanitized) if sanitized else Utilities.replace_invalid_chars(name)
+        return (
+            os.sep.join(sanitized)
+            if sanitized
+            else Utilities.replace_invalid_chars(name)
+        )
 
     @staticmethod
     def basename_from_sprite_name(name: str) -> str:

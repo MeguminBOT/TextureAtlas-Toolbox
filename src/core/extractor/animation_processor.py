@@ -81,7 +81,9 @@ class AnimationProcessor:
         self._editor_composite_names: Set[str] = set()
         self._inject_editor_composites()
 
-    def process_animations(self, is_unknown_spritesheet=False, sub_progress_callback=None):
+    def process_animations(
+        self, is_unknown_spritesheet=False, sub_progress_callback=None
+    ):
         """Export all animations as frames and/or animated files.
 
         Iterates each animation, retrieves settings, applies alignment

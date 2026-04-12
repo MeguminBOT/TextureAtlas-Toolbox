@@ -1146,12 +1146,20 @@ class Extractor:
 
             if self._has_editor_composites(spritesheet_name):
                 self._extract_spritemap_buffered(
-                    renderer, atlas_path, output_dir, spritesheet_name, result,
+                    renderer,
+                    atlas_path,
+                    output_dir,
+                    spritesheet_name,
+                    result,
                     sub_progress_callback=sub_progress_callback,
                 )
             else:
                 self._extract_spritemap_streaming(
-                    renderer, atlas_path, output_dir, spritesheet_name, result,
+                    renderer,
+                    atlas_path,
+                    output_dir,
+                    spritesheet_name,
+                    result,
                     sub_progress_callback=sub_progress_callback,
                 )
 

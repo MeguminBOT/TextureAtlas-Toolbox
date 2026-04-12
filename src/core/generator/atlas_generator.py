@@ -461,7 +461,9 @@ class AtlasGenerator:
                         ) in flip_hashes.items():
                             canonical_entry = hash_to_canonical.get(flip_hash)
                             if canonical_entry is not None:
-                                canonical_id, canonical_flip_x, canonical_flip_y = canonical_entry
+                                canonical_id, canonical_flip_x, canonical_flip_y = (
+                                    canonical_entry
+                                )
                                 final_flip_x = flip_x ^ canonical_flip_x
                                 final_flip_y = flip_y ^ canonical_flip_y
                                 duplicate_map[frame_id] = (
