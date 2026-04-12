@@ -69,6 +69,7 @@ class PreviewGenerator:
         Returns:
             Path to the generated preview file, or ``None`` on failure.
         """
+        owns_temp_dir = False
         try:
             label = spritesheet_label or os.path.basename(atlas_path)
 
