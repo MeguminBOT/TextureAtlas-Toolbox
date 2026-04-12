@@ -81,13 +81,9 @@ class SpriteProcessor:
                         group.extend(untagged_frame_tuples.get(fname, []))
                     animations.setdefault(animation_name, []).extend(group)
             else:
-                for sprite in untagged_sprites:
-                    frame_tuple = self._build_frame_tuple(sprite)
-                    if frame_tuple is None:
-                        continue
-                    name = frame_tuple[0]
+                for name, tuples in untagged_frame_tuples.items():
                     folder_name = Utilities.strip_trailing_digits(name)
-                    animations.setdefault(folder_name, []).append(frame_tuple)
+                    animations.setdefault(folder_name, []).extend(tuples)
 
         return animations
 
