@@ -854,14 +854,23 @@ class Extractor:
             label = self._worker_labels.get(worker, f"Worker {idx + 1}")
             current = self.work_in_progress.get(worker)
             display_name = Path(current).name if current else "idle"
+            mem_paused = getattr(worker, "memory_paused", False)
             if current:
                 processing_count += 1
+            sub = worker.sub_progress  # (current, total) or None
+            if mem_paused and not current:
+                state = "memory_paused"
+            elif current:
+                state = "processing"
+            else:
+                state = "idle"
             worker_rows.append(
                 {
                     "label": label,
                     "display": display_name,
                     "path": str(current) if current else "",
-                    "state": "processing" if current else "idle",
+                    "state": state,
+                    "sub_progress": sub,
                 }
             )
 
@@ -874,6 +883,11 @@ class Extractor:
         recent_full_path = self._last_started_file
         recent_display = Path(recent_full_path).name if recent_full_path else None
 
+        try:
+            queued = self.file_queue.qsize()
+        except Exception:
+            queued = 0
+
         return {
             "summary": summary,
             "workers": worker_rows,
@@ -881,6 +895,7 @@ class Extractor:
             "worker_count": worker_count,
             "recent_full_path": recent_full_path,
             "recent_display": recent_display,
+            "queued": queued,
         }
 
     @staticmethod
@@ -976,6 +991,7 @@ class Extractor:
         settings: Dict[str, Any],
         parent_window: Optional[Any] = None,
         spritesheet_label: Optional[str] = None,
+        sub_progress_callback: Optional[Callable] = None,
     ) -> Dict[str, int]:
         """Extract sprites and animations from a standard atlas + metadata pair.
 
@@ -986,6 +1002,8 @@ class Extractor:
             settings (dict): Overrides controlling exports.
             parent_window (Any | None): Parent object for any prompts.
             spritesheet_label (str | None): Friendly name overriding file stem.
+            sub_progress_callback: Optional ``(current, total)`` callable for
+                per-frame progress display within a file.
 
         Returns:
             dict[str, int]: Result dictionary containing frame/animation totals and failures.
@@ -1030,7 +1048,8 @@ class Extractor:
             )
 
             frames_generated, anims_generated = animation_processor.process_animations(
-                is_unknown_spritesheet
+                is_unknown_spritesheet,
+                sub_progress_callback=sub_progress_callback,
             )
             result["frames_generated"] = frames_generated
             result["anims_generated"] = anims_generated
@@ -1077,6 +1096,7 @@ class Extractor:
         output_dir: str,
         settings: Dict[str, Any],
         spritesheet_label: Optional[str] = None,
+        sub_progress_callback: Optional[Callable] = None,
     ) -> Dict[str, int]:
         """Process an Adobe Spritemap project (Animation.json + per-sheet JSON).
 
@@ -1126,11 +1146,13 @@ class Extractor:
 
             if self._has_editor_composites(spritesheet_name):
                 self._extract_spritemap_buffered(
-                    renderer, atlas_path, output_dir, spritesheet_name, result
+                    renderer, atlas_path, output_dir, spritesheet_name, result,
+                    sub_progress_callback=sub_progress_callback,
                 )
             else:
                 self._extract_spritemap_streaming(
-                    renderer, atlas_path, output_dir, spritesheet_name, result
+                    renderer, atlas_path, output_dir, spritesheet_name, result,
+                    sub_progress_callback=sub_progress_callback,
                 )
 
         except Exception as exc:
@@ -1161,6 +1183,7 @@ class Extractor:
         output_dir: str,
         spritesheet_name: str,
         result: Dict[str, int],
+        sub_progress_callback: Optional[Callable] = None,
     ) -> None:
         """Stream animations one at a time — render, export, free.
 
@@ -1219,6 +1242,7 @@ class Extractor:
                     anim_settings.get("scale"),
                     anim_settings,
                     False,
+                    progress_callback=sub_progress_callback,
                 )
 
             animation_export = anim_settings.get("animation_export", False)
@@ -1247,6 +1271,7 @@ class Extractor:
         output_dir: str,
         spritesheet_name: str,
         result: Dict[str, int],
+        sub_progress_callback: Optional[Callable] = None,
     ) -> None:
         """Buffered fallback that loads all animations for editor composite support.
 
@@ -1269,7 +1294,9 @@ class Extractor:
                 self.current_version,
                 spritesheet_label=spritesheet_name,
             )
-            frames_generated, anims_generated = animation_processor.process_animations()
+            frames_generated, anims_generated = animation_processor.process_animations(
+                sub_progress_callback=sub_progress_callback,
+            )
             result["frames_generated"] = frames_generated
             result["anims_generated"] = anims_generated
         finally:
@@ -1386,6 +1413,8 @@ class FileProcessorWorker(QThread):
         self.extractor = extractor_instance
         self.task_queue = task_queue
         self.current_filename = None
+        self.sub_progress = None
+        self.memory_paused = False
 
     def run(self) -> None:
         """Pull files from the queue until a sentinel or cancellation.
@@ -1400,20 +1429,24 @@ class FileProcessorWorker(QThread):
             if not self.extractor.wait_for_resume():
                 break
 
+            self.memory_paused = True
             if not self.extractor.wait_for_memory_budget():
                 break
+            self.memory_paused = False
 
             filename = self.task_queue.get()
             if filename is None or self.extractor.cancel_event.is_set():
                 break
 
             self.current_filename = filename
+            self.sub_progress = None
             self.task_started.emit(filename)
             try:
                 if self.extractor.cancel_event.is_set():
                     break
                 self._process_single_file(filename, thread_id)
             finally:
+                self.sub_progress = None
                 self.task_finished.emit(filename)
                 self.current_filename = None
 
@@ -1430,6 +1463,10 @@ class FileProcessorWorker(QThread):
         if self.extractor.cancel_event.is_set():
             self.extractor._after_file_processed()
             return
+
+        def _sub_progress(current, total):
+            self.sub_progress = (current, total)
+
         try:
             relative_path = Path(filename)
             atlas_path = Path(self.input_dir) / relative_path
@@ -1486,6 +1523,7 @@ class FileProcessorWorker(QThread):
                     sprite_output_dir,
                     settings,
                     spritesheet_label=filename,
+                    sub_progress_callback=_sub_progress,
                 )
                 self.file_completed.emit(filename, result)
 
@@ -1497,6 +1535,7 @@ class FileProcessorWorker(QThread):
                     settings,
                     None,
                     spritesheet_label=filename,
+                    sub_progress_callback=_sub_progress,
                 )
                 self.file_completed.emit(filename, result)
 
@@ -1508,6 +1547,7 @@ class FileProcessorWorker(QThread):
                     settings,
                     None,
                     spritesheet_label=filename,
+                    sub_progress_callback=_sub_progress,
                 )
                 self.file_completed.emit(filename, result)
 

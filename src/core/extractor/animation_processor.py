@@ -81,7 +81,7 @@ class AnimationProcessor:
         self._editor_composite_names: Set[str] = set()
         self._inject_editor_composites()
 
-    def process_animations(self, is_unknown_spritesheet=False):
+    def process_animations(self, is_unknown_spritesheet=False, sub_progress_callback=None):
         """Export all animations as frames and/or animated files.
 
         Iterates each animation, retrieves settings, applies alignment
@@ -91,6 +91,8 @@ class AnimationProcessor:
         Args:
             is_unknown_spritesheet: When ``True``, applies extra cropping
                 heuristics for spritesheets without known metadata.
+            sub_progress_callback: Optional ``(current, total)`` callable
+                invoked after each frame is saved, for live progress display.
 
         Returns:
             A tuple ``(frames_generated, anims_generated)`` with counts of
@@ -138,6 +140,7 @@ class AnimationProcessor:
                     settings.get("scale"),
                     settings,
                     is_unknown_spritesheet,
+                    progress_callback=sub_progress_callback,
                 )
 
             animation_export = settings.get("animation_export", False)

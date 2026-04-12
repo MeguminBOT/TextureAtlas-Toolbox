@@ -46,6 +46,7 @@ class FrameExporter:
         scale,
         settings,
         is_unknown_spritesheet=False,
+        progress_callback=None,
     ):
         """Save selected frames to disk as individual image files.
 
@@ -61,6 +62,8 @@ class FrameExporter:
             scale: Default scale factor if not overridden in settings.
             settings: Dict with keys like ``frame_format``, ``crop_option``, etc.
             is_unknown_spritesheet: When ``True``, applies extra cropping.
+            progress_callback: Optional ``(current, total)`` callable invoked
+                after each frame is saved, for sub-progress display.
 
         Returns:
             Number of frames successfully exported.
@@ -69,6 +72,7 @@ class FrameExporter:
         if len(image_tuples) == 0:
             return frames_generated
 
+        total_kept = len(kept_frame_indices)
         frame_format = settings.get("frame_format", "PNG")
         frame_scale = settings.get("frame_scale", scale)
 
@@ -133,6 +137,8 @@ class FrameExporter:
                     settings.get("compression_settings"),
                 )
                 frames_generated += 1
+                if progress_callback:
+                    progress_callback(frames_generated, total_kept)
         return frames_generated
 
     def _prepare_frame_image(

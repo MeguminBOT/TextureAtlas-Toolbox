@@ -267,6 +267,9 @@ class ProcessingWindow(QDialog):
             worker_entries = status.get("workers")
             recent_path = status.get("recent_full_path")
             recent_display = status.get("recent_display")
+            queued = status.get("queued", 0)
+            if queued > 0:
+                summary_text += f" \u2022 {queued} queued"
         else:
             summary_text = status or ""
 
@@ -519,13 +522,23 @@ class ProcessingWindow(QDialog):
             label = entry.get("label", self.tr("Worker"))
             display_name = entry.get("display") or self.tr("Idle")
             state = entry.get("state", "processing")
-            list_item = QListWidgetItem(f"{label}: {display_name}")
+            sub = entry.get("sub_progress")
+            if state == "memory_paused":
+                text = f"{label}: {self.tr('Paused (memory pressure)')}"
+            elif sub and state == "processing":
+                current, total = sub
+                text = f"{label}: {display_name} (Frame {current}/{total})"
+            else:
+                text = f"{label}: {display_name}"
+            list_item = QListWidgetItem(text)
             tooltip_parts = []
             path_value = entry.get("path")
             if path_value:
                 tooltip_parts.append(path_value)
             if state == "idle":
                 tooltip_parts.append(self.tr("Idle"))
+            elif state == "memory_paused":
+                tooltip_parts.append(self.tr("Waiting for memory to free up"))
             if tooltip_parts:
                 list_item.setToolTip("\n".join(tooltip_parts))
             self.worker_list.addItem(list_item)
