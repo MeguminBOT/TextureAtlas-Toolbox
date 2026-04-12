@@ -90,7 +90,7 @@ def test_trimming_removes_transparent_edges(tmp_path: Path):
     with open(result_trimmed.metadata_path, "r") as f:
         metadata = json.load(f)
     
-    frame = metadata["frames"]["padded_sprite"]
+    frame = metadata["frames"]["test_01"]
     
     # Trimmed frame should be 10x10 in atlas
     assert frame["frame"]["w"] == 10

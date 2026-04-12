@@ -54,8 +54,8 @@ def test_generator_emits_frame_offsets_for_alignment(tmp_path: Path):
         metadata = json.load(handle)
 
     frames = metadata["frames"]
-    large = frames["walk_large"]
-    small = frames["walk_small"]
+    large = frames["walk_01"]
+    small = frames["walk_02"]
 
     # Largest frame stays untrimmed.
     assert large["trimmed"] is False
