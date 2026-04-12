@@ -304,13 +304,27 @@ class AtlasGenerator:
         options = options or GeneratorOptions()
         result = GeneratorResult()
 
+        # Count total images for granular progress
+        total_images = sum(len(paths) for paths in animation_groups.values())
+        # Weighted progress: load=40%, pack=30%, composite=20%, save=10%
+        LOAD_WEIGHT = 40
+        PACK_WEIGHT = 30
+        COMPOSITE_WEIGHT = 20
+        SAVE_WEIGHT = 10
+        TOTAL = 100
+
         try:
-            self._emit_progress(0, 4, "Loading images...")
+            self._emit_progress(0, TOTAL, "Loading images...")
             load_result = self._load_images_with_dedup(
                 animation_groups,
                 trim_sprites=options.trim_sprites,
                 allow_flip=options.allow_flip,
                 export_format=options.export_format,
+                progress_callback=lambda loaded, total: self._emit_progress(
+                    int(LOAD_WEIGHT * loaded / max(total, 1)),
+                    TOTAL,
+                    f"Loading image {loaded}/{total}...",
+                ),
             )
             unique_frames = load_result["unique_frames"]
             images = load_result["images"]
@@ -328,21 +342,33 @@ class AtlasGenerator:
                     f"packing {len(unique_frames)} unique frames"
                 )
 
-            self._emit_progress(1, 4, f"Packing with {options.algorithm}...")
-            pack_result = self._pack_frames(unique_frames, options)
+            self._emit_progress(LOAD_WEIGHT, TOTAL, f"Packing with {options.algorithm}...")
+            pack_result = self._pack_frames(
+                unique_frames,
+                options,
+                progress_callback=lambda msg: self._emit_progress(
+                    LOAD_WEIGHT + PACK_WEIGHT // 2, TOTAL, msg,
+                ),
+            )
 
             if not pack_result.success:
                 for err in pack_result.errors:
                     result.errors.append(err.message)
                 return result
 
-            self._emit_progress(2, 4, "Compositing atlas...")
+            self._emit_progress(LOAD_WEIGHT + PACK_WEIGHT, TOTAL, "Compositing atlas...")
+            num_packed = len(pack_result.packed_frames)
             atlas_image = self._composite_atlas(
                 pack_result.packed_frames,
                 images,
                 pack_result.atlas_width,
                 pack_result.atlas_height,
                 options.padding,
+                progress_callback=lambda done, total: self._emit_progress(
+                    LOAD_WEIGHT + PACK_WEIGHT + int(COMPOSITE_WEIGHT * done / max(total, 1)),
+                    TOTAL,
+                    f"Compositing frame {done}/{total}...",
+                ),
             )
 
             expanded_packed_frames = self._expand_packed_frames_with_duplicates(
@@ -351,7 +377,7 @@ class AtlasGenerator:
                 all_frame_data,
             )
 
-            self._emit_progress(3, 4, "Saving files...")
+            self._emit_progress(LOAD_WEIGHT + PACK_WEIGHT + COMPOSITE_WEIGHT, TOTAL, "Saving files...")
             atlas_path, metadata_path = self._save_output(
                 atlas_image,
                 pack_result,
@@ -368,7 +394,7 @@ class AtlasGenerator:
             result.frame_count = len(all_frame_data)
             result.efficiency = pack_result.efficiency
 
-            self._emit_progress(4, 4, "Complete!")
+            self._emit_progress(TOTAL, TOTAL, "Complete!")
 
         except Exception as e:
             result.errors.append(f"Generation failed: {e}")
@@ -381,6 +407,7 @@ class AtlasGenerator:
         trim_sprites: bool = False,
         allow_flip: bool = False,
         export_format: str = "starling-xml",
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> Dict[str, Any]:
         """Load images with duplicate and flip-variant detection.
 
@@ -389,6 +416,7 @@ class AtlasGenerator:
             trim_sprites: If True, trim transparent edges from sprites.
             allow_flip: If True, detect flipped variants as duplicates.
             export_format: Target metadata format (controls naming convention).
+            progress_callback: Optional callback(loaded, total) for per-image progress.
 
         Returns:
             Dict with keys: unique_frames, images, duplicate_map, all_frame_data.
@@ -398,6 +426,9 @@ class AtlasGenerator:
         images: Dict[str, Image.Image] = {}
         hash_to_canonical: Dict[str, str] = {}
         duplicate_map: Dict[str, str] = {}
+
+        total_images = sum(len(paths) for paths in animation_groups.values())
+        loaded_count = 0
 
         for anim_name, frame_paths in animation_groups.items():
             for idx, path in enumerate(frame_paths):
@@ -485,6 +516,10 @@ class AtlasGenerator:
 
                 except Exception as e:
                     print(f"Warning: Failed to load {path}: {e}")
+
+                loaded_count += 1
+                if progress_callback:
+                    progress_callback(loaded_count, total_images)
 
         return {
             "unique_frames": unique_frames,
@@ -589,6 +624,7 @@ class AtlasGenerator:
         self,
         frames: List[FrameInput],
         options: GeneratorOptions,
+        progress_callback: Optional[Callable[[str], None]] = None,
     ) -> PackerResult:
         """Pack frames using the selected algorithm.
 
@@ -598,6 +634,7 @@ class AtlasGenerator:
         Args:
             frames: Frames to pack.
             options: Generator options.
+            progress_callback: Optional callback(message) for packing status.
 
         Returns:
             PackerResult with packed frames and dimensions.
@@ -646,11 +683,11 @@ class AtlasGenerator:
             if current_max_width == old_width and current_max_height == old_height:
                 return result
 
-            self._emit_progress(
-                1,
-                4,
-                f"Retrying with larger atlas ({current_max_width}x{current_max_height})...",
-            )
+            retry_msg = f"Retrying with larger atlas ({current_max_width}x{current_max_height})..."
+            if progress_callback:
+                progress_callback(retry_msg)
+            else:
+                self._emit_progress(1, 4, retry_msg)
 
         return result
 
@@ -829,6 +866,7 @@ class AtlasGenerator:
         width: int,
         height: int,
         padding: int,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> Image.Image:
         """Composite packed frames onto a transparent atlas image.
 
@@ -838,13 +876,15 @@ class AtlasGenerator:
             width: Atlas width.
             height: Atlas height.
             padding: Padding between sprites (unused, positions already include it).
+            progress_callback: Optional callback(done, total) for per-frame progress.
 
         Returns:
             Composited RGBA atlas image.
         """
         atlas = Image.new("RGBA", (width, height), (0, 0, 0, 0))
 
-        for packed in packed_frames:
+        total = len(packed_frames)
+        for idx, packed in enumerate(packed_frames):
             img = images.get(packed.id)
             if img is None:
                 continue
@@ -856,6 +896,12 @@ class AtlasGenerator:
                 img = img.transpose(Image.Transpose.ROTATE_270)
 
             atlas.alpha_composite(img, (packed.x, packed.y))
+
+            if progress_callback and (idx + 1) % max(total // 20, 1) == 0:
+                progress_callback(idx + 1, total)
+
+        if progress_callback:
+            progress_callback(total, total)
 
         return atlas
 
