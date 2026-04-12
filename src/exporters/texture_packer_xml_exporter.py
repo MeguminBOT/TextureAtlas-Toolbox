@@ -224,11 +224,14 @@ class TexturePackerXmlExporter(BaseExporter):
 
         if self.options.pretty_print:
             dom = minidom.parseString(rough_string)
-            pretty = dom.toprettyxml(indent="    ", encoding=None)
-            lines = pretty.split("\n")
-            if lines and lines[0].startswith("<?xml"):
-                lines = lines[1:]
-            content = "\n".join(line for line in lines if line.strip())
+            try:
+                pretty = dom.toprettyxml(indent="    ", encoding=None)
+                lines = pretty.split("\n")
+                if lines and lines[0].startswith("<?xml"):
+                    lines = lines[1:]
+                content = "\n".join(line for line in lines if line.strip())
+            finally:
+                dom.unlink()
             return '<?xml version="1.0" encoding="UTF-8"?>\n' + comment_block + content
         else:
             return (

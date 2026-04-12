@@ -82,6 +82,7 @@ class TranslationManager:
         self.current_locale: str | None = None
         self.translations_dir = Path(__file__).parent.parent / "translations"
         self._available_languages_cache: dict[str, dict] | None = None
+        self._completeness_cache: dict[str, int] = {}
 
     def _discover_translation_files(self) -> set[str]:
         """Scan the translations directory for available language codes.
@@ -178,6 +179,10 @@ class TranslationManager:
         if lang_code in ("en", "en_us"):
             return 100
 
+        cached = self._completeness_cache.get(lang_code)
+        if cached is not None:
+            return cached
+
         ts_file = self.translations_dir / f"app_{lang_code}.ts"
         if not ts_file.exists():
             return 0
@@ -209,9 +214,12 @@ class TranslationManager:
                         translated += 1
 
             if total == 0:
-                return 100  # No strings to translate
+                result = 100  # No strings to translate
+            else:
+                result = round((translated / total) * 100)
 
-            return round((translated / total) * 100)
+            self._completeness_cache[lang_code] = result
+            return result
 
         except (ET.ParseError, OSError):
             return 0

@@ -454,13 +454,14 @@ class AtlasGenerator:
                         found_flip_match = False
                         flip_hashes = self._compute_flip_hashes(img)
 
-                        for existing_hash, (
-                            canonical_id,
-                            canonical_flip_x,
-                            canonical_flip_y,
-                        ) in hash_to_canonical.items():
-                            if existing_hash in flip_hashes:
-                                _, flip_x, flip_y = flip_hashes[existing_hash]
+                        for flip_hash, (
+                            _variant_name,
+                            flip_x,
+                            flip_y,
+                        ) in flip_hashes.items():
+                            canonical_entry = hash_to_canonical.get(flip_hash)
+                            if canonical_entry is not None:
+                                canonical_id, canonical_flip_x, canonical_flip_y = canonical_entry
                                 final_flip_x = flip_x ^ canonical_flip_x
                                 final_flip_y = flip_y ^ canonical_flip_y
                                 duplicate_map[frame_id] = (

@@ -274,12 +274,12 @@ def quantize_pngquant(
     if log:
         log("[ImageOptimizer]   pngquant: premultiplying alpha")
 
-    arr = np.asarray(img).astype(np.float64)
+    arr = np.asarray(img).astype(np.float32)
     alpha = arr[:, :, 3:4] / 255.0
 
-    premul = arr.copy()
-    premul[:, :, :3] *= alpha
-    premul = np.clip(premul, 0, 255).astype(np.uint8)
+    arr[:, :, :3] *= alpha
+    premul = np.clip(arr, 0, 255).astype(np.uint8)
+    del arr
     try:
         premul_img = Image.fromarray(premul, "RGBA")
     except TypeError:
@@ -344,10 +344,10 @@ def quantize_pngquant(
 
     # Un-premultiply the palette colours
     result_rgba = quantized.convert("RGBA")
-    res_arr = np.asarray(result_rgba).astype(np.float64).copy()
+    res_arr = np.array(result_rgba, dtype=np.float32)
 
     # Use the original alpha so edges stay crisp.
-    orig_alpha_arr = np.asarray(orig_alpha).astype(np.float64)
+    orig_alpha_arr = np.asarray(orig_alpha).astype(np.float32)
     safe_alpha = np.maximum(orig_alpha_arr / 255.0, 1.0 / 255.0)
     res_arr[:, :, :3] /= safe_alpha[:, :, np.newaxis]
     res_arr[:, :, :3] = np.clip(res_arr[:, :, :3], 0, 255)

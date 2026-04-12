@@ -277,15 +277,18 @@ class StarlingXmlExporter(BaseExporter):
         # Parse with minidom for pretty printing
         if self.options.pretty_print:
             dom = minidom.parseString(rough_string)
-            # Get pretty XML, skip the minidom XML declaration (we add our own)
-            pretty = dom.toprettyxml(indent="    ", encoding=None)
-            # Remove minidom's declaration and clean up
-            lines = pretty.split("\n")
-            # Skip empty first line if present
-            if lines and lines[0].startswith("<?xml"):
-                lines = lines[1:]
-            # Remove extra blank lines
-            content = "\n".join(line for line in lines if line.strip())
+            try:
+                # Get pretty XML, skip the minidom XML declaration (we add our own)
+                pretty = dom.toprettyxml(indent="    ", encoding=None)
+                # Remove minidom's declaration and clean up
+                lines = pretty.split("\n")
+                # Skip empty first line if present
+                if lines and lines[0].startswith("<?xml"):
+                    lines = lines[1:]
+                # Remove extra blank lines
+                content = "\n".join(line for line in lines if line.strip())
+            finally:
+                dom.unlink()
             # Add our own declaration and comment
             return '<?xml version="1.0" encoding="UTF-8"?>\n' + comment_block + content
         else:
