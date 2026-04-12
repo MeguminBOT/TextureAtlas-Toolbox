@@ -330,6 +330,7 @@ class AtlasGenerator:
             images = load_result["images"]
             duplicate_map = load_result["duplicate_map"]
             all_frame_data = load_result["all_frame_data"]
+            result.warnings.extend(load_result.get("load_warnings", []))
 
             if not unique_frames:
                 result.errors.append("No valid images found to pack")
@@ -426,6 +427,7 @@ class AtlasGenerator:
         images: Dict[str, Image.Image] = {}
         hash_to_canonical: Dict[str, str] = {}
         duplicate_map: Dict[str, str] = {}
+        load_warnings: List[str] = []
 
         total_images = sum(len(paths) for paths in animation_groups.values())
         loaded_count = 0
@@ -515,6 +517,7 @@ class AtlasGenerator:
                         images[frame_id] = img
 
                 except Exception as e:
+                    load_warnings.append(f"Failed to load {path}: {e}")
                     print(f"Warning: Failed to load {path}: {e}")
 
                 loaded_count += 1
@@ -526,6 +529,7 @@ class AtlasGenerator:
             "images": images,
             "duplicate_map": duplicate_map,
             "all_frame_data": all_frame_data,
+            "load_warnings": load_warnings,
         }
 
     def _expand_packed_frames_with_duplicates(
