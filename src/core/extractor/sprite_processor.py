@@ -238,8 +238,8 @@ class SpriteProcessor:
         src_x = max(0, frame_x)
         src_y = max(0, frame_y)
 
-        copy_width = min(frame_width - dest_x, sprite_array.shape[1] - src_x)
-        copy_height = min(frame_height - dest_y, sprite_array.shape[0] - src_y)
+        copy_width = max(0, min(frame_width - dest_x, sprite_array.shape[1] - src_x))
+        copy_height = max(0, min(frame_height - dest_y, sprite_array.shape[0] - src_y))
 
         if copy_width > 0 and copy_height > 0:
             canvas[

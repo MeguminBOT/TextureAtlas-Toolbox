@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 from typing import Any, Callable, Dict, List, Optional, Set, Type
 
 from parsers.base_parser import BaseParser
+from parsers.parser_types import FormatError, ParserErrorCode
 from parsers.starling_xml_parser import StarlingXmlParser
 from parsers.texture_packer_xml_parser import TexturePackerXmlParser
 
@@ -82,8 +83,10 @@ class XmlParser(BaseParser):
             if matcher and matcher(xml_root):
                 return parser_cls
 
-        raise ValueError(
-            f"Unsupported XML spritesheet format in file: {file_path or cls.__name__}"
+        raise FormatError(
+            ParserErrorCode.UNSUPPORTED_FORMAT,
+            f"Unsupported XML spritesheet format in file: {file_path or cls.__name__}",
+            file_path=file_path,
         )
 
     def _load_xml(self):

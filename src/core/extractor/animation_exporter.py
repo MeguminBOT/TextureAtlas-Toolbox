@@ -337,14 +337,13 @@ class AnimationExporter:
                 if signature_cache is not None and not dedupe_required:
                     signature = self._frame_signature(arr)
                     if signature is None:
-                        print(
-                            "[AnimationExporter] Unable to hash frame data; falling back to duplicate pruning."
-                        )
+                        # Single frame failed to hash — skip it but keep
+                        # the cache intact so remaining frames can still
+                        # be checked.  Fall back to Wand-based pruning
+                        # only for safety.
                         dedupe_required = True
-                        signature_cache = None
                     elif signature in signature_cache:
                         dedupe_required = True
-                        signature_cache = None
                     else:
                         signature_cache.add(signature)
                 with self._wand_from_array(arr) as wand_frame:

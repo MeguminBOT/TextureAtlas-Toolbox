@@ -5,6 +5,7 @@ file for display in the application's preview pane.
 """
 
 import os
+import shutil
 import tempfile
 from typing import Dict, List, Optional
 
@@ -82,7 +83,8 @@ class PreviewGenerator:
             if not animations:
                 return None
 
-            if temp_dir is None:
+            owns_temp_dir = temp_dir is None
+            if owns_temp_dir:
                 temp_dir = tempfile.mkdtemp()
 
             resampling_method = settings.get("resampling_method", "Nearest")
@@ -126,6 +128,8 @@ class PreviewGenerator:
 
         except Exception as exc:
             print(f"Preview animation generation error: {exc}")
+            if owns_temp_dir and temp_dir and os.path.isdir(temp_dir):
+                shutil.rmtree(temp_dir, ignore_errors=True)
             return None
 
     def _collect_preview_frames(

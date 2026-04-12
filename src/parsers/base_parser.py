@@ -86,7 +86,19 @@ class BaseParser(ABC):
         try:
             result = self.__class__.parse_file(self.file_path)
             return [s["name"] for s in result.sprites if s.get("name")]
-        except Exception:
+        except (FileNotFoundError, OSError) as exc:
+            print(
+                f"[{self.__class__.__name__}] Could not read file for "
+                f"raw sprite names: {exc}"
+            )
+            return []
+        except ParserError as exc:
+            print(
+                f"[{self.__class__.__name__}] Parser error extracting "
+                f"raw sprite names: {exc}"
+            )
+            return []
+        except NotImplementedError:
             return []
 
     def get_data(self, smart_grouping: bool = False) -> Set[str]:
