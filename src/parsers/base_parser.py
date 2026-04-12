@@ -181,7 +181,7 @@ class BaseParser(ABC):
                 f"Unexpected error parsing file: {e}",
                 file_path=file_path,
                 details={"exception_type": type(e).__name__},
-            )
+            ) from e
 
     @classmethod
     def _get_legacy_parse_method(
