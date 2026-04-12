@@ -424,7 +424,7 @@ class AnimationExporter:
         except Exception:
             return None
 
-        prefix = sample_bytes[:512]
+        prefix = sample_bytes[:2048]
         return hash((frame_array.shape, frame_array.dtype.str, prefix))
 
     @staticmethod
