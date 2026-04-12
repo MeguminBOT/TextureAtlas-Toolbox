@@ -1572,7 +1572,12 @@ class GenerateTabWidget(BaseTabWidget):
             )
 
     def __del__(self):
-        """Cleanup temporary directories when widget is destroyed."""
+        """Cleanup temporary directories and worker thread when widget is destroyed."""
+        if hasattr(self, "worker") and self.worker is not None:
+            if self.worker.isRunning():
+                self.worker.quit()
+                self.worker.wait(3000)
+
         if hasattr(self, "temp_atlas_dirs"):
             import shutil
 
