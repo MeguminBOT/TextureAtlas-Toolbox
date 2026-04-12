@@ -95,7 +95,10 @@ class TexturePackerXmlExporter(BaseExporter):
         if isinstance(opts, TexturePackerXmlExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return TexturePackerXmlExportOptions(**opts)
+            try:
+                return TexturePackerXmlExportOptions(**opts)
+            except TypeError:
+                return TexturePackerXmlExportOptions()
         else:
             return TexturePackerXmlExportOptions()
 

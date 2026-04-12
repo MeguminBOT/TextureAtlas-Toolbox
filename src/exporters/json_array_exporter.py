@@ -105,7 +105,10 @@ class JsonArrayExporter(BaseExporter):
         if isinstance(opts, JsonArrayExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return JsonArrayExportOptions(**opts)
+            try:
+                return JsonArrayExportOptions(**opts)
+            except TypeError:
+                return JsonArrayExportOptions()
         else:
             return JsonArrayExportOptions()
 

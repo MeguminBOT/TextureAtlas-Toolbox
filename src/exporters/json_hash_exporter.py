@@ -104,7 +104,10 @@ class JsonHashExporter(BaseExporter):
         if isinstance(opts, JsonHashExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return JsonHashExportOptions(**opts)
+            try:
+                return JsonHashExportOptions(**opts)
+            except TypeError:
+                return JsonHashExportOptions()
         else:
             return JsonHashExportOptions()
 

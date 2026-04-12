@@ -93,7 +93,10 @@ class GdxExporter(BaseExporter):
         if isinstance(opts, GdxExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return GdxExportOptions(**opts)
+            try:
+                return GdxExportOptions(**opts)
+            except TypeError:
+                return GdxExportOptions()
         else:
             return GdxExportOptions()
 

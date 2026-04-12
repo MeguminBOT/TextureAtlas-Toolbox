@@ -10,6 +10,7 @@ import os
 from typing import Any, Callable, Dict, List, Optional, Set
 
 from parsers.base_parser import BaseParser
+from parsers.parser_types import FileError, FormatError, ParserErrorCode
 from utils.utilities import Utilities
 
 
@@ -53,10 +54,33 @@ class JsonArrayAtlasParser(BaseParser):
 
         Returns:
             Parsed JSON data as a dictionary.
+
+        Raises:
+            FileError: If the file cannot be found or read.
+            FormatError: If the file contains invalid JSON.
         """
         file_path = os.path.join(self.directory, self.filename)
-        with open(file_path, "r", encoding="utf-8") as json_file:
-            return json.load(json_file)
+        try:
+            with open(file_path, "r", encoding="utf-8") as json_file:
+                return json.load(json_file)
+        except FileNotFoundError:
+            raise FileError(
+                ParserErrorCode.FILE_NOT_FOUND,
+                f"File not found: {file_path}",
+                file_path=file_path,
+            )
+        except (OSError, UnicodeDecodeError) as exc:
+            raise FileError(
+                ParserErrorCode.FILE_READ_ERROR,
+                str(exc),
+                file_path=file_path,
+            )
+        except json.JSONDecodeError as exc:
+            raise FormatError(
+                ParserErrorCode.INVALID_FORMAT,
+                f"Invalid JSON: {exc}",
+                file_path=file_path,
+            )
 
     @classmethod
     def parse_from_frames(cls, frames: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

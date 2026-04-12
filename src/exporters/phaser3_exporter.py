@@ -99,7 +99,10 @@ class Phaser3Exporter(BaseExporter):
         if isinstance(opts, Phaser3ExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return Phaser3ExportOptions(**opts)
+            try:
+                return Phaser3ExportOptions(**opts)
+            except TypeError:
+                return Phaser3ExportOptions()
         else:
             return Phaser3ExportOptions()
 

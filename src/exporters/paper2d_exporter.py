@@ -100,7 +100,10 @@ class Paper2DExporter(BaseExporter):
         if isinstance(opts, Paper2DExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return Paper2DExportOptions(**opts)
+            try:
+                return Paper2DExportOptions(**opts)
+            except TypeError:
+                return Paper2DExportOptions()
         else:
             return Paper2DExportOptions()
 

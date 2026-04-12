@@ -96,7 +96,10 @@ class UIKitPlistExporter(BaseExporter):
         if isinstance(opts, UIKitPlistExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return UIKitPlistExportOptions(**opts)
+            try:
+                return UIKitPlistExportOptions(**opts)
+            except TypeError:
+                return UIKitPlistExportOptions()
         else:
             return UIKitPlistExportOptions()
 

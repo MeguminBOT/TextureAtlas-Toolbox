@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from typing import Any, Callable, Dict, List, Optional, Set, Type
 
 from parsers.base_parser import BaseParser
-from parsers.parser_types import FormatError, ParserErrorCode
+from parsers.parser_types import FileError, FormatError, ParserErrorCode
 from parsers.starling_xml_parser import StarlingXmlParser
 from parsers.texture_packer_xml_parser import TexturePackerXmlParser
 
@@ -94,9 +94,32 @@ class XmlParser(BaseParser):
 
         Returns:
             A tuple (file_path, xml_root).
+
+        Raises:
+            FileError: If the file cannot be found or read.
+            FormatError: If the file contains invalid XML.
         """
         file_path = os.path.join(self.directory, self.filename)
-        tree = ET.parse(file_path)
+        try:
+            tree = ET.parse(file_path)
+        except FileNotFoundError:
+            raise FileError(
+                ParserErrorCode.FILE_NOT_FOUND,
+                f"File not found: {file_path}",
+                file_path=file_path,
+            )
+        except OSError as exc:
+            raise FileError(
+                ParserErrorCode.FILE_READ_ERROR,
+                str(exc),
+                file_path=file_path,
+            )
+        except ET.ParseError as exc:
+            raise FormatError(
+                ParserErrorCode.INVALID_FORMAT,
+                f"Invalid XML: {exc}",
+                file_path=file_path,
+            )
         return file_path, tree.getroot()
 
     @staticmethod
@@ -113,7 +136,26 @@ class XmlParser(BaseParser):
         Returns:
             List of sprite dicts with position, dimension, and rotation data.
         """
-        tree = ET.parse(file_path)
+        try:
+            tree = ET.parse(file_path)
+        except FileNotFoundError:
+            raise FileError(
+                ParserErrorCode.FILE_NOT_FOUND,
+                f"File not found: {file_path}",
+                file_path=file_path,
+            )
+        except OSError as exc:
+            raise FileError(
+                ParserErrorCode.FILE_READ_ERROR,
+                str(exc),
+                file_path=file_path,
+            )
+        except ET.ParseError as exc:
+            raise FormatError(
+                ParserErrorCode.INVALID_FORMAT,
+                f"Invalid XML: {exc}",
+                file_path=file_path,
+            )
         xml_root = tree.getroot()
         parser_cls = XmlParser._detect_parser(xml_root, file_path)
         parse_from_root = getattr(parser_cls, "parse_from_root", None)

@@ -9,6 +9,7 @@ import os
 from typing import Callable, Dict, List, Optional, Set
 
 from parsers.base_parser import BaseParser
+from parsers.parser_types import FileError, ParserErrorCode
 from utils.utilities import Utilities
 
 
@@ -52,8 +53,21 @@ class SpineAtlasParser(BaseParser):
             List of sprite dicts with position, dimension, and rotation data.
         """
         sprites: List[Dict[str, int]] = []
-        with open(file_path, "r", encoding="utf-8") as atlas_file:
-            lines = [line.strip() for line in atlas_file if line.strip()]
+        try:
+            with open(file_path, "r", encoding="utf-8") as atlas_file:
+                lines = [line.strip() for line in atlas_file if line.strip()]
+        except FileNotFoundError:
+            raise FileError(
+                ParserErrorCode.FILE_NOT_FOUND,
+                f"File not found: {file_path}",
+                file_path=file_path,
+            )
+        except (OSError, UnicodeDecodeError) as exc:
+            raise FileError(
+                ParserErrorCode.FILE_READ_ERROR,
+                str(exc),
+                file_path=file_path,
+            )
 
         idx = 0
         while idx < len(lines):

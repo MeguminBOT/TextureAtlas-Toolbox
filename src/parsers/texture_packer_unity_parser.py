@@ -9,6 +9,7 @@ import os
 from typing import Callable, Dict, List, Optional, Set
 
 from parsers.base_parser import BaseParser
+from parsers.parser_types import ContentError, FileError, ParserErrorCode
 from utils.utilities import Utilities
 
 
@@ -52,7 +53,21 @@ class TexturePackerUnityParser(BaseParser):
             List of sprite dicts with position and dimension data.
         """
         sprites: List[Dict[str, int]] = []
-        with open(file_path, "r", encoding="utf-8") as data_file:
+        try:
+            data_file = open(file_path, "r", encoding="utf-8")
+        except FileNotFoundError:
+            raise FileError(
+                ParserErrorCode.FILE_NOT_FOUND,
+                f"File not found: {file_path}",
+                file_path=file_path,
+            )
+        except (OSError, UnicodeDecodeError) as exc:
+            raise FileError(
+                ParserErrorCode.FILE_READ_ERROR,
+                str(exc),
+                file_path=file_path,
+            )
+        with data_file:
             for line in data_file:
                 line = line.strip()
                 if not line or line.startswith("#") or line.startswith(":"):
@@ -61,10 +76,17 @@ class TexturePackerUnityParser(BaseParser):
                 if len(parts) < 5:
                     continue
                 name = parts[0]
-                x = int(float(parts[1]))
-                y = int(float(parts[2]))
-                width = int(float(parts[3]))
-                height = int(float(parts[4]))
+                try:
+                    x = int(float(parts[1]))
+                    y = int(float(parts[2]))
+                    width = int(float(parts[3]))
+                    height = int(float(parts[4]))
+                except (ValueError, IndexError) as exc:
+                    raise ContentError(
+                        ParserErrorCode.INVALID_SPRITE_DATA,
+                        f"Non-numeric coordinate in sprite '{name}': {exc}",
+                        file_path=file_path,
+                    )
 
                 sprite_data = {
                     "name": name,

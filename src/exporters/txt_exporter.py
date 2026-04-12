@@ -80,7 +80,10 @@ class TxtExporter(BaseExporter):
         if isinstance(opts, TxtExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return TxtExportOptions(**opts)
+            try:
+                return TxtExportOptions(**opts)
+            except TypeError:
+                return TxtExportOptions()
         else:
             return TxtExportOptions()
 

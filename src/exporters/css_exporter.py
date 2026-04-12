@@ -94,7 +94,10 @@ class CssExporter(BaseExporter):
         if isinstance(opts, CssExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return CssExportOptions(**opts)
+            try:
+                return CssExportOptions(**opts)
+            except TypeError:
+                return CssExportOptions()
         else:
             return CssExportOptions()
 

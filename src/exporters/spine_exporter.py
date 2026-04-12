@@ -103,7 +103,10 @@ class SpineExporter(BaseExporter):
         if isinstance(opts, SpineExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return SpineExportOptions(**opts)
+            try:
+                return SpineExportOptions(**opts)
+            except TypeError:
+                return SpineExportOptions()
         else:
             return SpineExportOptions()
 

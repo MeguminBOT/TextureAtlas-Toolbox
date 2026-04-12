@@ -11,8 +11,10 @@ from typing import Callable, Optional, Set
 
 from parsers.base_parser import BaseParser
 from parsers.parser_types import (
+    FileError,
     FormatError,
     ParseResult,
+    ParserError,
     ParserErrorCode,
 )
 from utils.utilities import Utilities
@@ -68,7 +70,26 @@ class SpritemapParser(BaseParser):
         try:
             with open(animation_path, "r", encoding="utf-8") as animation_file:
                 animation_json = normalize_animation_document(json.load(animation_file))
+        except FileNotFoundError:
+            raise FileError(
+                ParserErrorCode.FILE_NOT_FOUND,
+                f"File not found: {animation_path}",
+                file_path=str(animation_path),
+            )
+        except (OSError, UnicodeDecodeError) as exc:
+            raise FileError(
+                ParserErrorCode.FILE_READ_ERROR,
+                str(exc),
+                file_path=str(animation_path),
+            )
+        except json.JSONDecodeError as exc:
+            raise FormatError(
+                ParserErrorCode.INVALID_FORMAT,
+                f"Invalid JSON: {exc}",
+                file_path=str(animation_path),
+            )
 
+        try:
             symbol_lengths = compute_symbol_lengths(animation_json)
 
             # Compute which symbols to show as standalone animations.
@@ -112,8 +133,14 @@ class SpritemapParser(BaseParser):
                     if self.filter_single_frame and frame_count <= 1:
                         continue
                     names.add(label["name"])
+        except ParserError:
+            raise
         except Exception as exc:
-            print(f"Error parsing spritemap animation file {animation_path}: {exc}")
+            raise FormatError(
+                ParserErrorCode.INVALID_FORMAT,
+                f"Error parsing spritemap animation file {animation_path}: {exc}",
+                file_path=str(animation_path),
+            )
         return names
 
     @classmethod

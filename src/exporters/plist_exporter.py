@@ -105,7 +105,10 @@ class PlistExporter(BaseExporter):
         if isinstance(opts, PlistExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return PlistExportOptions(**opts)
+            try:
+                return PlistExportOptions(**opts)
+            except TypeError:
+                return PlistExportOptions()
         else:
             return PlistExportOptions()
 

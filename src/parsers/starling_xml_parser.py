@@ -29,6 +29,7 @@ import xml.etree.ElementTree as ET
 from typing import Any, Callable, Dict, List, Optional, Set
 
 from parsers.base_parser import BaseParser
+from parsers.parser_types import FileError, FormatError, ParserErrorCode
 from utils.utilities import Utilities
 
 
@@ -62,9 +63,32 @@ class StarlingXmlParser(BaseParser):
 
         Returns:
                 Set of sprite names with trailing digits stripped.
+
+        Raises:
+                FileError: If the file cannot be found or read.
+                FormatError: If the file contains invalid XML.
         """
         file_path = os.path.join(self.directory, self.filename)
-        tree = ET.parse(file_path)
+        try:
+            tree = ET.parse(file_path)
+        except FileNotFoundError:
+            raise FileError(
+                ParserErrorCode.FILE_NOT_FOUND,
+                f"File not found: {file_path}",
+                file_path=file_path,
+            )
+        except OSError as exc:
+            raise FileError(
+                ParserErrorCode.FILE_READ_ERROR,
+                str(exc),
+                file_path=file_path,
+            )
+        except ET.ParseError as exc:
+            raise FormatError(
+                ParserErrorCode.INVALID_FORMAT,
+                f"Invalid XML: {exc}",
+                file_path=file_path,
+            )
         xml_root = tree.getroot()
         return self.extract_names_from_root(xml_root)
 
@@ -139,6 +163,25 @@ class StarlingXmlParser(BaseParser):
         Returns:
                 List of sprite dicts with position, dimension, and rotation data.
         """
-        tree = ET.parse(file_path)
+        try:
+            tree = ET.parse(file_path)
+        except FileNotFoundError:
+            raise FileError(
+                ParserErrorCode.FILE_NOT_FOUND,
+                f"File not found: {file_path}",
+                file_path=file_path,
+            )
+        except OSError as exc:
+            raise FileError(
+                ParserErrorCode.FILE_READ_ERROR,
+                str(exc),
+                file_path=file_path,
+            )
+        except ET.ParseError as exc:
+            raise FormatError(
+                ParserErrorCode.INVALID_FORMAT,
+                f"Invalid XML: {exc}",
+                file_path=file_path,
+            )
         xml_root = tree.getroot()
         return StarlingXmlParser.parse_from_root(xml_root)

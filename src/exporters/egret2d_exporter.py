@@ -87,7 +87,10 @@ class Egret2DExporter(BaseExporter):
         if isinstance(opts, Egret2DExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return Egret2DExportOptions(**opts)
+            try:
+                return Egret2DExportOptions(**opts)
+            except TypeError:
+                return Egret2DExportOptions()
         else:
             return Egret2DExportOptions()
 

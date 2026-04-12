@@ -84,7 +84,10 @@ class UnityExporter(BaseExporter):
         if isinstance(opts, UnityExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return UnityExportOptions(**opts)
+            try:
+                return UnityExportOptions(**opts)
+            except TypeError:
+                return UnityExportOptions()
         else:
             return UnityExportOptions()
 

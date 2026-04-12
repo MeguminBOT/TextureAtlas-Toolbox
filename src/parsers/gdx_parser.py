@@ -42,6 +42,7 @@ import os
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
 from parsers.base_parser import BaseParser
+from parsers.parser_types import ContentError, FileError, ParserErrorCode
 from utils.utilities import Utilities
 
 
@@ -82,8 +83,21 @@ class GdxAtlasParser(BaseParser):
         Returns:
             List of sprite dicts with position, dimension, and rotation data.
         """
-        with open(file_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            raise FileError(
+                ParserErrorCode.FILE_NOT_FOUND,
+                f"File not found: {file_path}",
+                file_path=file_path,
+            )
+        except (OSError, UnicodeDecodeError) as exc:
+            raise FileError(
+                ParserErrorCode.FILE_READ_ERROR,
+                str(exc),
+                file_path=file_path,
+            )
 
         sprites: List[Dict[str, int]] = []
         idx = 0
@@ -188,41 +202,47 @@ class GdxAtlasParser(BaseParser):
         rotated = False
         index = -1
 
-        # Modern combined fields
-        if "bounds" in fields:
-            vals = fields["bounds"]
-            x = int(vals[0])
-            y = int(vals[1])
-            width = int(vals[2]) if len(vals) > 2 else 0
-            height = int(vals[3]) if len(vals) > 3 else 0
+        try:
+            # Modern combined fields
+            if "bounds" in fields:
+                vals = fields["bounds"]
+                x = int(vals[0])
+                y = int(vals[1])
+                width = int(vals[2]) if len(vals) > 2 else 0
+                height = int(vals[3]) if len(vals) > 3 else 0
 
-        # Legacy separate fields
-        if "xy" in fields:
-            vals = fields["xy"]
-            x = int(vals[0])
-            y = int(vals[1]) if len(vals) > 1 else 0
-        if "size" in fields:
-            vals = fields["size"]
-            width = int(vals[0])
-            height = int(vals[1]) if len(vals) > 1 else 0
+            # Legacy separate fields
+            if "xy" in fields:
+                vals = fields["xy"]
+                x = int(vals[0])
+                y = int(vals[1]) if len(vals) > 1 else 0
+            if "size" in fields:
+                vals = fields["size"]
+                width = int(vals[0])
+                height = int(vals[1]) if len(vals) > 1 else 0
 
-        # Modern combined offsets
-        if "offsets" in fields:
-            vals = fields["offsets"]
-            offset_x = int(vals[0])
-            offset_y = int(vals[1]) if len(vals) > 1 else 0
-            orig_w = int(vals[2]) if len(vals) > 2 else width
-            orig_h = int(vals[3]) if len(vals) > 3 else height
+            # Modern combined offsets
+            if "offsets" in fields:
+                vals = fields["offsets"]
+                offset_x = int(vals[0])
+                offset_y = int(vals[1]) if len(vals) > 1 else 0
+                orig_w = int(vals[2]) if len(vals) > 2 else width
+                orig_h = int(vals[3]) if len(vals) > 3 else height
 
-        # Legacy separate fields
-        if "offset" in fields:
-            vals = fields["offset"]
-            offset_x = int(vals[0])
-            offset_y = int(vals[1]) if len(vals) > 1 else 0
-        if "orig" in fields:
-            vals = fields["orig"]
-            orig_w = int(vals[0])
-            orig_h = int(vals[1]) if len(vals) > 1 else 0
+            # Legacy separate fields
+            if "offset" in fields:
+                vals = fields["offset"]
+                offset_x = int(vals[0])
+                offset_y = int(vals[1]) if len(vals) > 1 else 0
+            if "orig" in fields:
+                vals = fields["orig"]
+                orig_w = int(vals[0])
+                orig_h = int(vals[1]) if len(vals) > 1 else 0
+        except (ValueError, IndexError) as exc:
+            raise ContentError(
+                ParserErrorCode.INVALID_SPRITE_DATA,
+                f"Non-numeric coordinate in sprite '{name}': {exc}",
+            )
 
         # Rotation
         if "rotate" in fields:

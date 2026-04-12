@@ -52,7 +52,10 @@ class AsepriteExporter(BaseExporter):
         if isinstance(opts, AsepriteExportOptions):
             return opts
         if isinstance(opts, dict):
-            return AsepriteExportOptions(**opts)
+            try:
+                return AsepriteExportOptions(**opts)
+            except TypeError:
+                return AsepriteExportOptions()
         return AsepriteExportOptions()
 
     def build_metadata(

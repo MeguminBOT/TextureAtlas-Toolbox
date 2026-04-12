@@ -90,7 +90,10 @@ class GodotExporter(BaseExporter):
         if isinstance(opts, GodotExportOptions):
             return opts
         elif isinstance(opts, dict):
-            return GodotExportOptions(**opts)
+            try:
+                return GodotExportOptions(**opts)
+            except TypeError:
+                return GodotExportOptions()
         else:
             return GodotExportOptions()
 
