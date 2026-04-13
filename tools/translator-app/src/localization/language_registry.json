@@ -19,10 +19,15 @@
         "english_name": "French (France)",
         "quality": "reviewed"
     },
+    "id_id": {
+        "name": "Indonesia",
+        "english_name": "Indonesian",
+        "quality": "machine"
+    },
     "it_it": {
         "name": "italiano (Italia)",
         "english_name": "Italian (Italy)",
-        "quality": "machine"
+        "quality": "unreviewed"
     },
     "ko_kr": {
         "name": "한국어 (대한민국)",

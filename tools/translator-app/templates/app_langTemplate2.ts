@@ -749,7 +749,7 @@ Quality indicators: ✅ Native, 👥 Community, 🤖 Machine, ⚠️ Partial</so
     </message>
 </context>
 <context>
-    <name>TextureAtlasExtractorApp</name>
+    <name>TextureAtlasToolboxApp</name>
     <message>
         <location filename="../Main.py" line="149"/>
         <source>Variable delay</source>
