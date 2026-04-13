@@ -32,6 +32,7 @@ def ssim_from_arrays(orig: np.ndarray, quant: np.ndarray) -> float:
     win = 7
 
     def _box_mean(arr: np.ndarray) -> np.ndarray:
+        """Compute local box-filter mean using the summed-area-table technique."""
         h, w = arr.shape
         if h < win or w < win:
             return np.full_like(arr, arr.mean())
