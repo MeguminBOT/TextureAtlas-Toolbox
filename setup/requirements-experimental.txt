@@ -1,7 +1,9 @@
 certifi
 charset-normalizer
 colorama
+etcpak
 idna
+texture2ddecoder
 numpy
 pillow
 psutil

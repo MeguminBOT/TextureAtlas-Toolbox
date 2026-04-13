@@ -1,7 +1,9 @@
 certifi==2024.8.30
 charset-normalizer==3.4.0
 colorama==0.4.6
+etcpak==0.9.11
 idna==3.10
+texture2ddecoder==1.0.6
 numpy==2.2.0
 pillow==11.3.0
 psutil==6.1.0
