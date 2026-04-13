@@ -45,6 +45,7 @@ class AnimationTreeWidget(QTreeWidget):
 
     def setup_tree(self):
         """Configure tree properties, drag-drop, and context menu."""
+        self._export_format = "starling-xml"
 
         self.setHeaderLabel(self.tr("Animations & Frames"))
         self.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
@@ -208,6 +209,41 @@ class AnimationTreeWidget(QTreeWidget):
 
         return animations
 
+    def set_export_format(self, export_format: str):
+        """Set the active export format and refresh all frame labels.
+
+        Args:
+            export_format: Format key (e.g. ``"starling-xml"``, ``"json-hash"``).
+        """
+        if export_format == self._export_format:
+            return
+        self._export_format = export_format
+        self.refresh_all_frame_numbering()
+
+    def refresh_all_frame_numbering(self):
+        """Re-number every frame across all animation groups."""
+        root = self.invisibleRootItem()
+        for i in range(root.childCount()):
+            group_item = root.child(i)
+            data = group_item.data(0, Qt.ItemDataRole.UserRole)
+            if data and data.get("type") == "animation_group":
+                self.update_frame_numbering(group_item)
+
+    @staticmethod
+    def _format_frame_suffix(export_format: str, idx: int) -> str:
+        """Build the frame suffix using the numbering convention for *export_format*.
+
+        Mirrors :meth:`AtlasGenerator._format_sprite_name` so the tree
+        preview matches the actual output names.
+        """
+        if export_format == "starling-xml":
+            return f"{idx:04d}"
+        if export_format in ("json-hash", "json-array"):
+            return f"_{idx + 1:02d}"
+        if export_format == "gdx":
+            return f"_{idx}"
+        return f"_{idx:04d}"
+
     def update_frame_numbering(self, group_item):
         """Refresh display names to show frame indices within the group.
 
@@ -227,8 +263,8 @@ class AnimationTreeWidget(QTreeWidget):
                 original_path = frame_data["path"]
                 original_name = Path(original_path).name
 
-                frame_number = f"{i:04d}"
-                display_name = f"{original_name} \u2192 {animation_name}{frame_number}"
+                suffix = self._format_frame_suffix(self._export_format, i)
+                display_name = f"{original_name} \u2192 {animation_name}{suffix}"
 
                 frame_item.setText(0, display_name)
 
