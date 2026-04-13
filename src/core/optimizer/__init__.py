@@ -14,14 +14,19 @@ from core.optimizer.constants import (
     PRESET_OPTIONS,
     QUANTIZE_METHOD_LABELS,
     SUPPORTED_EXTENSIONS,
+    TEXTURE_CONTAINER_LABELS,
+    TEXTURE_FORMAT_LABELS,
     ColorMode,
     DitherMethod,
     OptimizeOptions,
     OptimizePreset,
     OptimizeResult,
     QuantizeMethod,
+    TextureContainer,
+    TextureFormat,
 )
 from core.optimizer.optimizer import ImageOptimizer
+from core.optimizer.texture_compress import TextureCompressor
 
 __all__ = [
     "COLOR_MODE_LABELS",
@@ -37,4 +42,9 @@ __all__ = [
     "QUANTIZE_METHOD_LABELS",
     "QuantizeMethod",
     "SUPPORTED_EXTENSIONS",
+    "TEXTURE_CONTAINER_LABELS",
+    "TEXTURE_FORMAT_LABELS",
+    "TextureCompressor",
+    "TextureContainer",
+    "TextureFormat",
 ]

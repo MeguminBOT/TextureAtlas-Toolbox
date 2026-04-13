@@ -160,6 +160,28 @@ TIFF_COMPRESSION_OPTIONS: Tuple[ComboOption, ...] = (
     ComboOption("jpeg", "JPEG"),
 )
 
+# GPU texture compression formats — shown in generator / optimizer
+TEXTURE_COMPRESSION_OPTIONS: Tuple[ComboOption, ...] = (
+    ComboOption("none", "None"),
+    ComboOption("bc1", "BC1 / DXT1 (RGB, 4:1)"),
+    ComboOption("bc3", "BC3 / DXT5 (RGBA, 4:1)"),
+    ComboOption("bc7", "BC7 (RGBA, high quality)"),
+    ComboOption("etc1", "ETC1 (RGB, mobile legacy)"),
+    ComboOption("etc2_rgb", "ETC2 RGB (mobile)"),
+    ComboOption("etc2_rgba", "ETC2 RGBA (mobile)"),
+    ComboOption("astc_4x4", "ASTC 4×4 (highest quality)"),
+    ComboOption("astc_6x6", "ASTC 6×6 (balanced)"),
+    ComboOption("astc_8x8", "ASTC 8×8 (smallest size)"),
+    ComboOption("pvrtc_4bpp", "PVRTC 4bpp"),
+    ComboOption("pvrtc_2bpp", "PVRTC 2bpp"),
+)
+
+# GPU texture container format (DDS or KTX2)
+TEXTURE_CONTAINER_OPTIONS: Tuple[ComboOption, ...] = (
+    ComboOption("dds", "DDS (DirectDraw Surface)"),
+    ComboOption("ktx2", "KTX2 (Khronos Texture)"),
+)
+
 
 def get_display_texts(
     options: Tuple[ComboOption, ...],

@@ -75,6 +75,84 @@ class OptimizePreset(Enum):
     CUSTOM = "custom"
 
 
+class TextureFormat(Enum):
+    """GPU texture compression format.
+
+    Each value maps to a block-compressed format suitable for direct
+    GPU upload.  The *block_bytes* and *block_size* properties describe
+    the compressed block layout needed by container writers.
+    """
+
+    BC1 = "bc1"
+    BC3 = "bc3"
+    BC7 = "bc7"
+    ETC1 = "etc1"
+    ETC2_RGB = "etc2_rgb"
+    ETC2_RGBA = "etc2_rgba"
+    ASTC_4x4 = "astc_4x4"
+    ASTC_6x6 = "astc_6x6"
+    ASTC_8x8 = "astc_8x8"
+    PVRTC_4BPP = "pvrtc_4bpp"
+    PVRTC_2BPP = "pvrtc_2bpp"
+
+    @property
+    def block_size(self) -> int:
+        """Side length (in texels) of one compressed block."""
+        _map = {
+            "bc1": 4,
+            "bc3": 4,
+            "bc7": 4,
+            "etc1": 4,
+            "etc2_rgb": 4,
+            "etc2_rgba": 4,
+            "astc_4x4": 4,
+            "astc_6x6": 6,
+            "astc_8x8": 8,
+            "pvrtc_4bpp": 4,
+            "pvrtc_2bpp": 8,
+        }
+        return _map[self.value]
+
+    @property
+    def block_bytes(self) -> int:
+        """Byte size of one compressed block."""
+        _map = {
+            "bc1": 8,
+            "bc3": 16,
+            "bc7": 16,
+            "etc1": 8,
+            "etc2_rgb": 8,
+            "etc2_rgba": 16,
+            "astc_4x4": 16,
+            "astc_6x6": 16,
+            "astc_8x8": 16,
+            "pvrtc_4bpp": 8,
+            "pvrtc_2bpp": 8,
+        }
+        return _map[self.value]
+
+    @property
+    def has_alpha(self) -> bool:
+        """Whether this format stores alpha channel data."""
+        return self in (
+            TextureFormat.BC3,
+            TextureFormat.BC7,
+            TextureFormat.ETC2_RGBA,
+            TextureFormat.ASTC_4x4,
+            TextureFormat.ASTC_6x6,
+            TextureFormat.ASTC_8x8,
+            TextureFormat.PVRTC_4BPP,
+            TextureFormat.PVRTC_2BPP,
+        )
+
+
+class TextureContainer(Enum):
+    """Container file format for GPU-compressed texture data."""
+
+    DDS = "dds"
+    KTX2 = "ktx2"
+
+
 COLOR_MODE_LABELS: dict[str, ColorMode] = {
     "Keep original": ColorMode.KEEP,
     "RGBA (32-bit)": ColorMode.RGBA,
@@ -114,6 +192,26 @@ PRESET_LABELS: dict[str, OptimizePreset] = {
 }
 
 
+TEXTURE_FORMAT_LABELS: dict[str, TextureFormat] = {
+    "BC1 / DXT1 (RGB, 4:1)": TextureFormat.BC1,
+    "BC3 / DXT5 (RGBA, 4:1)": TextureFormat.BC3,
+    "BC7 (RGBA, high quality)": TextureFormat.BC7,
+    "ETC1 (RGB, mobile legacy)": TextureFormat.ETC1,
+    "ETC2 RGB (mobile)": TextureFormat.ETC2_RGB,
+    "ETC2 RGBA (mobile)": TextureFormat.ETC2_RGBA,
+    "ASTC 4×4 (highest quality)": TextureFormat.ASTC_4x4,
+    "ASTC 6×6 (balanced)": TextureFormat.ASTC_6x6,
+    "ASTC 8×8 (smallest size)": TextureFormat.ASTC_8x8,
+    "PVRTC 4bpp": TextureFormat.PVRTC_4BPP,
+    "PVRTC 2bpp": TextureFormat.PVRTC_2BPP,
+}
+
+TEXTURE_CONTAINER_LABELS: dict[str, TextureContainer] = {
+    "DDS (DirectDraw Surface)": TextureContainer.DDS,
+    "KTX2 (Khronos Texture)": TextureContainer.KTX2,
+}
+
+
 @dataclass
 class OptimizeOptions:
     """Configuration for an optimization run.
@@ -130,6 +228,9 @@ class OptimizeOptions:
         skip_if_larger: Do not write output if it would be larger.
         overwrite: Replace originals instead of writing to output_dir.
         output_dir: Destination directory when not overwriting.
+        texture_format: GPU texture compression format key, or None to skip.
+        texture_container: Container for GPU output ('dds' or 'ktx2').
+        generate_mipmaps: Whether to generate mipmaps for GPU textures.
     """
 
     compress_level: int = 9
@@ -143,6 +244,9 @@ class OptimizeOptions:
     skip_if_larger: bool = True
     overwrite: bool = False
     output_dir: str = ""
+    texture_format: str | None = None
+    texture_container: str = "dds"
+    generate_mipmaps: bool = False
 
 
 @dataclass
@@ -159,6 +263,7 @@ class OptimizeResult:
         skipped: True if the file was skipped (result was larger).
         ssim: Structural similarity index (0–1) after quantization,
             or ``-1.0`` when not computed.
+        gpu_compressed_path: Path to GPU-compressed output, or empty string.
     """
 
     source_path: str
@@ -169,6 +274,7 @@ class OptimizeResult:
     error: str = ""
     skipped: bool = False
     ssim: float = -1.0
+    gpu_compressed_path: str = ""
 
     @property
     def savings_bytes(self) -> int:
