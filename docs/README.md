@@ -1,7 +1,7 @@
 # Documentation Hub
 
-TextureAtlas Toolbox v2.0.0 ships with a fully Qt-based (PySide6) user interface covering
-extraction, atlas generation, and manual alignment. This folder contains the official
+TextureAtlas Toolbox v2.1.0 ships with a fully Qt-based (PySide6) user interface covering
+extraction, atlas generation, GPU texture compression, and manual alignment. This folder contains the official
 documentation that mirrors the current UI and APIs.
 
 ## Contents
@@ -16,6 +16,7 @@ documentation that mirrors the current UI and APIs.
 | [Developer Documentation](developer-docs.md) | Architecture overview and contributor onboarding |
 | [API Reference](api-reference.md) | Key classes, callbacks, and extension points |
 | [Release Notes](release-notes.md) | Version history and migration guidance |
+| [Module Dependencies](module-dependencies.md) | Internal module dependency map and impact lookup |
 | [Translation Guide](translation-guide.md) | Working with Qt `.ts` files for localization |
 | [Licenses](licenses.md) | Project license and third-party license summaries |
 
@@ -44,4 +45,4 @@ docs synced with the codebase.
 
 ---
 
-*Last updated: December 6, 2025 — TextureAtlas Toolbox v2.0.0* 
+*Last updated: June 2025 — TextureAtlas Toolbox v2.1.0* 

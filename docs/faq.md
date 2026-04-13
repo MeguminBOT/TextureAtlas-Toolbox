@@ -135,6 +135,31 @@ more memory and CPU than other formats. Try these solutions:
 
 ## 🛠️ General Usage
 
+### Q: What is GPU texture compression and when should I use it?
+**A:** GPU texture compression stores image data in a format that GPUs can decompress directly
+during rendering, reducing VRAM usage and improving performance. Use it when generating atlases
+for game engines:
+- **BC1/BC3/BC7** for desktop games (DirectX, Vulkan)
+- **ETC1/ETC2** for mobile games (OpenGL ES)
+- **ASTC** for modern mobile and cross-platform (Vulkan, Metal)
+- **PVRTC** for legacy iOS (PowerVR GPUs)
+
+If you're just extracting sprites for galleries or web use, you don't need GPU compression.
+
+### Q: My ASTC or PVRTC format says "unavailable"
+**A:** ASTC requires the `astcenc` command-line tool and PVRTC requires `PVRTexToolCLI`.
+These are not bundled with the application. Download them from:
+- **astcenc**: [ARM's GitHub](https://github.com/ARM-software/astc-encoder)
+- **PVRTexToolCLI**: [Imagination Technologies](https://developer.imaginationtech.com/pvrtextool/)
+
+BC and ETC formats work out of the box via the included `etcpak` package.
+
+### Q: Why did the padding change when I selected GPU compression?
+**A:** GPU compression works on fixed-size blocks (typically 4×4 pixels). If padding between
+sprites is smaller than the block size, adjacent sprites can bleed into each other after
+compression. The tool automatically increases padding to at least the block size to prevent
+this. A one-time informational dialog explains this on first use.
+
 ### Q: How can I process a single spritesheet?
 **A:** Here's how you do it:
 1. In the **Extract** tab, use the menu bar and choose "Select files."

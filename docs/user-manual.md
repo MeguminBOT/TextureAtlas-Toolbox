@@ -165,6 +165,21 @@ varied sprite sets.
 | Allow Rotation | Enable 90° rotation for tighter packing (format-dependent)              |
 | Allow Flip     | Enable sprite flipping (only supported by Starling XML with HaxeFlixel) |
 
+#### GPU Texture Compression
+
+When a game-engine metadata format is selected (e.g., Spine, Godot, Paper2D, Unity, JSON
+Hash/Array, Phaser 3, Plist, Egret2D), additional GPU compression controls appear:
+
+| Option               | Description                                                                   |
+| -------------------- | ----------------------------------------------------------------------------- |
+| Texture Format       | GPU compression algorithm (BC1, BC3, BC7, ETC1/2, ASTC, PVRTC) or None       |
+| Container            | DDS (desktop/DirectX) or KTX2 (cross-platform/Vulkan)                         |
+| Generate Mipmaps     | Create a full mipmap chain for LOD rendering                                  |
+
+> **Note:** When a GPU compression format is selected, atlas padding is automatically
+> increased to at least the block size (typically 4 pixels) to prevent compression artifacts
+> at block boundaries. A one-time informational dialog explains this on first use.
+
 ### Editor Tab
 
 The Editor tab provides an interactive alignment workspace for manual sprite adjustments.
@@ -524,14 +539,26 @@ For complete format specifications including field details and examples, see the
 | Paper2D              | `.paper2dsprites` | Unreal Engine 4/5             |
 | Unity TexturePacker  | `.tpsheet`        | Unity game engine             |
 
+#### GPU Compressed Atlas Image Formats
+
+When GPU texture compression is enabled, the atlas image is saved in a GPU-native container
+instead of (or alongside) the standard PNG/WebP image:
+
+| Format               | Container | Extension | Use Case                      |
+| -------------------- | --------- | --------- | ----------------------------- |
+| BC1/BC3/BC7          | DDS       | `.dds`    | Desktop games (DirectX)       |
+| ETC1/ETC2/ASTC/PVRTC | KTX2     | `.ktx2`   | Mobile and cross-platform     |
+| Any format           | KTX2      | `.ktx2`   | Vulkan, WebGL, multi-platform |
+
 ### Rotation and Flip Support
 
 Not all formats support rotated or flipped sprites:
 
-| Feature      | Supported Formats                                                                           |
-| ------------ | ------------------------------------------------------------------------------------------- |
-| 90° Rotation | Starling XML, JSON Hash/Array, Aseprite, TexturePacker XML, Spine, Phaser 3, Plist, Paper2D |
-| Flip         | Starling XML only (HaxeFlixel extension)                                                    |
+| Feature             | Supported Formats                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| 90° Rotation        | Starling XML, JSON Hash/Array, Aseprite, TexturePacker XML, Spine, Phaser 3, Plist, Paper2D |
+| Flip                | Starling XML only (HaxeFlixel extension)                                                    |
+| GPU Compression     | JSON Hash/Array, Spine, Phaser 3, Plist, Godot, Egret2D, Paper2D, Unity                     |
 
 > **Note:** Flip support is non-standard. Only HaxeFlixel's Sparrow implementation reads flip
 > attributes. Most engines ignore them.

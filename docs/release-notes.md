@@ -3,6 +3,7 @@ Version history and changelog for TextureAtlas Toolbox (formerly TextureAtlas to
 
 ## Table of Contents (Major Versions)
 
+- [Version 2.1.x](#version-21x)
 - [Version 2.0.x](#version-20x)
 - [Version 1.9.x](#version-19x)
 - [Version 1.8.x](#version-18x)
@@ -19,14 +20,151 @@ Version history and changelog for TextureAtlas Toolbox (formerly TextureAtlas to
 
 ## Current Version
 
-### Version 2.0.1 (Current)
-Release date: **January 10, 2026**
+### Version 2.1.0 (Current)
+Release date: **TBD**
 
 ---
 
 ## Version History
 
+### Version 2.1.x
+
+_
+
+#### Version 2.1.0
+Release date: **TBD**
+
+##### New Features
+- Feature: **GPU Texture Extraction**: Load and extract sprites from DDS and KTX2 GPU-compressed atlas images (BC1/BC3/BC7, ETC1, ETC2, ASTC, PVRTC) using `texture2ddecoder`
+- Feature: **GPU Texture Compression**: Generate GPU-compressed atlas images in BC1/DXT1, BC3/DXT5, BC7, ETC1, ETC2, ASTC, and PVRTC formats
+- Feature: **DDS and KTX2 container output**: Store compressed textures in industry-standard DDS (DirectX) or KTX2 (Khronos) containers
+- Feature: **Mipmap generation**: Optionally generate full mipmap chains with Lanczos downsampling for GPU-compressed textures
+- Feature: **GPU compression in optimizer**: Post-process optimized images with GPU texture compression
+- Feature: **libGDX TexturePacker format**: New parser and exporter for libGDX TexturePacker `.atlas` files
+- Feature: **EXIF metadata in WebP/AVIF**: Extracted WebP and AVIF frames now include EXIF metadata
+- Feature: **Hierarchical sprite name paths**: Support hierarchical sprite names (e.g. `folder/sprite`) in export paths, preserving directory structure
+- Feature: **Persistent GPU compression defaults**: GPU texture format, container, and mipmap settings are saved in app config and restored across sessions for both generator and optimizer
+- Feature: **Format-specific sprite naming**: Generator now uses format-appropriate naming conventions for exported sprites
+- Feature: **JSON parser improvements**: JSON parsers now handle rotated dimensions, `frameTags`, and per-frame duration fields
+
+##### Bugfixes
+- Bugfix: **Exporter spec compliance**: Spec-compliance fixes for Plist, Spine, and Aseprite exporters
+- Bugfix: **Image.fromarray TypeError**: Fix TypeError in standalone/compiled builds when using `Image.fromarray`
+- Bugfix: **ImageMagick compiled builds**: Fix ImageMagick path issues on compiled/standalone builds
+- Bugfix: **Error popup not displaying**: Fix `show_error_popup` never displaying when QApplication already exists
+- Bugfix: **Preview generator variable**: Fix `UnboundLocalError` for `owns_temp_dir` in preview generator
+- Bugfix: **Extract tab reset**: Remove duplicate `.clear()` calls in extract tab reset
+- Bugfix: **Generator thread leak**: Stop generator worker thread on widget destruction
+- Bugfix: **Temp directory leak**: Fix temp directory leak in `add_existing_atlas` on exception
+- Bugfix: **Atlas size guard**: Add atlas size guard to prevent excessive memory allocation
+- Bugfix: **Frame signature accuracy**: Increase frame signature prefix from 512 to 2048 bytes for better deduplication
+- Bugfix: **Image load failure reporting**: Surface image load failures as warnings in generator result instead of silently failing
+- Bugfix: **Parser error chaining**: Add exception chaining in base parser catch-all handler
+- Bugfix: **File I/O error handling**: Add error handling for file I/O in Aseprite, TXT, and CSS legacy parsers
+
+##### Enhancements
+- Enhancement: **GPU defaults in config window**: App config dialog now includes GPU Texture Compression group in both generator and optimizer defaults tabs
+- Enhancement: **Automatic padding enforcement**: Padding is auto-clamped to at least the compression block size when GPU format is active, preventing block-boundary bleeding
+- Enhancement: **Format-gated GPU controls**: GPU compression options only appear for metadata formats used by game engines that consume compressed textures
+- Enhancement: **One-time disclaimer dialog**: Informational dialog on first GPU format selection explains padding implications and experimental status
+- Enhancement: **Background atlas import**: Atlas import moved to background thread with progress indicator
+- Enhancement: **Granular progress reporting**: Sub-progress reporting in atlas generator for more responsive progress bars
+- Enhancement: **CPU detection**: Grab CPU and thread count directly from registry as primary method, fallback to wmic
+- Enhancement: **Path sanitization utilities**: New `sanitize_path_name` and `basename_from_sprite_name` helpers
+
+##### Optimizations
+- Optimization: **O(1) frame dedup lookup**: Use set for O(1) `is_frame_already_added` lookup instead of list scan
+- Optimization: **Faster single-frame check**: Use `np.array_equal` instead of `.tobytes()` in `is_single_frame`
+- Optimization: **Flip hash reuse**: Reuse `flip_y` result when computing `flip_xy` hash
+- Optimization: **Frame tuple caching**: Reuse cached frame tuples instead of rebuilding in non-smart grouping
+- Optimization: **Memory management**: Close source images after atlas compositing to free memory
+
+##### Dependencies
+- Added: **etcpak** pip package for BC1/BC3/BC7/ETC1/ETC2 compression
+
+_
+
 ### Version 2.0.x
+
+_
+
+#### Version 2.0.5
+Release date: **March 22, 2026**
+
+##### New Features
+- Feature: **Optimizer tab**: New quantization methods for optimizing atlas images (color reduction, palette generation)
+- Feature: **Indonesian language**: Added Indonesian language metadata and translations (community contribution)
+
+##### Bugfixes
+- Bugfix: **Animation list after deletion**: Animation list not updating correctly after deleting a spritesheet (#61)
+- Bugfix: **Override settings**: Override settings storing redundant global values (#62)
+- Bugfix: **PySide6 DLL/plugin errors**: Resolve PySide6 DLL/plugin errors for certain users on Windows portable builds
+- Bugfix: **Animation grouping**: Fix animation grouping for spritesheets with sub-indexed frame numbers
+- Bugfix: **Spritemap extraction**: Fix spritemap extraction for loosely organized animations prior to export
+- Bugfix: **Spritemap symbol filtering**: Filter spritemap symbols to direct children of root timeline
+- Bugfix: **Sprite crop rescaling**: Rescale sprite crop coordinates when atlas size mismatches metadata
+- Bugfix: **Minimum period padding**: Apply minimum period as last-frame padding instead of per-frame clamp
+
+##### Enhancements
+- Enhancement: **Spritemap streaming**: Optimize spritemap extraction by streaming the assets instead of loading all at once
+- Enhancement: **Root animation detection**: Improved spritemap root animation detection and symbol filtering
+- Enhancement: **Startup messages**: Standardize startup debug print messages with clear prefixes
+- Enhancement: **Dependency fixes**: Dependency fixes and build script improvements
+
+_
+
+#### Version 2.0.4
+Release date: **February 01, 2026**
+
+##### New Features
+- Feature: **6-element matrix spritemaps**: Add support for 3×2 6-element matrix spritemaps
+
+##### Enhancements
+- Enhancement: **Translation system cleanup**: Removed temp translation workaround; no more duplicate translation functions required
+- Enhancement: **Build scripts**: Replaced unicode checkmarks with ASCII `[OK]` and `[FAIL]` in build scripts for Windows compatibility
+- Enhancement: **Build scripts safety**: Flush prints and charmap error fix for Windows workflow
+- Enhancement: **Unix builds**: Strip unnecessary PySide6 components on Unix releases as well
+- Enhancement: **GitHub Actions**: Added CI workflow for the Translation Editor tool
+- Enhancement: **Updated languages**: Refreshed translation files
+
+_
+
+#### Version 2.0.3
+Release date: **January 23, 2026**
+
+##### New Features
+- Feature: **Translation Editor tool**: Full-featured Translation Editor with API key support, language templates, MT disclaimer management, advanced menubar, and portable build scripts
+- Feature: **Quick find/replace presets**: Add presets to remove sprite names or shorten frame digits in the editor
+- Feature: **French translations**: French (France) translations are complete
+
+##### Bugfixes
+- Bugfix: **Generator animation renaming**: Fix generator not renaming animations properly in exports
+- Bugfix: **Translation display**: Fix items not being translated correctly due to QT framework limitations with `ui_constants`
+- Bugfix: **Frame number padding**: Proper fix for spritesheets not using zeros for padding the frame number
+- Bugfix: **Indices input**: Fix a bug with indices input
+- Bugfix: **Small screens**: Band-aid fix for users with screens smaller than 850px in height
+
+##### Enhancements
+- Enhancement: **Translateable strings file**: Define translateable strings in a dedicated file for consistency across multiple menus
+- Enhancement: **Alpha threshold display**: Make alpha threshold display value consistent, use percentage everywhere
+- Enhancement: **Global settings**: Ensure global settings are applied correctly
+- Enhancement: **Language auto-detection**: Improvements to language selection and auto-detect languages
+- Enhancement: **Build debloat**: Debloat unneeded PySide6 components from builds
+
+_
+
+#### Version 2.0.2
+Release date: **January 12, 2026**
+
+##### Bugfixes
+- Bugfix: **Bin packing algorithms**: Bin packing algorithms now use their proper logic
+- Bugfix: **Generator options**: Generator rotate/alpha/trim and more options have been fixed
+- Bugfix: **Combobox refresh**: Fix comboboxes not refreshing data as intended
+
+##### Enhancements
+- Enhancement: **Bin packing improvement**: Further improve bin packing by testing aspect ratios and auto-expanding if needed
+- Enhancement: **Update installer**: Improve update installer with retry using elevated permissions if needed
+- Enhancement: **Build scripts**: New build-portable workflow and embedded Python elevated permission scripts
 
 _
 

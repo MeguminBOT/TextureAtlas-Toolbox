@@ -39,6 +39,7 @@ for parsers, exporters, packers, and animation formats.
 | Pillow                | Core image handling; installed via requirements.                   |
 | Wand + ImageMagick    | GIF export with advanced features (quantization, duplicate removal).|
 | PySide6               | Qt 6 bindings for GUI; runtime included.                           |
+| etcpak                | GPU texture compression (BC1/BC3/ETC); installed via requirements. |
 
 ### Local setup
 
@@ -85,6 +86,10 @@ src/
 │   │   └── image_utils.py         # Low-level NumPy/Pillow helpers
 │   ├── generator/
 │   │   └── atlas_generator.py     # Full generation pipeline
+│   ├── optimizer/          # Image optimization and GPU compression
+│   │   ├── constants.py           # Enums, labels, OptimizeOptions
+│   │   ├── optimizer.py           # PNG optimization pipeline
+│   │   └── texture_compress.py    # GPU texture compression engine
 │   └── editor/             # Visual editor components
 ├── parsers/
 │   ├── base_parser.py      # Abstract base parser
@@ -122,6 +127,7 @@ src/
 ┌────────────────────────────────────────────────────────────────────────────┐
 │                            GUI Layer (PySide6)                             │
 │   Main.py  ·  extract_tab_widget  ·  generate_tab_widget  ·  editor_tab    │
+│                              optimize_tab_widget                            │
 └───────────────────────────────┬────────────────────────────────────────────┘
                                 │
       ┌─────────────────────────┼─────────────────────────┐
@@ -141,6 +147,12 @@ src/
         │             ┌────────────────────┐
         │             │     Exporters      │
         │             │ (write metadata)   │
+        │             └─────────┬──────────┘
+        │                       │
+        │                       ▼
+        │             ┌────────────────────┐
+        │             │  TextureCompressor │
+        │             │ (GPU compression)  │
         │             └────────────────────┘
         ▼
 ┌────────────────┐

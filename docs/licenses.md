@@ -21,6 +21,7 @@ This project is distributed under the GNU Affero General Public License v3.0 or 
 | idna | 3.10 | BSD-3-Clause | IDNA support. |
 | psutil | 6.1.0 | BSD-3-Clause | Process utilities. |
 | py7zr | 1.0.0 | LGPL-2.1-or-later | 7zip archive support. |
+| etcpak | 0.9.15 | MIT | GPU texture compression (BC1/BC3/BC7, ETC1/ETC2). |
 | tqdm | 4.67.1 | MPL-2.0 | Progress bars. |
 
 ## Licenses
@@ -32,6 +33,7 @@ Links to licenses:
 - [MPL-2.0](licenses/mpl-2.0.md)
 - [Apache-2.0](licenses/apache-2.0.md)
 - [BSD-3-Clause](licenses/bsd-3-clause.md)
+- [MIT](licenses/mit.md)
 - [HPND/PIL](licenses/hpnd-pil.md)
 
 ## Qt / PySide6 notice

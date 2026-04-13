@@ -57,6 +57,10 @@ intended for any users or developers who want to:
     - [AtlasGenerator](#atlasgenerator)
     - [GeneratorOptions](#generatoroptions)
     - [GeneratorResult](#generatorresult)
+  - [GPU Texture Compression](#gpu-texture-compression)
+    - [TextureFormat Enum](#textureformat-enum)
+    - [TextureContainer Enum](#texturecontainer-enum)
+    - [TextureCompressor Methods](#texturecompressor-methods)
   - [Packers](#packers)
     - [PackerRegistry](#packerregistry)
     - [BasePacker](#basepacker)
@@ -870,6 +874,9 @@ options = GeneratorOptions(
     trim_sprites=False,             # Trim transparent edges
     export_format="starling-xml",   # Metadata format
     image_format="png",             # Atlas image format
+    texture_format=None,            # GPU compression format (TextureFormat enum or None)
+    texture_container=None,         # Container format (TextureContainer enum or None)
+    generate_mipmaps=False,         # Generate mipmap chain for GPU textures
 )
 ```
 
@@ -891,6 +898,9 @@ options = GeneratorOptions(
 | `expand_strategy` | `str` | `"short_side"` | How to grow atlas: `disabled`, `width_first`, `height_first`, `short_side`, `long_side`, `both`. |
 | `image_format` | `str` | `"png"` | Output image format. |
 | `export_format` | `str` | `"starling-xml"` | Metadata format key. |
+| `texture_format` | `TextureFormat \| None` | `None` | GPU compression format (e.g., `TextureFormat.BC3`). `None` disables GPU compression. |
+| `texture_container` | `TextureContainer \| None` | `None` | Container for GPU data (`TextureContainer.DDS` or `TextureContainer.KTX2`). |
+| `generate_mipmaps` | `bool` | `False` | Generate full mipmap chain when GPU compression is active. |
 
 ---
 <br>
@@ -924,6 +934,62 @@ else:
 | `efficiency` | `float` | Packing efficiency (0.0–1.0). |
 | `errors` | `List[str]` | Error messages if generation failed. |
 | `warnings` | `List[str]` | Non-fatal warning messages. |
+
+---
+<br>
+
+## GPU Texture Compression
+
+The `TextureCompressor` class handles GPU texture compression for both the generator and
+optimizer pipelines. It lives in `core/optimizer/texture_compress.py`.
+
+```python
+from core.optimizer.constants import TextureFormat, TextureContainer
+from core.optimizer.texture_compress import TextureCompressor
+
+compressor = TextureCompressor(
+    fmt=TextureFormat.BC3,
+    container=TextureContainer.DDS,
+    generate_mipmaps=True,
+)
+
+# Check if the backend is available
+if compressor.is_available():
+    compressor.compress_to_file(pil_image, "/path/to/output.dds")
+```
+
+### TextureFormat Enum
+
+Defined in `core/optimizer/constants.py`. Each member exposes:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `block_size` | `int` | Side length of one compressed block in texels. |
+| `block_bytes` | `int` | Byte size of one compressed block. |
+| `has_alpha` | `bool` | Whether the format stores alpha channel data. |
+
+Members: `BC1`, `BC3`, `BC7`, `ETC1`, `ETC2_RGB`, `ETC2_RGBA`, `ASTC_4x4`, `ASTC_6x6`,
+`ASTC_8x8`, `PVRTC_4BPP`, `PVRTC_2BPP`.
+
+### TextureContainer Enum
+
+Members: `DDS`, `KTX2`.
+
+### TextureCompressor Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `compress_to_file(image, output_path)` | `Path` | Compress a PIL Image and write to a DDS/KTX2 file. |
+| `compress_bytes(image)` | `bytes` | Compress a PIL Image and return raw container bytes. |
+| `is_available()` | `bool` | Whether the compression backend for the format is installed. |
+| `available_formats` | `List[TextureFormat]` | Class method listing all formats with available backends. |
+
+### Utility Functions
+
+| Function | Description |
+|----------|-------------|
+| `check_format_available(fmt)` | Check if a specific format's backend is installed. |
+| `check_container_supports_format(container, fmt)` | Validate that a container supports a given format. |
 
 <br>
 <br>

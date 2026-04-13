@@ -2,7 +2,7 @@
 
 **A powerful, free and open-source tool for extracting, generating, and converting Texture Atlases**
 
-[TextureAtlas Toolbox](https://github.com/MeguminBOT/TextureAtlas-to-GIF-and-Frames) is an all-in-one solution for working with texture atlases and spritesheets. Extract sprites into organized frame collections and GIF/WebP/APNG animations, generate optimized atlases from individual frames, or convert between 15+ atlas formats. Perfect for game developers, modders, and anyone creating showcases of game sprites.
+[TextureAtlas Toolbox](https://github.com/MeguminBOT/TextureAtlas-to-GIF-and-Frames) is an all-in-one utility solution for working with texture atlases/spritesheets/tilemaps. Extract sprites into organized frame collections and GIF/WebP/APNG animations, generate optimized atlases from individual frames, or convert between 15+ atlas formats. Perfect for game developers, modders, and anyone creating showcases of game sprites.
 
 *Formerly known as TextureAtlas to GIFs and Frames*
 
@@ -15,6 +15,7 @@
 -   [Features](#features)
     -   [Extractor](#extractor)
     -   [Generator](#generator)
+    -   [Optimizer](#optimizer)
     -   [Editor (Beta)](#beta-editor-works-with-extractor-only-for-now)
     -   [General](#general)
 -   [Supported Formats](#supported-formats)
@@ -52,7 +53,8 @@
 4. **Press** Generate Atlas and enjoy the results.
 
 ## Features
-
+ - ✅ = Stable
+ - 🟨 = Beta, feature may have inconsistent results or is not fully stable yet\*
 ### Extractor
 
 Extract TextureAtlas for showcases/galleries of game sprites.
@@ -84,6 +86,23 @@ Create TextureAtlases for usage in games or applications.
 -   ✅ **Sprite rotation**: Optional 90° rotation for tighter packing (format-dependent)
 -   ✅ **Multiple image formats**: Save atlases as PNG, WebP, JPEG, TIFF, AVIF, BMP, TGA, or DDS
 -   ✅ **Compression settings**: Fine-grained control over output quality and file size
+-   🟨 **GPU texture compression**: Generate compressed atlases in BC1/BC3/BC7, ETC1/ETC2, ASTC, and PVRTC formats stored in DDS or KTX2 containers *(Beta)*
+-   🟨 **Mipmap generation**: Optionally generate full mipmap chains for GPU-compressed textures *(Beta)*
+
+### Optimizer
+
+Optimize and compress images with lossless and lossy techniques.
+
+-   ✅ **Batch PNG optimization**: Recompress PNGs with configurable deflate levels for smaller files without quality loss
+-   ✅ **Preset profiles**: Lossless, All Around, Pixel Art, Heavy Transparency, and Aggressive presets for quick setup
+-   ✅ **Colour quantization**: Reduce to indexed palettes via Median Cut, Max Coverage, Fast Octree, libimagequant, pngquant, or ImageMagick
+-   ✅ **Dithering algorithms**: Floyd-Steinberg, Ordered (Bayer 8×8), Blue Noise, Atkinson, and Riemersma dithering
+-   ✅ **Colour mode conversion**: Convert between RGBA, RGB, Grayscale + Alpha, and Grayscale
+-   ✅ **Quality metrics**: SSIM (structural similarity) measurement after quantization
+-   ✅ **Before/after preview**: Visual comparison and file size reporting
+-   ✅ **Smart skip**: Optionally skip files when the optimized result is larger than the original
+-   🟨 **GPU texture compression**: Post-process into BC1/BC3/BC7, ETC1/ETC2, ASTC, and PVRTC with DDS or KTX2 containers *(Beta)*
+-   🟨 **Mipmap generation**: Optionally generate full mipmap chains for GPU-compressed textures *(Beta)*
 
 ### (Beta) Editor (Works with Extractor only for now)
 
@@ -108,7 +127,6 @@ Currently only works with Extraction tool and is in very early beta, feedback on
 -   ✅ **Auto-update system**: Automatic checking and installation of updates
 -   ✅ **Persistent settings**: Configuration saved between sessions
 
-(*) = *Feature may have inconsistent results or is not fully stable yet\*
 
 ## Supported Formats
 
@@ -153,6 +171,18 @@ Currently only works with Extraction tool and is in very early beta, feedback on
 | **Unity**             | `.tpsheet`        | Unity TexturePacker         |
 | **CSS**               | `.css`            | CSS sprite classes          |
 | **TXT**               | `.txt`            | Simple text format          |
+
+#### GPU Texture Compression (Generation)
+
+| Format                | Container | Description                                |
+| --------------------- | --------- | ------------------------------------------ |
+| **BC1 / DXT1**        | DDS       | RGB 4:1 compression for desktop GPUs       |
+| **BC3 / DXT5**        | DDS       | RGBA 4:1 compression for desktop GPUs      |
+| **BC7**               | DDS       | High-quality RGBA for modern desktop GPUs  |
+| **ETC1**              | KTX2      | RGB compression for legacy mobile          |
+| **ETC2 RGB/RGBA**     | KTX2      | Mobile standard (OpenGL ES 3.0+)           |
+| **ASTC 4×4/6×6/8×8** | KTX2      | Multi-platform (mobile, Vulkan, Metal)     |
+| **PVRTC 4/2bpp**      | KTX2      | PowerVR GPUs (iOS legacy)                  |
 
 ## Current Limitations
 
@@ -239,4 +269,4 @@ For Windows users, all necessary ImageMagick libraries are included with the rel
 -   Wo1fseas's [PyTexturePacker](https://github.com/wo1fsea/PyTexturePacker)
     -   Their code was referenced to bring packing algorithms.
 
-_Last updated: December 5, 2025 - Visit the [📚 Documentation →](docs/README.md) for more details_
+_Last updated: April 13, 2026 - Visit the [📚 Documentation →](docs/README.md) for more details_

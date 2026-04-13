@@ -30,13 +30,18 @@ for your project or troubleshooting import issues in game engines.
     - [CSS Spritesheet](#css-spritesheet)
 7. [Engine-Specific Formats](#engine-specific-formats)
     - [Paper2D (Unreal)](#paper2d-unreal)
-8. [Special Formats](#special-formats)
+8. [GPU Texture Compression](#gpu-texture-compression)
+    - [Overview](#overview)
+    - [Supported Compression Formats](#supported-compression-formats)
+    - [Container Formats](#container-formats)
+    - [Format Compatibility](#format-compatibility)
+9. [Special Formats](#special-formats)
     - [Adobe Animate Spritemap](#adobe-animate-spritemap)
-9. [Common Concepts](#common-concepts)
+10. [Common Concepts](#common-concepts)
     - [Rotation](#rotation)
     - [Trimming and Source Size](#trimming-and-source-size)
     - [Pivot Points](#pivot-points)
-10. [Format Selection Guide](#format-selection-guide)
+11. [Format Selection Guide](#format-selection-guide)
 
 ---
 
@@ -900,6 +905,118 @@ with additional pivot point support.
 
 ---
 
+## GPU Texture Compression
+
+### Overview
+
+GPU texture compression formats store image data in block-compressed form that GPUs can
+decompress directly during rendering. Unlike standard image compression (PNG, JPEG), these
+formats are designed for real-time decompression by the GPU hardware, offering:
+
+-   **Reduced VRAM usage**: Typically 4:1 to 6:1 compression vs uncompressed RGBA
+-   **Faster rendering**: GPU reads less data from memory, improving cache performance
+-   **Fixed-rate access**: Any texel can be decoded independently (unlike JPEG)
+
+TextureAtlas Toolbox can generate GPU-compressed atlas images alongside the standard metadata
+formats listed above. The compressed data is stored in container files (DDS or KTX2) while the
+atlas metadata (sprite positions, names, etc.) remains in the chosen metadata format.
+
+### Supported Compression Formats
+
+| Format       | Block Size | Block Bytes | Alpha | Quality   | Platform                          |
+| ------------ | :--------: | :---------: | :---: | --------- | --------------------------------- |
+| BC1 / DXT1   |    4×4     |    8 B      |  ❌   | Good      | Desktop GPUs (DirectX, Vulkan)    |
+| BC3 / DXT5   |    4×4     |   16 B      |  ✅   | Good      | Desktop GPUs (DirectX, Vulkan)    |
+| BC7          |    4×4     |   16 B      |  ✅   | Excellent | Desktop GPUs (DX11+, Vulkan)      |
+| ETC1         |    4×4     |    8 B      |  ❌   | Fair      | Android (legacy), OpenGL ES 2.0   |
+| ETC2 RGB     |    4×4     |    8 B      |  ❌   | Good      | OpenGL ES 3.0+, Vulkan mobile     |
+| ETC2 RGBA    |    4×4     |   16 B      |  ✅   | Good      | OpenGL ES 3.0+, Vulkan mobile     |
+| ASTC 4×4     |    4×4     |   16 B      |  ✅   | Excellent | Modern mobile, Vulkan, Metal      |
+| ASTC 6×6     |    6×6     |   16 B      |  ✅   | Very good | Modern mobile (smaller file size) |
+| ASTC 8×8     |    8×8     |   16 B      |  ✅   | Good      | Modern mobile (smallest size)     |
+| PVRTC 4bpp   |    4×4     |    8 B      |  ✅   | Fair      | PowerVR GPUs (iOS legacy)         |
+| PVRTC 2bpp   |    8×4     |    8 B      |  ✅   | Low       | PowerVR GPUs (iOS legacy)         |
+
+**Block Size** determines the minimum atlas dimension alignment. When GPU compression is
+active, atlas padding is automatically clamped to at least the block size to prevent
+bleeding across block boundaries.
+
+### Container Formats
+
+Compressed texture data is stored in one of two container formats:
+
+#### DDS (DirectDraw Surface)
+
+-   **Extension:** `.dds`
+-   **Supported formats:** BC1, BC3, BC7
+-   **Platform:** Windows, DirectX, most desktop game engines
+-   **Mipmaps:** Supported (levels stored sequentially after header)
+-   **Header:** 128 bytes (4-byte magic + 124-byte header), plus optional 20-byte DX10
+    extended header for BC7
+
+#### KTX2 (Khronos Texture)
+
+-   **Extension:** `.ktx2`
+-   **Supported formats:** All 11 formats (BC, ETC, ASTC, PVRTC)
+-   **Platform:** Vulkan, OpenGL ES, WebGL (via Basis), cross-platform engines
+-   **Mipmaps:** Supported (levels stored largest-first, 16-byte aligned)
+-   **Header:** 80 bytes (12-byte identifier + 68-byte header) plus level index and
+    Data Format Descriptor (DFD)
+
+> **Note:** DDS does not support ETC, ASTC, or PVRTC formats. If you select one of these
+> formats, use KTX2 as the container.
+
+### Format Compatibility
+
+GPU compression is available when the selected metadata format targets a game engine that
+commonly consumes compressed textures:
+
+| Metadata Format     | GPU Compression | Typical Container |
+| ------------------- | :-------------: | ----------------- |
+| Spine Atlas         |       ✅        | KTX2 or DDS       |
+| Phaser 3            |       ✅        | KTX2 (WebGL)      |
+| JSON Hash           |       ✅        | KTX2 (WebGL)      |
+| JSON Array          |       ✅        | KTX2 (WebGL)      |
+| Cocos2d Plist       |       ✅        | KTX2 or DDS       |
+| Godot Atlas         |       ✅        | DDS or KTX2       |
+| Egret2D             |       ✅        | KTX2              |
+| Paper2D (Unreal)    |       ✅        | DDS               |
+| Unity (TP)          |       ✅        | DDS or KTX2       |
+| Starling XML        |       ❌        | —                 |
+| TexturePacker XML   |       ❌        | —                 |
+| CSS Spritesheet     |       ❌        | —                 |
+| Simple TXT          |       ❌        | —                 |
+| Aseprite JSON       |       ❌        | —                 |
+
+Formats marked ❌ are typically used with web browsers, Flash/AIR runtimes, or custom
+engines that do not consume GPU-compressed textures.
+
+### Compression Backends
+
+| Backend            | Formats Handled                  | Installation                    |
+| ------------------ | -------------------------------- | ------------------------------- |
+| **etcpak** (pip)   | BC1, BC3, BC7*, ETC1, ETC2       | `pip install etcpak` (included) |
+| **astcenc** (CLI)  | ASTC 4×4, 6×6, 8×8              | Install from arm.com            |
+| **PVRTexToolCLI**  | PVRTC 4bpp, 2bpp                | Install from Imagination Tech   |
+
+\* BC7 requires a recent build of etcpak with `compress_bc7` support.
+
+### Mipmap Generation
+
+When the **Generate mipmaps** option is enabled, the compressor generates a full mipmap chain:
+
+1. Start with the full-resolution atlas image
+2. Downsample by half using Lanczos resampling (each dimension, minimum 1×1)
+3. Pad each level to block-size alignment
+4. Compress each level independently
+5. Store all levels in the container file (DDS or KTX2)
+
+Mipmaps are useful for 3D rendering or 2D games where sprites are displayed at varying
+distances from the camera. For fixed-size 1:1 pixel art, mipmaps waste space and can be
+left disabled.
+
+---
+
 ## Special Formats
 
 These formats require specialized handling and are **extraction-only** in TextureAtlas Toolbox.
@@ -1298,6 +1415,7 @@ Expressed as normalized coordinates (0.0 to 1.0).
 | Pivot/anchor points   | JSON Hash, Starling XML, Paper2D                                                            |
 | Minimal file size     | Simple TXT, Egret2D                                                                         |
 | Maximum compatibility | JSON Hash                                                                                   |
+| GPU compression       | Spine, Godot, Paper2D, Unity, JSON Hash/Array, Phaser 3, Plist                              |
 
 ### Extraction-Only Formats
 

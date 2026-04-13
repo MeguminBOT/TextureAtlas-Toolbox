@@ -227,7 +227,7 @@ Need the bleeding-edge dependency set? Replace `requirements.txt` with
 
 If you prefer, you can install packages individually:
 ```bash
-pip install certifi charset-normalizer colorama idna numpy pillow psutil requests tqdm urllib3 Wand pyside6 py7zr
+pip install certifi charset-normalizer colorama idna numpy pillow psutil requests tqdm urllib3 Wand pyside6 py7zr etcpak
 ```
 
 #### Package Details
@@ -246,7 +246,22 @@ pip install certifi charset-normalizer colorama idna numpy pillow psutil request
 | **requests** | 2.32.3 | HTTP library for update checking |
 | **tqdm** | 4.67.1 | Progress bar for loops and CLI operations |
 | **urllib3** | 2.2.3 | HTTP client (dependency of requests) |
+| **etcpak** | latest | GPU texture compression (BC1/BC3/BC7, ETC1/ETC2) |
 | **Wand** | 0.6.13 | Python binding for ImageMagick |
+
+### Optional GPU Texture Compression Tools
+
+The `etcpak` Python package (included in requirements) provides BC1, BC3, BC7, ETC1, and ETC2
+compression out of the box. For additional GPU compression formats, install the following
+command-line tools:
+
+| Tool              | Formats            | Download                                               |
+| ----------------- | ------------------ | ------------------------------------------------------ |
+| **astcenc**       | ASTC 4×4, 6×6, 8×8 | [arm.com](https://github.com/ARM-software/astc-encoder) |
+| **PVRTexToolCLI** | PVRTC 4bpp, 2bpp   | [Imagination Technologies](https://developer.imaginationtech.com/pvrtextool/) |
+
+These tools are optional — the application works without them, but ASTC and PVRTC formats
+will be unavailable.
 
 ### ImageMagick Setup
 
