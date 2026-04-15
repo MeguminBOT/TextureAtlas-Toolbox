@@ -183,7 +183,7 @@ class SpritesheetFileDialog(QFileDialog):
             return
 
         self._address_line = address_line
-        self._address_line.setPlaceholderText(self.tr("Type a path and press Enter"))
+        self._address_line.setPlaceholderText(self.tr(Placeholders.TYPE_PATH))
         self._address_line.returnPressed.connect(self._handle_address_entered)
         self.directoryEntered.connect(self._sync_address_line)
         self.currentChanged.connect(self._sync_address_line)
@@ -446,15 +446,17 @@ class ExtractTabWidget(BaseTabWidget):
                 self.tr("Frames"),
             ]
         )
-        self.unified_tree.header().setSectionResizeMode(
+        header = self.unified_tree.header()
+        header.setSectionResizeMode(
             0, QHeaderView.ResizeMode.Stretch
         )
-        self.unified_tree.header().setSectionResizeMode(
+        header.setSectionResizeMode(
             1, QHeaderView.ResizeMode.ResizeToContents
         )
-        self.unified_tree.header().setSectionResizeMode(
+        header.setSectionResizeMode(
             2, QHeaderView.ResizeMode.ResizeToContents
         )
+        header.setStretchLastSection(False)
         tl.addWidget(self.unified_tree)
         self._view_stack.addWidget(tree_page)
 
@@ -479,6 +481,7 @@ class ExtractTabWidget(BaseTabWidget):
         self._tree_btn.setChecked(idx == 1)
         if idx == 1:
             self._populate_tree()
+        self.update_stats_label()
 
     def _populate_tree(self):
         """Rebuild the unified tree from current listbox_png items and data_dict."""
@@ -529,26 +532,32 @@ class ExtractTabWidget(BaseTabWidget):
             font.setBold(True)
             top.setFont(0, font)
 
-            # Parse animations for this spritesheet
-            anim_names = self._get_animation_names_for_sheet(sheet_name, data_files)
-            for aname in anim_names:
-                QTreeWidgetItem(top, [aname, "", ""])
-            if anim_names:
-                top.setText(2, str(len(anim_names)))
+            # Parse animations with frame counts for this spritesheet
+            anim_frame_counts = self._get_animation_frame_counts(
+                sheet_name, data_files
+            )
+            total_frames = 0
+            for aname, fcount in anim_frame_counts.items():
+                child = QTreeWidgetItem(top, [aname, "", ""])
+                if fcount > 0:
+                    child.setText(2, str(fcount))
+                total_frames += fcount
+            if total_frames > 0:
+                top.setText(2, str(total_frames))
             if sheet_name == selected_name:
                 top.setExpanded(True)
 
-    def _get_animation_names_for_sheet(self, sheet_name, data_files):
-        """Return a sorted list of animation names for a single spritesheet.
+    def _get_animation_frame_counts(self, sheet_name, data_files):
+        """Return an ordered dict of ``{animation_name: frame_count}``.
 
         Uses the same parsing logic as ``populate_animation_list`` but without
         touching ``listbox_data``, so it can be called for every sheet at once.
         """
         if not isinstance(data_files, dict):
-            return []
+            return {}
 
         smart = self._is_smart_grouping_enabled()
-        names: list[str] = []
+        frame_counts: dict[str, int] = {}
 
         try:
             if "xml" in data_files:
@@ -558,7 +567,7 @@ class ExtractTabWidget(BaseTabWidget):
                     directory=str(Path(data_files["xml"]).parent),
                     xml_filename=Path(data_files["xml"]).name,
                 )
-                names = sorted(parser.get_data(smart_grouping=smart))
+                frame_counts = self._frame_counts_from_parser(parser, smart)
 
             elif "txt" in data_files:
                 from parsers.txt_parser import TxtParser
@@ -567,13 +576,13 @@ class ExtractTabWidget(BaseTabWidget):
                     directory=str(Path(data_files["txt"]).parent),
                     txt_filename=Path(data_files["txt"]).name,
                 )
-                names = sorted(parser.get_data(smart_grouping=smart))
+                frame_counts = self._frame_counts_from_parser(parser, smart)
 
             elif "spritemap" in data_files:
                 spritemap_info = data_files.get("spritemap", {})
                 symbol_map = spritemap_info.get("symbol_map", {})
                 if symbol_map:
-                    names = sorted(symbol_map.keys())
+                    frame_counts = {n: 0 for n in sorted(symbol_map.keys())}
                 else:
                     from parsers.spritemap_parser import SpritemapParser
 
@@ -586,28 +595,40 @@ class ExtractTabWidget(BaseTabWidget):
                             filter_unused_symbols=self.filter_unused_spritemap_symbols,
                             root_animation_only=self.spritemap_root_animation_only,
                         )
-                        names = sorted(parser.get_data(smart_grouping=smart))
+                        frame_counts = self._frame_counts_from_parser(parser, smart)
 
             elif "json" in data_files:
-                names = self._get_names_via_registry(data_files["json"], smart)
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["json"], smart
+                )
 
             elif "plist" in data_files:
-                names = self._get_names_via_registry(data_files["plist"], smart)
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["plist"], smart
+                )
 
             elif "atlas" in data_files:
-                names = self._get_names_via_registry(data_files["atlas"], smart)
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["atlas"], smart
+                )
 
             elif "css" in data_files:
-                names = self._get_names_via_registry(data_files["css"], smart)
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["css"], smart
+                )
 
             elif "tpsheet" in data_files:
-                names = self._get_names_via_registry(data_files["tpsheet"], smart)
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["tpsheet"], smart
+                )
 
             elif "tpset" in data_files:
-                names = self._get_names_via_registry(data_files["tpset"], smart)
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["tpset"], smart
+                )
 
             elif "paper2dsprites" in data_files:
-                names = self._get_names_via_registry(
+                frame_counts = self._frame_counts_via_registry(
                     data_files["paper2dsprites"], smart
                 )
         except Exception as e:
@@ -617,10 +638,65 @@ class ExtractTabWidget(BaseTabWidget):
         if self.parent_app and hasattr(self.parent_app, "editor_composite_animations"):
             composites = self.parent_app.editor_composite_animations.get(sheet_name, {})
             for cname in sorted(composites.keys()):
-                if cname not in names:
-                    names.append(cname)
+                if cname not in frame_counts:
+                    frame_counts[cname] = len(composites[cname])
 
-        return names
+        return dict(sorted(frame_counts.items()))
+
+    @staticmethod
+    def _frame_counts_from_parser(parser, smart: bool) -> dict[str, int]:
+        """Return ``{animation_name: frame_count}`` from a parser instance."""
+        from utils.utilities import Utilities
+
+        raw = parser.extract_raw_sprite_names()
+        if raw:
+            groups = Utilities.group_names_by_animation(raw)
+            if smart:
+                return {name: len(frames) for name, frames in groups.items()}
+            # Non-smart: strip trailing digits the traditional way
+            names = parser.extract_names()
+            # Count raw sprites belonging to each stripped name
+            counts: dict[str, int] = {n: 0 for n in names}
+            for sprite_name in raw:
+                for anim_name in names:
+                    if sprite_name == anim_name or sprite_name.startswith(anim_name):
+                        counts[anim_name] = counts.get(anim_name, 0) + 1
+                        break
+            return counts
+        # Fallback: names only, no counts
+        names = parser.get_data(smart_grouping=smart)
+        return {n: 0 for n in names}
+
+    def _frame_counts_via_registry(self, metadata_path, smart_grouping):
+        """Return ``{animation_name: frame_count}`` using ParserRegistry."""
+        import inspect
+        from parsers.parser_registry import ParserRegistry
+
+        if not ParserRegistry._all_parsers:
+            ParserRegistry.initialize()
+
+        parser_cls = ParserRegistry.detect_parser(metadata_path)
+        if not parser_cls:
+            return {}
+
+        filename = Path(metadata_path).name
+        directory = str(Path(metadata_path).parent)
+
+        sig = inspect.signature(parser_cls.__init__)
+        params = list(sig.parameters.keys())
+
+        filename_param = None
+        for param in params:
+            if param.endswith("_filename") or param == "filename":
+                filename_param = param
+                break
+
+        if filename_param:
+            parser = parser_cls(directory=directory, **{filename_param: filename})
+        else:
+            parser = parser_cls(directory=directory, filename=filename)
+
+        return self._frame_counts_from_parser(parser, smart_grouping)
 
     def _get_names_via_registry(self, metadata_path, smart_grouping):
         """Return sorted animation names using the ParserRegistry."""
@@ -655,8 +731,8 @@ class ExtractTabWidget(BaseTabWidget):
         return sorted(result) if result else []
 
     def _refresh_tree_if_visible(self):
-        """Repopulate the tree view when it is the active view."""
-        if hasattr(self, "_view_stack") and self._view_stack.currentIndex() == 1:
+        """Repopulate the tree so counts stay accurate in both views."""
+        if hasattr(self, "unified_tree"):
             self._populate_tree()
 
     def update_stats_label(self):
@@ -664,9 +740,10 @@ class ExtractTabWidget(BaseTabWidget):
         spritesheet_count = (
             self.listbox_png.count() if hasattr(self, "listbox_png") else 0
         )
-        animation_count = (
-            self.listbox_data.count() if hasattr(self, "listbox_data") else 0
-        )
+        animation_count = 0
+        if hasattr(self, "unified_tree"):
+            for i in range(self.unified_tree.topLevelItemCount()):
+                animation_count += self.unified_tree.topLevelItem(i).childCount()
         if hasattr(self, "_stats_label"):
             self._stats_label.setText(
                 self.tr("{sheets} spritesheets | {anims} animations").format(
@@ -1254,8 +1331,8 @@ class ExtractTabWidget(BaseTabWidget):
                 display_name=display_name,
             )
 
-        self.update_stats_label()
         self._refresh_tree_if_visible()
+        self.update_stats_label()
 
     def populate_spritesheet_list_from_files(self, files, temp_folder=None):
         """Populate the spritesheet listbox from manually selected files.
@@ -1288,8 +1365,8 @@ class ExtractTabWidget(BaseTabWidget):
                     display_name=display_name,
                 )
 
-        self.update_stats_label()
         self._refresh_tree_if_visible()
+        self.update_stats_label()
 
     def _format_display_name(
         self, base_directory: Optional[Path], spritesheet_path: Path
@@ -1884,6 +1961,8 @@ class ExtractTabWidget(BaseTabWidget):
 
         self.listbox_png.clear()
         self.listbox_data.clear()
+        if hasattr(self, "unified_tree"):
+            self.unified_tree.clear()
 
         self.input_dir_label.setText(self.tr("No input directory selected"))
         self.output_dir_label.setText(self.tr("No output directory selected"))
@@ -1930,6 +2009,7 @@ class ExtractTabWidget(BaseTabWidget):
         if remaining:
             self.populate_animation_list(remaining.text())
 
+        self._refresh_tree_if_visible()
         self.update_stats_label()
 
     def _show_tree_context_menu(self, position):
@@ -2002,6 +2082,16 @@ class ExtractTabWidget(BaseTabWidget):
                 )
             )
             menu.addAction(editor_action)
+            menu.addSeparator()
+
+            preview_action = QAction(_trc(MenuActions.PREVIEW_ANIMATION), self)
+            preview_action.triggered.connect(self.preview_selected_animation)
+            menu.addAction(preview_action)
+            menu.addSeparator()
+
+            settings_action = QAction(_trc(MenuActions.OVERRIDE_SETTINGS), self)
+            settings_action.triggered.connect(self.override_animation_settings)
+            menu.addAction(settings_action)
 
         menu.exec(self.unified_tree.mapToGlobal(position))
 
@@ -2483,6 +2573,7 @@ class ExtractTabWidget(BaseTabWidget):
                     if isinstance(editor_defs, dict):
                         editor_defs.pop(item.text(), None)
 
+        self._refresh_tree_if_visible()
         self.update_stats_label()
 
     def override_animation_settings(self):
@@ -2983,6 +3074,7 @@ class ExtractTabWidget(BaseTabWidget):
                     break
 
         self.listbox_data.clear()
+        self._refresh_tree_if_visible()
         self.update_stats_label()
 
     def prepare_for_extraction(self):
