@@ -257,31 +257,49 @@ _ARROW_NAMES: dict[str, tuple[str, str, str]] = {
 _arrow_icon_dir: str | None = None
 
 
-def _generate_widget_arrows(color: str, family: str) -> str:
+def _generate_widget_arrows(color: str, family: str, branch_color: str = "") -> str:
     """Generate arrow/indicator PNGs for QSS and return the directory path.
+
+    Args:
+        color: Colour for spinbox/combo arrows.
+        family: Icon family name.
+        branch_color: Colour for tree branch indicators.  Falls back to
+            *color* when empty.
 
     Returns forward-slash path suitable for QSS ``image: url(...)`` usage.
     """
     global _arrow_icon_dir
     if not _HAS_QTA:
         return ""
-    if _arrow_icon_dir is None:
-        _arrow_icon_dir = tempfile.mkdtemp(prefix="tatgf_arrows_")
+    # Always create a new directory so Qt doesn't serve cached images
+    # from a stale URL after a theme/accent change.
+    _arrow_icon_dir = tempfile.mkdtemp(prefix="tatgf_arrows_")
+
+    if not branch_color:
+        branch_color = color
 
     idx = _FAMILY_PREFIX_IDX.get(family, 0)
     for name, fonts in _ARROW_NAMES.items():
-        icon_obj = qta.icon(fonts[idx], color=color)
-        pixmap = icon_obj.pixmap(QSize(12, 12))
+        c = branch_color if name.startswith("branch-") else color
+        icon_obj = qta.icon(fonts[idx], color=c)
+        pixmap = icon_obj.pixmap(QSize(16, 16))
         pixmap.save(os.path.join(_arrow_icon_dir, f"{name}.png"))
 
     return _arrow_icon_dir.replace("\\", "/")
 
 
-def _build_arrow_qss(arrow_dir: str) -> str:
-    """QSS overrides for spinbox/combo arrows and tree branch indicators."""
+def _build_arrow_qss(arrow_dir: str, *, include_branches: bool = True) -> str:
+    """QSS overrides for spinbox/combo arrows and tree branch indicators.
+
+    Args:
+        arrow_dir: Forward-slash path to the generated arrow PNGs.
+        include_branches: Whether to include tree branch indicator rules.
+            Set to False for themes that manage branch icons themselves
+            (e.g. qt-material).
+    """
     if not arrow_dir:
         return ""
-    return f"""
+    qss = f"""
 /* ── Generated arrow/indicator overrides ── */
 QComboBox::down-arrow {{
     image: url({arrow_dir}/arrow-down.png);
@@ -298,19 +316,25 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {{
     width: 10px; height: 10px;
     border: none;
 }}
+"""
+    if include_branches:
+        qss += f"""
 QTreeView::branch:has-children:!has-siblings:closed,
 QTreeView::branch:closed:has-children:has-siblings,
 QTreeWidget::branch:has-children:!has-siblings:closed,
 QTreeWidget::branch:closed:has-children:has-siblings {{
     image: url({arrow_dir}/branch-closed.png);
+    width: 12px; height: 12px;
 }}
 QTreeView::branch:open:has-children:!has-siblings,
 QTreeView::branch:open:has-children:has-siblings,
 QTreeWidget::branch:open:has-children:!has-siblings,
 QTreeWidget::branch:open:has-children:has-siblings {{
     image: url({arrow_dir}/branch-open.png);
+    width: 12px; height: 12px;
 }}
 """
+    return qss
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1911,6 +1935,9 @@ def apply_theme(
     # 3. Determine icon colour (needed for arrow generation)
     if family == "material" and _HAS_QT_MATERIAL:
         icon_color = "#333333" if variant == "light" else "#CCCCCC"
+        brightness = "light" if variant == "light" else "dark"
+        preset = ACCENT_PRESETS.get(accent_key)
+        accent_color = preset[brightness][0] if preset else icon_color
     else:
         tokens = dict(THEME_TOKENS[theme_key])
         preset = ACCENT_PRESETS.get(accent_key)
@@ -1921,10 +1948,12 @@ def apply_theme(
             tokens["primary_hover"] = ph
             tokens["primary_text"] = pt
         icon_color = tokens["text"]
+        accent_color = tokens["primary"]
 
     # 4. Generate themed arrow icons for QSS
-    arrow_dir = _generate_widget_arrows(icon_color, family)
-    arrow_qss = _build_arrow_qss(arrow_dir)
+    is_material = family == "material" and _HAS_QT_MATERIAL
+    arrow_dir = _generate_widget_arrows(icon_color, family, branch_color=accent_color)
+    arrow_qss = _build_arrow_qss(arrow_dir, include_branches=not is_material)
 
     # 5. Apply theme
     if family == "material" and _HAS_QT_MATERIAL:
@@ -2013,11 +2042,20 @@ def refresh_icons(window: QMainWindow) -> None:
             widget.setIcon(icons.icon(key))
             widget.setIconSize(QSize(16, 16))
 
-    # Menu actions
+    # Menu actions (direct QAction children of the window)
     for action in window.findChildren(QAction):
         key = action.property("iconKey")
         if key:
             action.setIcon(icons.icon(key))
+
+    # QMenu-owned actions (may not appear in findChildren from ancestor)
+    from PySide6.QtWidgets import QMenu
+
+    for menu in window.findChildren(QMenu):
+        for action in menu.actions():
+            key = action.property("iconKey")
+            if key:
+                action.setIcon(icons.icon(key))
 
 
 def get_current_tokens(
