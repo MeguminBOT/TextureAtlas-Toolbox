@@ -781,7 +781,7 @@ class EditorTabWidget(BaseTabWidget):
         self.zoom_out_button.setToolTip(self.tr(Tooltips.ZOOM_OUT))
         self.zoom_in_button = QPushButton("+")
         self.zoom_in_button.setToolTip(self.tr(Tooltips.ZOOM_IN))
-        self.reset_zoom_button = QPushButton(self.tr("Reset"))
+        self.reset_zoom_button = QPushButton(self.tr(ButtonLabels.RESET))
         self.zoom_100_button = QPushButton("100%")
         self.zoom_100_button.setToolTip(self.tr(Tooltips.ZOOM_100))
         self.zoom_50_button = QPushButton("50%")
@@ -816,9 +816,9 @@ class EditorTabWidget(BaseTabWidget):
         controls_layout.addRow(self.tr("Y:"), self.offset_y_spin)
 
         control_buttons = QHBoxLayout()
-        self.reset_offset_button = QPushButton(self.tr("Reset"))
+        self.reset_offset_button = QPushButton(self.tr(ButtonLabels.RESET))
         control_buttons.addWidget(self.reset_offset_button)
-        self.apply_all_button = QPushButton(self.tr("Apply"))
+        self.apply_all_button = QPushButton(self.tr(ButtonLabels.APPLY))
         control_buttons.addWidget(self.apply_all_button)
         controls_layout.addRow(control_buttons)
 

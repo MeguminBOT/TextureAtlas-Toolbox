@@ -187,6 +187,7 @@ _TAB_TITLE_STRINGS = (
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Interface"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Extraction Defaults"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Generator Defaults"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Optimizer Defaults"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Compression Defaults"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Updates"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Editor"),
@@ -887,13 +888,19 @@ class TabTitles:
         tab_widget.addTab(widget, self.tr(TabTitles.INTERFACE))
     """
 
+    GENERAL = "General"
     SYSTEM_RESOURCES = "System Resources"
     INTERFACE = "Interface"
-    EXTRACTION_DEFAULTS = "Extraction Defaults"
-    GENERATOR_DEFAULTS = "Generator Defaults"
-    OPTIMIZER_DEFAULTS = "Optimizer Defaults"
-    COMPRESSION_DEFAULTS = "Compression Defaults"
     UPDATES = "Updates"
+    DEFAULTS = "Defaults"
+    EXTRACTION = "Extractor"
+    EXTRACTION_DEFAULTS = "Extraction Defaults"
+    GENERATOR = "Generator"
+    GENERATOR_DEFAULTS = "Generator Defaults"
+    OPTIMIZER = "Optimizer"
+    OPTIMIZER_DEFAULTS = "Optimizer Defaults"
+    COMPRESSION = "Compression"
+    COMPRESSION_DEFAULTS = "Compression Defaults"
     EDITOR = "Editor"
 
 

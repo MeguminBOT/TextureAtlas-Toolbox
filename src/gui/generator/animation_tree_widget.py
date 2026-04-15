@@ -49,9 +49,10 @@ class AnimationTreeWidget(QTreeWidget):
         self._export_format = "starling-xml"
 
         self.setColumnCount(2)
-        self.setHeaderLabels([self.tr("Spritesheet / Animation"), self.tr("Frames")])
+        self.setHeaderLabels([self.tr("Name"), self.tr("Frames")])
         self.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.header().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        self.header().setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
+        self.header().resizeSection(1, 60)
 
         self.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         self.setDefaultDropAction(Qt.DropAction.MoveAction)
