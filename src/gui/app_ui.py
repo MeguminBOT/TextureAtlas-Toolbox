@@ -34,7 +34,6 @@ from PySide6.QtWidgets import (
     QListView,
     QMenu,
     QMenuBar,
-    QProgressBar,
     QPushButton,
     QScrollArea,
     QSizePolicy,
@@ -43,7 +42,6 @@ from PySide6.QtWidgets import (
     QSplitter,
     QStatusBar,
     QTabWidget,
-    QTextEdit,
     QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
@@ -588,35 +586,6 @@ class Ui_TextureAtlasToolboxApp(object):
 
         self.main_layout.addWidget(self.generate_button)
 
-        self.progress_panel = QFrame(self.tool_generate)
-        self.progress_panel.setObjectName("progress_panel")
-        self.progress_panel.setMaximumSize(QSize(16777215, 150))
-        self.progress_panel.setFrameShape(QFrame.Shape.StyledPanel)
-        self.progress_panel.setFrameShadow(QFrame.Shadow.Raised)
-        self.progress_layout = QVBoxLayout(self.progress_panel)
-        self.progress_layout.setSpacing(6)
-        self.progress_layout.setObjectName("progress_layout")
-        self.progress_layout.setContentsMargins(10, 10, 10, 10)
-        self.progress_bar = QProgressBar(self.progress_panel)
-        self.progress_bar.setObjectName("progress_bar")
-        self.progress_bar.setVisible(False)
-        self.progress_bar.setValue(24)
-
-        self.progress_layout.addWidget(self.progress_bar)
-
-        self.status_label = QLabel(self.progress_panel)
-        self.status_label.setObjectName("status_label")
-
-        self.progress_layout.addWidget(self.status_label)
-
-        self.log_text = QTextEdit(self.progress_panel)
-        self.log_text.setObjectName("log_text")
-        self.log_text.setMaximumSize(QSize(16777215, 80))
-
-        self.progress_layout.addWidget(self.log_text)
-
-        self.main_layout.addWidget(self.progress_panel)
-
         self.tools_tab.addTab(self.tool_generate, "")
         self.tool_editor = QWidget()
         self.tool_editor.setObjectName("tool_editor")
@@ -1061,10 +1030,10 @@ class Ui_TextureAtlasToolboxApp(object):
             QCoreApplication.translate("TextureAtlasToolboxApp", "Preferences", None)
         )
         self.help_manual.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "User Manual", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "User Manual (Online)", None)
         )
         self.help_fnf.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "FNF Guide", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "FNF Guide (Online)", None)
         )
         self.show_contributors.setText(
             QCoreApplication.translate(
@@ -1631,25 +1600,6 @@ class Ui_TextureAtlasToolboxApp(object):
         self.padding_spin.setSuffix(" px")
         self.generate_button.setText(
             QCoreApplication.translate("TextureAtlasToolboxApp", "Generate Atlas", None)
-        )
-        self.status_label.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Ready", None)
-        )
-        placeholder_text = QCoreApplication.translate(
-            "TextureAtlasToolboxApp",
-            "Atlas generation log will appear here...",
-            None,
-        )
-
-        self.log_text.setHtml(
-            '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
-            '<html><head><meta name="qrichtext" content="1" /><meta charset="utf-8" /><style type="text/css">\n'
-            "p, li { white-space: pre-wrap; }\n"
-            "hr { height: 1px; border-width: 0; }\n"
-            'li.unchecked::marker { content: "\\2610"; }\n'
-            'li.checked::marker { content: "\\2612"; }\n'
-            "</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-            f'<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">{placeholder_text}</p></body></html>'
         )
         self.tools_tab.setTabText(
             self.tools_tab.indexOf(self.tool_generate),

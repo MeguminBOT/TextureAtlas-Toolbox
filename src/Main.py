@@ -65,7 +65,6 @@ from gui.app_ui import Ui_TextureAtlasToolboxApp  # noqa: E402
 from gui.app_config_window import AppConfigWindow  # noqa: E402
 from gui.settings_window import SettingsWindow  # noqa: E402
 from gui.extractor.find_replace_window import FindReplaceWindow  # noqa: E402
-from gui.help_window import HelpWindow  # noqa: E402
 from gui.contributors_window import ContributorsWindow  # noqa: E402
 from gui.extractor.processing_window import ProcessingWindow  # noqa: E402
 from gui.extractor.compression_settings_window import (  # noqa: E402
@@ -544,7 +543,7 @@ class TextureAtlasToolboxApp(QMainWindow):
             ) or widget is getattr(self.ui, "tool_editor", None):
                 widget.setProperty("tabIconKey", "crosshair")
             elif widget is getattr(self, "optimize_tab_widget", None):
-                widget.setProperty("tabIconKey", "settings")
+                widget.setProperty("tabIconKey", "image")
 
     def _assign_button_icon_keys(self):
         """Tag buttons across all tabs with iconKey so refresh_icons() works."""
@@ -600,7 +599,7 @@ class TextureAtlasToolboxApp(QMainWindow):
             _tag(opt, "_add_folder_btn", "folder_plus")
             _tag(opt, "_clear_btn", "trash")
             _tag(opt, "_select_output_btn", "folder_open")
-            _tag(opt, "_optimize_btn", "play")
+            _tag(opt, "_optimize_btn", "download")
 
     @staticmethod
     def _set_icon_key(obj, attr: str, key: str):
@@ -686,26 +685,22 @@ class TextureAtlasToolboxApp(QMainWindow):
             )
 
     def show_help_manual(self):
-        """Shows the main help window with application manual."""
-        try:
-            HelpWindow.create_main_help_window(self)
-        except Exception as e:
-            QMessageBox.warning(
-                self,
-                self.tr("Error"),
-                self.tr("Could not open help window: {error}").format(error=str(e)),
-            )
+        """Open the online user manual in the default browser."""
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+
+        QDesktopServices.openUrl(
+            QUrl("https://github.com/MeguminBOT/TextureAtlas-Toolbox/blob/main/docs/user-manual.md")
+        )
 
     def show_help_fnf(self):
-        """Shows the FNF-specific help window."""
-        try:
-            HelpWindow.create_fnf_help_window(self)
-        except Exception as e:
-            QMessageBox.warning(
-                self,
-                self.tr("Error"),
-                self.tr("Could not open FNF help window: {error}").format(error=str(e)),
-            )
+        """Open the online FNF guide in the default browser."""
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+
+        QDesktopServices.openUrl(
+            QUrl("https://github.com/MeguminBOT/TextureAtlas-Toolbox/blob/main/docs/fnf-guide.md")
+        )
 
     def show_contributors_window(self):
         """Shows the contributors window."""
