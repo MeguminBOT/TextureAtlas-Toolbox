@@ -38,8 +38,17 @@ from PySide6.QtWidgets import (
     QWidget,
     QFrame,
 )
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QAction, QColor, QFont, QIcon, QPalette
+from PySide6.QtCore import QPointF, Qt, QSize
+from PySide6.QtGui import (
+    QAction,
+    QColor,
+    QFont,
+    QIcon,
+    QPainter,
+    QPalette,
+    QPen,
+    QPixmap,
+)
 
 try:
     from qt_material import apply_stylesheet as _qt_material_apply
@@ -285,7 +294,32 @@ def _generate_widget_arrows(color: str, family: str, branch_color: str = "") -> 
         pixmap = icon_obj.pixmap(QSize(16, 16))
         pixmap.save(os.path.join(_arrow_icon_dir, f"{name}.png"))
 
+    # Fluent checkbox checkmark (white on accent background)
+    _generate_checkmark_png(_arrow_icon_dir)
+
     return _arrow_icon_dir.replace("\\", "/")
+
+
+def _generate_checkmark_png(directory: str, *, size: int = 18) -> None:
+    """Generate a white checkmark PNG for Fluent checkbox checked state."""
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(QColor("#FFFFFF"))
+    pen.setWidthF(1.75)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    painter.setPen(pen)
+    painter.drawPolyline(
+        [
+            QPointF(size * 0.22, size * 0.52),
+            QPointF(size * 0.42, size * 0.72),
+            QPointF(size * 0.78, size * 0.30),
+        ]
+    )
+    painter.end()
+    pixmap.save(os.path.join(directory, "checkmark.png"))
 
 
 def _build_arrow_qss(arrow_dir: str, *, include_branches: bool = True) -> str:
@@ -335,6 +369,23 @@ QTreeWidget::branch:open:has-children:has-siblings {{
 }}
 """
     return qss
+
+
+def _build_fluent_checkbox_qss(arrow_dir: str) -> str:
+    """QSS overlay adding the checkmark image to Fluent checkbox indicators."""
+    if not arrow_dir:
+        return ""
+    return f"""
+/* ── Fluent checkbox checkmark overlay ── */
+QCheckBox::indicator:checked,
+QGroupBox::indicator:checked {{
+    image: url({arrow_dir}/checkmark.png);
+}}
+QCheckBox::indicator:checked:disabled,
+QGroupBox::indicator:checked:disabled {{
+    image: url({arrow_dir}/checkmark.png);
+}}
+"""
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1492,19 +1543,54 @@ QProgressBar::chunk {{
     border-radius: 4px;
 }}
 QCheckBox::indicator {{
-    width: 16px;
-    height: 16px;
-    border: 1px solid rgba({border_rgb}, 0.5);
-    border-radius: 3px;
-    background-color: rgba({input_bg_rgb}, 0.4);
+    width: 18px;
+    height: 18px;
+    border: 1px solid rgba({border_rgb}, 0.6);
+    border-bottom: 1px solid rgba({border_rgb}, 0.9);
+    border-radius: 4px;
+    background-color: rgba({input_bg_rgb}, 0.45);
 }}
 QCheckBox::indicator:hover {{
-    border-color: {primary};
-    background-color: rgba({primary_rgb}, 0.06);
+    border-color: rgba({border_rgb}, 0.8);
+    border-bottom-color: rgba({border_rgb}, 1.0);
+    background-color: rgba({input_bg_rgb}, 0.6);
 }}
 QCheckBox::indicator:checked {{
     background-color: {primary};
     border-color: {primary};
+}}
+QCheckBox::indicator:checked:hover {{
+    background-color: {primary_hover};
+    border-color: {primary_hover};
+}}
+QCheckBox::indicator:disabled {{
+    border-color: rgba({border_rgb}, 0.25);
+    background-color: rgba({input_bg_rgb}, 0.15);
+}}
+QCheckBox::indicator:checked:disabled {{
+    background-color: rgba({border_rgb}, 0.35);
+    border-color: rgba({border_rgb}, 0.35);
+}}
+QGroupBox::indicator {{
+    width: 18px;
+    height: 18px;
+    border: 1px solid rgba({border_rgb}, 0.6);
+    border-bottom: 1px solid rgba({border_rgb}, 0.9);
+    border-radius: 4px;
+    background-color: rgba({input_bg_rgb}, 0.45);
+}}
+QGroupBox::indicator:hover {{
+    border-color: rgba({border_rgb}, 0.8);
+    border-bottom-color: rgba({border_rgb}, 1.0);
+    background-color: rgba({input_bg_rgb}, 0.6);
+}}
+QGroupBox::indicator:checked {{
+    background-color: {primary};
+    border-color: {primary};
+}}
+QGroupBox::indicator:checked:hover {{
+    background-color: {primary_hover};
+    border-color: {primary_hover};
 }}
 QGroupBox QCheckBox {{
     background-color: transparent;
@@ -2022,7 +2108,10 @@ def apply_theme(
             tokens = dict(THEME_TOKENS[theme_key])
         palette = _build_palette(tokens)
         app.setPalette(palette)
-        qss = _build_custom_qss(family, tokens) + arrow_qss
+        checkbox_qss = (
+            _build_fluent_checkbox_qss(arrow_dir) if family == "fluent" else ""
+        )
+        qss = _build_custom_qss(family, tokens) + arrow_qss + checkbox_qss
         app.setStyleSheet(qss)
 
     # 6. Update icon provider and refresh all icons
