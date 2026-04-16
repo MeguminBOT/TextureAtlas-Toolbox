@@ -11,16 +11,21 @@ import subprocess
 import sys
 
 from PySide6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
     QDialog,
-    QVBoxLayout,
+    QFrame,
+    QGroupBox,
     QHBoxLayout,
     QLabel,
-    QPushButton,
-    QCheckBox,
-    QGroupBox,
-    QFrame,
-    QComboBox,
     QLayout,
+    QLineEdit,
+    QProgressBar,
+    QPushButton,
+    QRadioButton,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QIcon
@@ -118,50 +123,94 @@ class FirstStartDialog(QDialog):
         self.setup_ui()
 
     def setup_ui(self):
-        """Build the dialog layout with welcome message, warnings, and options."""
+        """Build the step-based wizard layout."""
         self.setWindowTitle(self.tr(WindowTitles.WELCOME))
         self.setModal(True)
+        self.setMinimumWidth(520)
 
-        layout = QVBoxLayout(self)
-        layout.setSpacing(16)
-        layout.setContentsMargins(24, 24, 24, 24)
-        # Fix the dialog to its size hint to avoid geometry negotiation warnings on Windows.
-        layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
+        root = QVBoxLayout(self)
+        root.setSpacing(12)
+        root.setContentsMargins(28, 24, 28, 20)
+        root.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
-        # Welcome header
+        # ── Welcome header ──────────────────────────────────────────────
         self.welcome_label = QLabel(
             self.tr("Welcome to {app_name} {app_version}").format(
                 app_name=APP_NAME, app_version=APP_VERSION
             )
         )
         welcome_font = QFont()
-        welcome_font.setPointSize(18)
+        welcome_font.setPointSize(16)
         welcome_font.setBold(True)
         self.welcome_label.setFont(welcome_font)
         self.welcome_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.welcome_label)
+        root.addWidget(self.welcome_label)
 
-        # Language selection section
+        # ── Step indicator ──────────────────────────────────────────────
+        step_row = QHBoxLayout()
+        step_row.setSpacing(4)
+        step_row.addStretch()
+        self.step_dots: list[QLabel] = []
+        for i in range(3):
+            dot = QLabel("●" if i == 0 else "○")
+            dot.setStyleSheet("font-size: 14px;")
+            dot.setFixedWidth(16)
+            dot.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            step_row.addWidget(dot)
+            self.step_dots.append(dot)
+        self.step_label = QLabel()
+        self.step_label.setStyleSheet("font-weight: 600; margin-left: 8px;")
+        step_row.addWidget(self.step_label)
+        step_row.addStretch()
+        root.addLayout(step_row)
+
+        # ── Page stack ──────────────────────────────────────────────────
+        self.stacked = QStackedWidget()
+        self.stacked.addWidget(self._build_language_page())
+        self.stacked.addWidget(self._build_theme_page())
+        self.stacked.addWidget(self._build_finish_page())
+        root.addWidget(self.stacked, 1)
+
+        # ── Navigation buttons ──────────────────────────────────────────
+        nav = QHBoxLayout()
+        self.back_button = QPushButton(self.tr("Back"))
+        self.back_button.setMinimumWidth(90)
+        self.back_button.clicked.connect(self._go_back)
+        nav.addWidget(self.back_button)
+        nav.addStretch()
+        self.next_button = QPushButton(self.tr("Next"))
+        self.next_button.setMinimumWidth(90)
+        self.next_button.setDefault(True)
+        self.next_button.clicked.connect(self._go_next)
+        nav.addWidget(self.next_button)
+        root.addLayout(nav)
+
+        self._current_step = 0
+        self._update_navigation()
+
+    # ── Page builders ───────────────────────────────────────────────────
+
+    def _build_language_page(self) -> QWidget:
+        """Build Step 1 — Language selection."""
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 4, 0, 0)
+
         self.lang_group = QGroupBox(self.tr("Language"))
         lang_layout = QVBoxLayout(self.lang_group)
 
-        # Language selector row
         lang_select_row = QHBoxLayout()
         lang_select_row.setSpacing(8)
-
         self.lang_label = QLabel(self.tr("Select language:"))
         lang_select_row.addWidget(self.lang_label)
-
         self.language_combo = QComboBox()
         self.language_combo.setMinimumWidth(200)
         self._populate_language_combo()
         self.language_combo.currentIndexChanged.connect(self._on_language_changed)
         lang_select_row.addWidget(self.language_combo)
         lang_select_row.addStretch()
-
         lang_layout.addLayout(lang_select_row)
 
-        # Quality indicator legend
         self.quality_legend = QLabel()
         self.quality_legend.setStyleSheet(
             "color: palette(placeholderText); font-size: 10px;"
@@ -169,12 +218,10 @@ class FirstStartDialog(QDialog):
         self._update_quality_legend()
         lang_layout.addWidget(self.quality_legend)
 
-        # Warning frame container (for machine translation warning)
         self.warning_container = QVBoxLayout()
         lang_layout.addLayout(self.warning_container)
         self._update_quality_warning()
 
-        # Restart notice (hidden by default)
         self.restart_notice = QLabel(
             self.tr(
                 "Note: Some text may not update until the application is restarted."
@@ -185,13 +232,19 @@ class FirstStartDialog(QDialog):
         self.restart_notice.setVisible(False)
         lang_layout.addWidget(self.restart_notice)
 
-        layout.addWidget(self.lang_group)
+        lay.addWidget(self.lang_group)
+        lay.addStretch()
+        return page
 
-        # Theme selection section
+    def _build_theme_page(self) -> QWidget:
+        """Build Step 2 — Theme selection with live preview panel."""
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 4, 0, 0)
+
         self.theme_group = QGroupBox(self.tr("Theme"))
         theme_layout = QVBoxLayout(self.theme_group)
 
-        # Family row
         family_row = QHBoxLayout()
         family_row.setSpacing(8)
         self.family_label = QLabel(self.tr("Theme family:"))
@@ -200,7 +253,6 @@ class FirstStartDialog(QDialog):
         self.family_combo.setMinimumWidth(180)
         for key, label in _THEME_FAMILIES:
             self.family_combo.addItem(label, key)
-        # Set current family
         for i in range(self.family_combo.count()):
             if self.family_combo.itemData(i) == self._current_family:
                 self.family_combo.setCurrentIndex(i)
@@ -210,7 +262,6 @@ class FirstStartDialog(QDialog):
         family_row.addStretch()
         theme_layout.addLayout(family_row)
 
-        # Variant row
         variant_row = QHBoxLayout()
         variant_row.setSpacing(8)
         self.variant_label = QLabel(self.tr("Appearance:"))
@@ -219,7 +270,6 @@ class FirstStartDialog(QDialog):
         self.variant_combo.setMinimumWidth(180)
         for key, label in _THEME_VARIANTS:
             self.variant_combo.addItem(label, key)
-        # Set current variant
         for i in range(self.variant_combo.count()):
             if self.variant_combo.itemData(i) == self._current_variant:
                 self.variant_combo.setCurrentIndex(i)
@@ -230,16 +280,63 @@ class FirstStartDialog(QDialog):
         theme_layout.addLayout(variant_row)
 
         self.theme_hint = QLabel(
-            self.tr("You can change this later in Options → Theme.")
+            self.tr("You can change this later in Options \u2192 Theme.")
         )
         self.theme_hint.setStyleSheet(
             "color: palette(placeholderText); font-size: 11px;"
         )
         theme_layout.addWidget(self.theme_hint)
+        lay.addWidget(self.theme_group)
 
-        layout.addWidget(self.theme_group)
+        # ── Live preview panel ──────────────────────────────────────────
+        self.preview_group = QGroupBox(self.tr("Preview"))
+        prev = QVBoxLayout(self.preview_group)
+        prev.setSpacing(8)
 
-        # New feature notice
+        btn_row = QHBoxLayout()
+        self.preview_btn = QPushButton(self.tr("Button"))
+        btn_row.addWidget(self.preview_btn)
+        self.preview_primary_btn = QPushButton(self.tr("Primary"))
+        self.preview_primary_btn.setProperty("cssClass", "primary")
+        btn_row.addWidget(self.preview_primary_btn)
+        btn_row.addStretch()
+        prev.addLayout(btn_row)
+
+        ctrl_row = QHBoxLayout()
+        self.preview_checkbox = QCheckBox(self.tr("Checkbox"))
+        self.preview_checkbox.setChecked(True)
+        ctrl_row.addWidget(self.preview_checkbox)
+        self.preview_radio = QRadioButton(self.tr("Radio"))
+        self.preview_radio.setChecked(True)
+        ctrl_row.addWidget(self.preview_radio)
+        ctrl_row.addStretch()
+        prev.addLayout(ctrl_row)
+
+        self.preview_input = QLineEdit()
+        self.preview_input.setPlaceholderText(self.tr("Text input"))
+        prev.addWidget(self.preview_input)
+
+        self.preview_progress = QProgressBar()
+        self.preview_progress.setValue(65)
+        self.preview_progress.setTextVisible(True)
+        prev.addWidget(self.preview_progress)
+
+        self.preview_combo = QComboBox()
+        self.preview_combo.addItems(
+            [self.tr("Option 1"), self.tr("Option 2"), self.tr("Option 3")]
+        )
+        prev.addWidget(self.preview_combo)
+
+        lay.addWidget(self.preview_group)
+        lay.addStretch()
+        return page
+
+    def _build_finish_page(self) -> QWidget:
+        """Build Step 3 — What's New and update preferences."""
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 4, 0, 0)
+
         self.notice_group = QGroupBox(self.tr("What's New"))
         notice_layout = QVBoxLayout(self.notice_group)
         self.notice_label = QLabel(
@@ -261,12 +358,10 @@ class FirstStartDialog(QDialog):
         self.v2_notice_label.setOpenExternalLinks(True)
         self.v2_notice_label.setWordWrap(True)
         notice_layout.addWidget(self.v2_notice_label)
-        layout.addWidget(self.notice_group)
+        lay.addWidget(self.notice_group)
 
-        # Update preferences section
         self.update_group = QGroupBox(self.tr("Update Preferences"))
         update_layout = QVBoxLayout(self.update_group)
-
         self.update_info = QLabel(
             self.tr(
                 "Would you like the application to check for updates automatically "
@@ -275,38 +370,20 @@ class FirstStartDialog(QDialog):
         )
         self.update_info.setWordWrap(True)
         update_layout.addWidget(self.update_info)
-
         self.check_updates_checkbox = QCheckBox(
             self.tr(CheckBoxLabels.CHECK_UPDATES_RECOMMENDED)
         )
         self.check_updates_checkbox.setChecked(self._check_updates_state)
         update_layout.addWidget(self.check_updates_checkbox)
-
         self.auto_download_checkbox = QCheckBox(
             self.tr(CheckBoxLabels.AUTO_DOWNLOAD_AVAILABLE)
         )
         self.auto_download_checkbox.setChecked(self._auto_download_state)
         update_layout.addWidget(self.auto_download_checkbox)
+        lay.addWidget(self.update_group)
 
-        layout.addWidget(self.update_group)
-
-        # Spacer
-        layout.addStretch()
-
-        # Buttons
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
-
-        self.continue_button = QPushButton(self.tr(ButtonLabels.CONTINUE))
-        self.continue_button.setMinimumWidth(120)
-        self.continue_button.setDefault(True)
-        self.continue_button.clicked.connect(self.accept)
-        button_layout.addWidget(self.continue_button)
-
-        layout.addLayout(button_layout)
-
-        # Let the layout constraint define the final fixed size.
-        self.adjustSize()
+        lay.addStretch()
+        return page
 
     def _populate_language_combo(self):
         """Populate the language combo box with available languages."""
@@ -391,6 +468,48 @@ class FirstStartDialog(QDialog):
             "variant": self.variant_combo.currentData() or "dark",
         }
 
+    # ── Wizard navigation ───────────────────────────────────────────────
+
+    def _go_next(self):
+        """Advance to the next wizard step, or accept on the final step."""
+        if self._current_step >= 2:
+            self.accept()
+            return
+        self._current_step += 1
+        self.stacked.setCurrentIndex(self._current_step)
+        self._update_navigation()
+
+    def _go_back(self):
+        """Return to the previous wizard step."""
+        if self._current_step <= 0:
+            return
+        self._current_step -= 1
+        self.stacked.setCurrentIndex(self._current_step)
+        self._update_navigation()
+
+    def _update_navigation(self):
+        """Update button labels and step indicators for the current step."""
+        self.back_button.setVisible(self._current_step > 0)
+        is_last = self._current_step >= 2
+        self.next_button.setText(
+            self.tr(ButtonLabels.CONTINUE) if is_last else self.tr("Next")
+        )
+        step_names = [
+            self.tr("Language"),
+            self.tr("Theme"),
+            self.tr("Finish"),
+        ]
+        for i, dot in enumerate(self.step_dots):
+            dot.setText("\u25cf" if i <= self._current_step else "\u25cb")
+        self.step_label.setText(
+            "{name}  \u2014  {step}".format(
+                name=step_names[self._current_step],
+                step=self.tr("Step {current} of {total}").format(
+                    current=self._current_step + 1, total=3
+                ),
+            )
+        )
+
     def _retranslate_ui(self):
         """Update all translatable text in the dialog."""
         self.setWindowTitle(self.tr(WindowTitles.WELCOME))
@@ -399,6 +518,7 @@ class FirstStartDialog(QDialog):
                 app_name=APP_NAME, app_version=APP_VERSION
             )
         )
+        # Step 1 — Language
         self.lang_group.setTitle(self.tr("Language"))
         self.lang_label.setText(self.tr("Select language:"))
         self.restart_notice.setText(
@@ -406,6 +526,20 @@ class FirstStartDialog(QDialog):
                 "Note: Some text may not update until the application is restarted."
             )
         )
+        # Step 2 — Theme
+        self.theme_group.setTitle(self.tr("Theme"))
+        self.family_label.setText(self.tr("Theme family:"))
+        self.variant_label.setText(self.tr("Appearance:"))
+        self.theme_hint.setText(
+            self.tr("You can change this later in Options \u2192 Theme.")
+        )
+        self.preview_group.setTitle(self.tr("Preview"))
+        self.preview_btn.setText(self.tr("Button"))
+        self.preview_primary_btn.setText(self.tr("Primary"))
+        self.preview_checkbox.setText(self.tr("Checkbox"))
+        self.preview_radio.setText(self.tr("Radio"))
+        self.preview_input.setPlaceholderText(self.tr("Text input"))
+        # Step 3 — Finish
         self.notice_group.setTitle(self.tr("What's New"))
         self.notice_label.setText(
             self.tr(
@@ -420,12 +554,6 @@ class FirstStartDialog(QDialog):
                 "inaccuracies. Please report issues on the {issues_link}."
             ).format(issues_link=self._github_issues_link())
         )
-        self.theme_group.setTitle(self.tr("Theme"))
-        self.family_label.setText(self.tr("Theme family:"))
-        self.variant_label.setText(self.tr("Appearance:"))
-        self.theme_hint.setText(
-            self.tr("You can change this later in Options → Theme.")
-        )
         self.update_group.setTitle(self.tr("Update Preferences"))
         self.update_info.setText(
             self.tr(
@@ -439,7 +567,9 @@ class FirstStartDialog(QDialog):
         self.auto_download_checkbox.setText(
             self.tr(CheckBoxLabels.AUTO_DOWNLOAD_AVAILABLE)
         )
-        self.continue_button.setText(self.tr("Continue"))
+        # Navigation
+        self.back_button.setText(self.tr("Back"))
+        self._update_navigation()
         self._update_quality_legend()
 
     def _update_quality_legend(self):
@@ -652,7 +782,9 @@ def show_first_start_dialog(
         restart_needed = dialog.was_language_changed()
         return True, restart_needed
 
-    return False, False
+    # Dialog was shown but not accepted — still signal it was shown
+    # so the caller can re-apply the saved theme after live preview.
+    return True, False
 
 
 def restart_application():
