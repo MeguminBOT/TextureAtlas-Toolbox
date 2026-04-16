@@ -212,10 +212,21 @@ class TextureAtlasToolboxApp(QMainWindow):
         self._assign_button_icon_keys()
         self._apply_current_theme()
 
-        # Show first-start dialog for new users
+        # Show first-start / upgrade wizard for new users or major upgrades
+        def _preview_theme(family, variant):
+            app = QApplication.instance()
+            if app:
+                apply_theme(app, self, family, variant)
+
         dialog_shown, restart_needed = show_first_start_dialog(
-            self, self.translation_manager, self.app_config
+            self,
+            self.translation_manager,
+            self.app_config,
+            apply_theme_callback=_preview_theme,
         )
+        if dialog_shown:
+            # Re-apply the saved theme (wizard may have changed it)
+            self._apply_current_theme()
         if restart_needed:
             restart_application()
 

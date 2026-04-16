@@ -16,6 +16,7 @@ class AppConfig:
 
     DEFAULTS = {
         "first_run_completed": False,
+        "setup_wizard_version": 0,
         "language": "auto",
         "resource_limits": {
             "cpu_cores": "auto",

@@ -32,6 +32,23 @@ from utils.version import APP_NAME, APP_VERSION
 # Import Qt resources to make icons available
 import resources.icons_rc  # type: ignore  # noqa: F401
 
+SETUP_WIZARD_VERSION = 3
+
+_THEME_FAMILIES = [
+    ("clean", "Clean"),
+    ("material", "Material"),
+    ("fluent", "Fluent"),
+    ("win95", "Windows 95"),
+    ("winxp", "Windows XP"),
+    ("macos", "macOS"),
+]
+
+_THEME_VARIANTS = [
+    ("light", "Light"),
+    ("dark", "Dark"),
+    ("amoled", "AMOLED"),
+]
+
 
 class FirstStartDialog(QDialog):
     """Dialog shown on first application launch.
@@ -67,6 +84,10 @@ class FirstStartDialog(QDialog):
         parent=None,
         translation_manager=None,
         detected_language: str = "en_us",
+        *,
+        apply_theme_callback=None,
+        current_family: str = "clean",
+        current_variant: str = "dark",
     ):
         """Initialize the first-start dialog.
 
@@ -74,16 +95,25 @@ class FirstStartDialog(QDialog):
             parent: Parent widget for the dialog.
             translation_manager: TranslationManager instance.
             detected_language: Language code detected from system locale.
+            apply_theme_callback: Optional callable(family, variant) for live
+                theme preview.
+            current_family: Currently active theme family key.
+            current_variant: Currently active theme variant key.
         """
         super().__init__(parent)
         self.translation_manager = translation_manager or get_translation_manager()
         self.initial_language = detected_language
         self.selected_language = detected_language
         self.language_changed = False
+        self.apply_theme_callback = apply_theme_callback
 
         # Store checkbox states to preserve across retranslation
         self._check_updates_state = True
         self._auto_download_state = False
+
+        # Store theme selection to preserve across retranslation
+        self._current_family = current_family
+        self._current_variant = current_variant
 
         self.setup_ui()
 
@@ -157,14 +187,65 @@ class FirstStartDialog(QDialog):
 
         layout.addWidget(self.lang_group)
 
+        # Theme selection section
+        self.theme_group = QGroupBox(self.tr("Theme"))
+        theme_layout = QVBoxLayout(self.theme_group)
+
+        # Family row
+        family_row = QHBoxLayout()
+        family_row.setSpacing(8)
+        self.family_label = QLabel(self.tr("Theme family:"))
+        family_row.addWidget(self.family_label)
+        self.family_combo = QComboBox()
+        self.family_combo.setMinimumWidth(180)
+        for key, label in _THEME_FAMILIES:
+            self.family_combo.addItem(label, key)
+        # Set current family
+        for i in range(self.family_combo.count()):
+            if self.family_combo.itemData(i) == self._current_family:
+                self.family_combo.setCurrentIndex(i)
+                break
+        self.family_combo.currentIndexChanged.connect(self._on_theme_changed)
+        family_row.addWidget(self.family_combo)
+        family_row.addStretch()
+        theme_layout.addLayout(family_row)
+
+        # Variant row
+        variant_row = QHBoxLayout()
+        variant_row.setSpacing(8)
+        self.variant_label = QLabel(self.tr("Appearance:"))
+        variant_row.addWidget(self.variant_label)
+        self.variant_combo = QComboBox()
+        self.variant_combo.setMinimumWidth(180)
+        for key, label in _THEME_VARIANTS:
+            self.variant_combo.addItem(label, key)
+        # Set current variant
+        for i in range(self.variant_combo.count()):
+            if self.variant_combo.itemData(i) == self._current_variant:
+                self.variant_combo.setCurrentIndex(i)
+                break
+        self.variant_combo.currentIndexChanged.connect(self._on_theme_changed)
+        variant_row.addWidget(self.variant_combo)
+        variant_row.addStretch()
+        theme_layout.addLayout(variant_row)
+
+        self.theme_hint = QLabel(
+            self.tr("You can change this later in Options → Theme.")
+        )
+        self.theme_hint.setStyleSheet(
+            "color: palette(placeholderText); font-size: 11px;"
+        )
+        theme_layout.addWidget(self.theme_hint)
+
+        layout.addWidget(self.theme_group)
+
         # New feature notice
-        self.notice_group = QGroupBox(self.tr("New Feature Notice"))
+        self.notice_group = QGroupBox(self.tr("What's New"))
         notice_layout = QVBoxLayout(self.notice_group)
         self.notice_label = QLabel(
             self.tr(
-                "Language selection is a new feature. You may encounter UI issues "
-                "such as text not fitting properly in some areas. "
-                "These will be improved over time."
+                "Version 3 introduces customizable theme families with light, "
+                "dark, and AMOLED variants, plus improved controls and styling."
                 "\n"
             )
         )
@@ -172,8 +253,8 @@ class FirstStartDialog(QDialog):
         notice_layout.addWidget(self.notice_label)
         self.v2_notice_label = QLabel(
             self.tr(
-                "Version 2 introduces many new features and changes from version 1.\n"
-                "There may be unfound bugs. Please report issues on the {issues_link}."
+                "Some translations are community-contributed and may contain "
+                "inaccuracies. Please report issues on the {issues_link}."
             ).format(issues_link=self._github_issues_link())
         )
         self.v2_notice_label.setTextFormat(Qt.TextFormat.RichText)
@@ -270,6 +351,12 @@ class FirstStartDialog(QDialog):
         self._check_updates_state = self.check_updates_checkbox.isChecked()
         self._auto_download_state = self.auto_download_checkbox.isChecked()
 
+        # Save theme state before rebuild
+        self._current_family = self.family_combo.currentData() or self._current_family
+        self._current_variant = (
+            self.variant_combo.currentData() or self._current_variant
+        )
+
         self.selected_language = new_lang
         self.language_changed = new_lang != self.initial_language
 
@@ -286,6 +373,24 @@ class FirstStartDialog(QDialog):
         # Show restart notice if language changed
         self.restart_notice.setVisible(self.language_changed)
 
+    def _on_theme_changed(self, _index: int = 0):
+        """Handle theme family or variant combo change — apply live preview."""
+        family = self.family_combo.currentData()
+        variant = self.variant_combo.currentData()
+        if family and variant and self.apply_theme_callback:
+            self.apply_theme_callback(family, variant)
+
+    def get_theme_preferences(self) -> dict:
+        """Return the user's selected theme preferences.
+
+        Returns:
+            Dictionary with 'family' and 'variant' string keys.
+        """
+        return {
+            "family": self.family_combo.currentData() or "clean",
+            "variant": self.variant_combo.currentData() or "dark",
+        }
+
     def _retranslate_ui(self):
         """Update all translatable text in the dialog."""
         self.setWindowTitle(self.tr(WindowTitles.WELCOME))
@@ -301,20 +406,25 @@ class FirstStartDialog(QDialog):
                 "Note: Some text may not update until the application is restarted."
             )
         )
-        self.notice_group.setTitle(self.tr("New Feature Notice"))
+        self.notice_group.setTitle(self.tr("What's New"))
         self.notice_label.setText(
             self.tr(
-                "Language selection is a new feature. You may encounter UI issues "
-                "such as text not fitting properly in some areas. "
-                "These will be improved over time."
+                "Version 3 introduces customizable theme families with light, "
+                "dark, and AMOLED variants, plus improved controls and styling."
                 "\n"
             )
         )
         self.v2_notice_label.setText(
             self.tr(
-                "Version 2 introduces many new features and changes from version 1.\n"
-                "There may be unfound bugs. Please report issues on the {issues_link}."
+                "Some translations are community-contributed and may contain "
+                "inaccuracies. Please report issues on the {issues_link}."
             ).format(issues_link=self._github_issues_link())
+        )
+        self.theme_group.setTitle(self.tr("Theme"))
+        self.family_label.setText(self.tr("Theme family:"))
+        self.variant_label.setText(self.tr("Appearance:"))
+        self.theme_hint.setText(
+            self.tr("You can change this later in Options → Theme.")
         )
         self.update_group.setTitle(self.tr("Update Preferences"))
         self.update_info.setText(
@@ -464,37 +574,49 @@ class FirstStartDialog(QDialog):
 
 
 def show_first_start_dialog(
-    parent, translation_manager, app_config
+    parent, translation_manager, app_config, *, apply_theme_callback=None
 ) -> tuple[bool, bool]:
-    """Show the first-start dialog if this is the first launch.
+    """Show the first-start dialog if this is the first launch or a major upgrade.
+
+    The dialog is shown when the stored ``setup_wizard_version`` is lower
+    than :data:`SETUP_WIZARD_VERSION`, which covers both brand-new installs
+    and users upgrading from an earlier major version (e.g. v2 → v3).
 
     Args:
         parent: Parent widget for the dialog.
         translation_manager: TranslationManager instance for language info.
         app_config: AppConfig instance to check/set first_run flag.
+        apply_theme_callback: Optional callable(family, variant) for live
+            theme preview in the dialog.
 
     Returns:
         A tuple of (dialog_shown, restart_needed). dialog_shown is True if the
         dialog was shown and accepted. restart_needed is True if the user
         changed the language and the app should restart.
     """
-    # Check if first run
-    if app_config.get("first_run_completed", False):
+    wizard_ver = app_config.settings.get("setup_wizard_version", 0)
+    if wizard_ver >= SETUP_WIZARD_VERSION:
         return False, False
 
-    # Get detected language info
-    system_locale = translation_manager.get_system_locale()
-    available = translation_manager.get_available_languages()
+    # Read existing settings for pre-population (relevant for upgrades)
+    current_family = app_config.get_theme_family()
+    current_variant = app_config.get_theme_variant()
+    current_lang = app_config.settings.get("language", "auto")
 
-    if system_locale in available:
-        detected_lang = system_locale
+    if current_lang == "auto":
+        system_locale = translation_manager.get_system_locale()
+        available = translation_manager.get_available_languages()
+        detected_lang = system_locale if system_locale in available else "en"
     else:
-        detected_lang = "en"
+        detected_lang = current_lang
 
     dialog = FirstStartDialog(
         parent=parent,
         translation_manager=translation_manager,
         detected_language=detected_lang,
+        apply_theme_callback=apply_theme_callback,
+        current_family=current_family,
+        current_variant=current_variant,
     )
 
     result = dialog.exec()
@@ -503,6 +625,13 @@ def show_first_start_dialog(
         # Save language preference
         selected_language = dialog.get_selected_language()
         app_config.settings["language"] = selected_language
+
+        # Save theme preferences
+        theme_prefs = dialog.get_theme_preferences()
+        app_config.set_theme_settings(
+            family=theme_prefs["family"],
+            variant=theme_prefs["variant"],
+        )
 
         # Save update preferences
         update_prefs = dialog.get_update_preferences()
@@ -514,7 +643,8 @@ def show_first_start_dialog(
             "auto_download_updates"
         ]
 
-        # Mark first run as completed
+        # Mark wizard version and first-run flag
+        app_config.settings["setup_wizard_version"] = SETUP_WIZARD_VERSION
         app_config.settings["first_run_completed"] = True
         app_config.save()
 
