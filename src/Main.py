@@ -179,6 +179,7 @@ class TextureAtlasToolboxApp(QMainWindow):
         self._editor_minimum_size = QSize(1280, 850)
         self._pre_editor_size: Optional[QSize] = None
         self.setMinimumSize(self._default_minimum_size)
+        self._initial_size = self._compute_initial_size()
 
         # Initialize advanced menu variables
         defaults = (
@@ -465,7 +466,7 @@ class TextureAtlasToolboxApp(QMainWindow):
                 version=self.current_version
             )
         )
-        self.resize(900, 770)
+        self.resize(self._initial_size)
 
         # Set application icon if available
         icon_path = Path("assets/icon.ico")
@@ -473,6 +474,30 @@ class TextureAtlasToolboxApp(QMainWindow):
             self.setWindowIcon(QIcon(str(icon_path)))
 
         # Extract tab defaults are handled by ExtractTabWidget.setup_default_values()
+
+    def _compute_initial_size(self) -> QSize:
+        """Compute initial window size as 70% of the primary screen, clamped.
+
+        On small screens (e.g. 1280x720) the minimum sizes are reduced to
+        fit the available area so the window never overflows.
+        """
+        screen = QApplication.primaryScreen()
+        if screen is not None:
+            avail = screen.availableSize()
+            # Shrink minimum sizes if the screen is too small
+            min_w = min(self._default_minimum_size.width(), avail.width())
+            min_h = min(self._default_minimum_size.height(), avail.height())
+            self._default_minimum_size = QSize(min_w, min_h)
+            self.setMinimumSize(self._default_minimum_size)
+            ed_w = min(self._editor_minimum_size.width(), avail.width())
+            ed_h = min(self._editor_minimum_size.height(), avail.height())
+            self._editor_minimum_size = QSize(ed_w, ed_h)
+            # 70% of available, clamped between minimum and available
+            w = max(min_w, min(int(avail.width() * 0.7), avail.width()))
+            h = max(min_h, min(int(avail.height() * 0.7), avail.height()))
+        else:
+            w, h = 900, 770
+        return QSize(w, h)
 
     def _on_tools_tab_changed(self, index: int):
         editor_active = hasattr(self, "_editor_tab_index") and index == getattr(
@@ -483,22 +508,37 @@ class TextureAtlasToolboxApp(QMainWindow):
     def _apply_editor_window_constraints(self, editor_active: bool):
         if not hasattr(self, "_default_minimum_size"):
             return
+        screen = QApplication.primaryScreen()
+        max_w = screen.availableSize().width() if screen else 99999
+        max_h = screen.availableSize().height() if screen else 99999
         if editor_active:
             if self._pre_editor_size is None:
                 self._pre_editor_size = self.size()
             self.setMinimumSize(self._editor_minimum_size)
-            target_width = max(self.width(), self._editor_minimum_size.width())
-            target_height = max(self.height(), self._editor_minimum_size.height())
+            target_width = min(
+                max(self.width(), self._editor_minimum_size.width()), max_w
+            )
+            target_height = min(
+                max(self.height(), self._editor_minimum_size.height()), max_h
+            )
             if target_width != self.width() or target_height != self.height():
                 self.resize(target_width, target_height)
         else:
             self.setMinimumSize(self._default_minimum_size)
             if self._pre_editor_size is not None:
-                target_width = max(
-                    self._default_minimum_size.width(), self._pre_editor_size.width()
+                target_width = min(
+                    max(
+                        self._default_minimum_size.width(),
+                        self._pre_editor_size.width(),
+                    ),
+                    max_w,
                 )
-                target_height = max(
-                    self._default_minimum_size.height(), self._pre_editor_size.height()
+                target_height = min(
+                    max(
+                        self._default_minimum_size.height(),
+                        self._pre_editor_size.height(),
+                    ),
+                    max_h,
                 )
                 self.resize(target_width, target_height)
                 self._pre_editor_size = None
@@ -690,7 +730,9 @@ class TextureAtlasToolboxApp(QMainWindow):
         from PySide6.QtGui import QDesktopServices
 
         QDesktopServices.openUrl(
-            QUrl("https://github.com/MeguminBOT/TextureAtlas-Toolbox/blob/main/docs/user-manual.md")
+            QUrl(
+                "https://github.com/MeguminBOT/TextureAtlas-Toolbox/blob/main/docs/user-manual.md"
+            )
         )
 
     def show_help_fnf(self):
@@ -699,7 +741,9 @@ class TextureAtlasToolboxApp(QMainWindow):
         from PySide6.QtGui import QDesktopServices
 
         QDesktopServices.openUrl(
-            QUrl("https://github.com/MeguminBOT/TextureAtlas-Toolbox/blob/main/docs/fnf-guide.md")
+            QUrl(
+                "https://github.com/MeguminBOT/TextureAtlas-Toolbox/blob/main/docs/fnf-guide.md"
+            )
         )
 
     def show_contributors_window(self):
