@@ -9,6 +9,8 @@ pillow
 psutil
 py7zr
 pyside6
+qt-material
+qtawesome
 requests
 tqdm
 urllib3
