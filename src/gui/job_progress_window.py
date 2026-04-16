@@ -156,9 +156,7 @@ class JobProgressWindow(QDialog):
         self._log_text.clear()
         self._duration_timer.start()
 
-    def update_progress(
-        self, current: int, total: int, message: str = ""
-    ) -> None:
+    def update_progress(self, current: int, total: int, message: str = "") -> None:
         """Update the progress bar and status label.
 
         Args:

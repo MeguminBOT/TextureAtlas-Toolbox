@@ -170,7 +170,9 @@ class ParseErrorDialog(QDialog):
         """Create options section for bulk actions."""
         options_layout = QHBoxLayout()
 
-        self.skip_all_errors_checkbox = QCheckBox(self.tr(CheckBoxLabels.SKIP_ALL_ERRORS))
+        self.skip_all_errors_checkbox = QCheckBox(
+            self.tr(CheckBoxLabels.SKIP_ALL_ERRORS)
+        )
         self.skip_all_errors_checkbox.stateChanged.connect(self._on_skip_all_changed)
         options_layout.addWidget(self.skip_all_errors_checkbox)
 

@@ -21,7 +21,13 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from utils.translation_manager import tr as translate
-from utils.ui_constants import ButtonLabels, CheckBoxLabels, MenuActions, Placeholders, WindowTitles
+from utils.ui_constants import (
+    ButtonLabels,
+    CheckBoxLabels,
+    MenuActions,
+    Placeholders,
+    WindowTitles,
+)
 
 
 class FindReplaceWindow(QDialog):
