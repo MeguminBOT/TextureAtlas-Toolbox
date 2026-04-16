@@ -359,6 +359,9 @@ def _generate_widget_arrows(color: str, family: str, branch_color: str = "") -> 
     # Checkbox checkmark (white on accent background)
     _generate_checkmark_png(_arrow_icon_dir, family=family)
 
+    # Radio dot (white dot on accent background)
+    _generate_radio_dot_png(_arrow_icon_dir)
+
     return _arrow_icon_dir.replace("\\", "/")
 
 
@@ -478,6 +481,37 @@ QGroupBox::indicator:checked {{
 QCheckBox::indicator:checked:disabled,
 QGroupBox::indicator:checked:disabled {{
     image: url({arrow_dir}/checkmark.png);
+}}
+"""
+
+
+def _generate_radio_dot_png(directory: str, *, size: int = 18) -> None:
+    """Generate a white circle dot PNG for radio button checked state."""
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setBrush(QColor("#FFFFFF"))
+    dot_r = size * 0.22
+    cx = size / 2.0
+    cy = size / 2.0
+    painter.drawEllipse(QPointF(cx, cy), dot_r, dot_r)
+    painter.end()
+    pixmap.save(os.path.join(directory, "radio_dot.png"))
+
+
+def _build_radio_dot_qss(arrow_dir: str) -> str:
+    """QSS overlay adding the dot image to radio button checked indicators."""
+    if not arrow_dir:
+        return ""
+    return f"""
+/* ── Radio dot overlay ── */
+QRadioButton::indicator:checked {{
+    image: url({arrow_dir}/radio_dot.png);
+}}
+QRadioButton::indicator:checked:disabled {{
+    image: url({arrow_dir}/radio_dot.png);
 }}
 """
 
@@ -2643,6 +2677,10 @@ QPushButton:hover {{
 QPushButton:pressed {{
     background-color: rgba({btn_bg_rgb}, 0.45);
 }}
+QPushButton:focus {{
+    border: 2px solid rgba({primary_rgb}, 0.4);
+    padding: 3px 13px;
+}}
 QPushButton:disabled {{
     background-color: rgba({border_rgb}, 0.15);
     color: {text_secondary};
@@ -2763,6 +2801,134 @@ QSplitter::handle {{ background-color: transparent; }}
 QSplitter::handle:horizontal {{ width: 4px; }}
 QSplitter::handle:vertical {{ height: 4px; }}
 QSplitter::handle:hover {{ background-color: rgba({primary_rgb}, 0.15); }}
+/* ── Scrollbar (overlay style) ── */
+QScrollBar:vertical {{
+    background-color: transparent;
+    width: 8px;
+    border: none;
+    margin: 2px 1px;
+}}
+QScrollBar::handle:vertical {{
+    background-color: rgba({text_secondary_rgb}, 0.3);
+    border-radius: 3px;
+    min-height: 30px;
+}}
+QScrollBar::handle:vertical:hover {{
+    background-color: rgba({text_secondary_rgb}, 0.5);
+    border-radius: 4px;
+}}
+QScrollBar::handle:vertical:pressed {{
+    background-color: rgba({text_secondary_rgb}, 0.65);
+}}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+    height: 0px;
+}}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+    background-color: transparent;
+}}
+QScrollBar:horizontal {{
+    background-color: transparent;
+    height: 8px;
+    border: none;
+    margin: 1px 2px;
+}}
+QScrollBar::handle:horizontal {{
+    background-color: rgba({text_secondary_rgb}, 0.3);
+    border-radius: 3px;
+    min-width: 30px;
+}}
+QScrollBar::handle:horizontal:hover {{
+    background-color: rgba({text_secondary_rgb}, 0.5);
+    border-radius: 4px;
+}}
+QScrollBar::handle:horizontal:pressed {{
+    background-color: rgba({text_secondary_rgb}, 0.65);
+}}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+    width: 0px;
+}}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {{
+    background-color: transparent;
+}}
+/* ── Slider ── */
+QSlider::groove:horizontal {{
+    background-color: rgba({border_rgb}, 0.4);
+    height: 4px;
+    border-radius: 2px;
+}}
+QSlider::handle:horizontal {{
+    background-color: {surface};
+    border: 1px solid rgba({border_rgb}, 0.5);
+    width: 18px;
+    height: 18px;
+    margin: -8px 0;
+    border-radius: 9px;
+}}
+QSlider::handle:horizontal:hover {{
+    border-color: rgba({primary_rgb}, 0.5);
+}}
+QSlider::handle:horizontal:pressed {{
+    background-color: rgba({surface_rgb}, 0.85);
+    border-color: rgba({primary_rgb}, 0.7);
+}}
+QSlider::sub-page:horizontal {{
+    background-color: {primary};
+    border-radius: 2px;
+}}
+QSlider::groove:vertical {{
+    background-color: rgba({border_rgb}, 0.4);
+    width: 4px;
+    border-radius: 2px;
+}}
+QSlider::handle:vertical {{
+    background-color: {surface};
+    border: 1px solid rgba({border_rgb}, 0.5);
+    width: 18px;
+    height: 18px;
+    margin: 0 -8px;
+    border-radius: 9px;
+}}
+QSlider::handle:vertical:hover {{
+    border-color: rgba({primary_rgb}, 0.5);
+}}
+QSlider::handle:vertical:pressed {{
+    background-color: rgba({surface_rgb}, 0.85);
+    border-color: rgba({primary_rgb}, 0.7);
+}}
+QSlider::add-page:vertical {{
+    background-color: {primary};
+    border-radius: 2px;
+}}
+/* ── Radio Button ── */
+QRadioButton {{
+    spacing: 6px;
+    background-color: transparent;
+    color: {text};
+}}
+QRadioButton::indicator {{
+    width: 16px;
+    height: 16px;
+    border: 1px solid rgba({border_rgb}, 0.5);
+    border-radius: 9px;
+    background-color: rgba({input_bg_rgb}, 0.4);
+}}
+QRadioButton::indicator:hover {{
+    border-color: {primary};
+    background-color: rgba({primary_rgb}, 0.06);
+}}
+QRadioButton::indicator:checked {{
+    background-color: {primary};
+    border-color: {primary};
+    image: none;
+}}
+QRadioButton::indicator:checked:hover {{
+    background-color: {primary_hover};
+    border-color: {primary_hover};
+}}
+QRadioButton::indicator:disabled {{
+    border-color: rgba({border_rgb}, 0.2);
+    background-color: rgba({input_bg_rgb}, 0.15);
+}}
 /* ── Progress ── */
 QProgressBar {{
     background-color: rgba({input_bg_rgb}, 0.4);
@@ -3367,6 +3533,8 @@ def _build_custom_qss(family: str, tokens: dict[str, str]) -> str:
         "bg",
         "surface",
         "border",
+        "text",
+        "text_secondary",
         "primary",
         "input_bg",
         "btn_bg",
@@ -3501,7 +3669,12 @@ def apply_theme(
             if family in ("fluent", "macos", "win95", "winxp")
             else ""
         )
-        qss = _build_custom_qss(family, tokens) + arrow_qss + checkbox_qss
+        radio_qss = (
+            _build_radio_dot_qss(arrow_dir)
+            if family in ("macos",)
+            else ""
+        )
+        qss = _build_custom_qss(family, tokens) + arrow_qss + checkbox_qss + radio_qss
         app.setStyleSheet(qss)
 
     # 6. Update icon provider and refresh all icons
