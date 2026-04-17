@@ -46,7 +46,6 @@ _THEME_FAMILIES = [
     ("fluent", "Fluent"),
     ("win95", "Windows 95"),
     ("winxp", "Windows XP"),
-    ("macos", "macOS"),
 ]
 
 _THEME_VARIANTS = [

@@ -40,6 +40,8 @@ for parsers, exporters, packers, and animation formats.
 | Wand + ImageMagick    | GIF export with advanced features (quantization, duplicate removal).|
 | PySide6               | Qt 6 bindings for GUI; runtime included.                           |
 | etcpak                | GPU texture compression (BC1/BC3/ETC); installed via requirements. |
+| qt-material           | Material Design theme support; installed via requirements.         |
+| qtawesome             | Icon font integration (fallback icons); installed via requirements.|
 
 ### Local setup
 

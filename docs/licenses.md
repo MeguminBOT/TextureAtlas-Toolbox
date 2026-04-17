@@ -23,6 +23,8 @@ This project is distributed under the GNU Affero General Public License v3.0 or 
 | py7zr | 1.0.0 | LGPL-2.1-or-later | 7zip archive support. |
 | etcpak | 0.9.15 | MIT | GPU texture compression (BC1/BC3/BC7, ETC1/ETC2). |
 | tqdm | 4.67.1 | MPL-2.0 | Progress bars. |
+| qt-material | 2.14 | BSD-3-Clause | Material Design stylesheet for Qt. |
+| qtawesome | 1.4.0 | MIT | Icon fonts (FontAwesome, Material) for Qt. |
 
 ## Bundled Assets
 
