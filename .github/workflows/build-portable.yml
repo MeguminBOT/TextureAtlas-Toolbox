@@ -15,21 +15,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6.0.2
 
+      - name: Get app version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep 'APP_VERSION' src/utils/version.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Set up Python
         uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Build portable distribution
-        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }}
+        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }} --no-archive
 
       - name: Upload Windows distribution
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: TextureAtlasToolbox-win-x64-embedded-python
-          path: |
-            _build-output/portable/*.zip
-            _build-output/portable/*.7z
+          name: TextureAtlasToolbox-win-x64-embedded-python-v${{ steps.version.outputs.version }}
+          path: _build-output/portable/TextureAtlas Toolbox/
           if-no-files-found: error
 
   build-linux:
@@ -37,6 +42,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.2
+
+      - name: Get app version
+        id: version
+        run: |
+          VERSION=$(grep 'APP_VERSION' src/utils/version.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Python
         uses: actions/setup-python@v6.2.0
@@ -49,16 +60,13 @@ jobs:
           sudo apt-get install -y libxcb-cursor0 libxkbcommon-x11-0
 
       - name: Build portable distribution
-        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }}
+        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }} --no-archive
 
       - name: Upload Linux distribution
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: TextureAtlasToolbox-linux-x64-embedded-python
-          path: |
-            _build-output/portable/*.zip
-            _build-output/portable/*.7z
-            _build-output/portable/*.tar.gz
+          name: TextureAtlasToolbox-linux-x64-embedded-python-v${{ steps.version.outputs.version }}
+          path: _build-output/portable/TextureAtlas Toolbox/
           if-no-files-found: error
 
   build-macos:
@@ -67,20 +75,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6.0.2
 
+      - name: Get app version
+        id: version
+        run: |
+          VERSION=$(grep 'APP_VERSION' src/utils/version.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Set up Python
         uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Build portable distribution
-        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }}
+        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }} --no-archive
 
       - name: Upload macOS distribution
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: TextureAtlasToolbox-mac-x64-embedded-python
-          path: |
-            _build-output/portable/*.zip
-            _build-output/portable/*.7z
-            _build-output/portable/*.tar.gz
+          name: TextureAtlasToolbox-mac-x64-embedded-python-v${{ steps.version.outputs.version }}
+          path: _build-output/portable/TextureAtlas Toolbox/
           if-no-files-found: error

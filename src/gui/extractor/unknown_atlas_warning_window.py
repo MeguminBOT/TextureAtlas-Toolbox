@@ -22,6 +22,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPixmap
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels, MenuActions, WindowTitles
 
 try:
     from PIL import Image
@@ -58,7 +59,7 @@ class UnknownAtlasWarningWindow(QDialog):
         self.input_directory = input_directory
         self.result = "cancel"
 
-        self.setWindowTitle(self.tr("Unknown Atlas Warning"))
+        self.setWindowTitle(self.tr(WindowTitles.UNKNOWN_ATLAS_WARNING))
         self.setModal(True)
         self.resize(600, 650)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
@@ -77,7 +78,7 @@ class UnknownAtlasWarningWindow(QDialog):
         warning_label.setFont(QFont("Arial", 24))
         title_layout.addWidget(warning_label)
 
-        title_text = QLabel(self.tr("Unknown Atlas Warning"))
+        title_text = QLabel(self.tr(WindowTitles.UNKNOWN_ATLAS_WARNING))
         title_text.setFont(QFont("Arial", 14, QFont.Weight.Bold))
         title_layout.addWidget(title_text)
         title_layout.addStretch()
@@ -111,18 +112,18 @@ class UnknownAtlasWarningWindow(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        proceed_btn = QPushButton(self.tr("Proceed anyway"))
+        proceed_btn = QPushButton(self.tr(MenuActions.PROCEED_ANYWAY))
         proceed_btn.clicked.connect(self.on_proceed)
         proceed_btn.setMinimumWidth(120)
         proceed_btn.setDefault(True)
         button_layout.addWidget(proceed_btn)
 
-        skip_btn = QPushButton(self.tr("Skip unknown"))
+        skip_btn = QPushButton(self.tr(MenuActions.SKIP_UNKNOWN))
         skip_btn.clicked.connect(self.on_skip)
         skip_btn.setMinimumWidth(120)
         button_layout.addWidget(skip_btn)
 
-        cancel_btn = QPushButton(self.tr("Cancel"))
+        cancel_btn = QPushButton(self.tr(ButtonLabels.CANCEL))
         cancel_btn.clicked.connect(self.on_cancel)
         cancel_btn.setMinimumWidth(120)
         button_layout.addWidget(cancel_btn)
@@ -170,7 +171,9 @@ class UnknownAtlasWarningWindow(QDialog):
             )
             more_label.setFont(QFont("Arial", 9, QFont.Weight.ExtraLight))
             more_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            more_label.setStyleSheet("QLabel { color: #666; padding: 15px; }")
+            more_label.setStyleSheet(
+                "QLabel { color: palette(placeholderText); padding: 15px; }"
+            )
             thumbnail_layout.addWidget(more_label, row, col)
 
         for i in range(max_cols):
@@ -192,7 +195,7 @@ class UnknownAtlasWarningWindow(QDialog):
         frame.setFrameStyle(QFrame.Shape.Box)
         frame.setLineWidth(1)
         frame.setStyleSheet(
-            "QFrame { background-color: #f8f8f8; border: 1px solid #ccc; }"
+            "QFrame { background-color: palette(alternateBase); border: 1px solid palette(mid); }"
         )
         frame.setFixedSize(120, 110)
 
@@ -212,7 +215,7 @@ class UnknownAtlasWarningWindow(QDialog):
             thumbnail_label.setText("📷")
             thumbnail_label.setFont(QFont("Arial", 16))
             thumbnail_label.setStyleSheet(
-                "QLabel { border: 1px solid #ddd; background-color: #e0e0e0; color: #666666; }"
+                "QLabel { border: 1px solid palette(mid); background-color: palette(base); color: palette(placeholderText); }"
             )
 
         layout.addWidget(thumbnail_label)
@@ -223,7 +226,7 @@ class UnknownAtlasWarningWindow(QDialog):
         name_label.setWordWrap(True)
         name_label.setMaximumWidth(116)
         name_label.setStyleSheet(
-            "QLabel { color: #333333; background-color: #e8e8e8; padding: 2px; border-radius: 2px; }"
+            "QLabel { color: palette(text); background-color: palette(alternateBase); padding: 2px; border-radius: 2px; }"
         )
         layout.addWidget(name_label)
 

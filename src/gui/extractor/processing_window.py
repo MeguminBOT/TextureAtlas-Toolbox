@@ -26,7 +26,7 @@ from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QCloseEvent, QFont
 
 from utils.translation_manager import tr as translate
-from utils.ui_constants import ButtonLabels
+from utils.ui_constants import ButtonLabels, WindowTitles
 
 
 class ProcessingWindow(QDialog):
@@ -59,10 +59,9 @@ class ProcessingWindow(QDialog):
             parent: Parent widget for modal behavior.
         """
         super().__init__(parent)
-        self.setWindowTitle(self.tr("Processing..."))
+        self.setWindowTitle(self.tr(WindowTitles.PROCESSING))
         self.setWindowModality(Qt.ApplicationModal)
-        self.setMinimumWidth(500)
-        self.setMinimumHeight(400)
+        self.setMinimumSize(400, 350)
 
         self.current_file_index: int = 0
         self.total_files: int = 0

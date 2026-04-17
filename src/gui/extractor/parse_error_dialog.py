@@ -28,6 +28,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QIcon
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels, CheckBoxLabels, DialogTitles, MenuActions
 
 from parsers.parser_types import ParseResult, ParserErrorCode
 
@@ -78,7 +79,7 @@ class ParseErrorDialog(QDialog):
         self.files_to_skip: List[str] = []
         self._result_action = "cancel"
 
-        self.setWindowTitle(self.tr("Parse Issues Detected"))
+        self.setWindowTitle(self.tr(DialogTitles.PARSE_ISSUES_DETECTED))
         self.setMinimumWidth(600)
         self.setMinimumHeight(400)
         self.setup_ui()
@@ -131,16 +132,16 @@ class ParseErrorDialog(QDialog):
             ).format(
                 errors=total_errors, warnings=total_warnings, files=files_with_issues
             )
-            message.setStyleSheet("color: #d32f2f; font-weight: bold;")
+            message.setStyleSheet("color: #ef5350; font-weight: bold;")
         elif total_warnings > 0:
             text = self.tr(
                 "Found {warnings} warning(s) in {files} file(s).\n"
                 "Extraction can proceed but results may be affected."
             ).format(warnings=total_warnings, files=files_with_issues)
-            message.setStyleSheet("color: #f57c00; font-weight: bold;")
+            message.setStyleSheet("color: #ffa726; font-weight: bold;")
         else:
             text = self.tr("All files parsed successfully.")
-            message.setStyleSheet("color: #388e3c; font-weight: bold;")
+            message.setStyleSheet("color: #66bb6a; font-weight: bold;")
 
         message.setText(text)
         header_layout.addWidget(message)
@@ -169,7 +170,9 @@ class ParseErrorDialog(QDialog):
         """Create options section for bulk actions."""
         options_layout = QHBoxLayout()
 
-        self.skip_all_errors_checkbox = QCheckBox(self.tr("Skip all files with errors"))
+        self.skip_all_errors_checkbox = QCheckBox(
+            self.tr(CheckBoxLabels.SKIP_ALL_ERRORS)
+        )
         self.skip_all_errors_checkbox.stateChanged.connect(self._on_skip_all_changed)
         options_layout.addWidget(self.skip_all_errors_checkbox)
 
@@ -182,21 +185,21 @@ class ParseErrorDialog(QDialog):
         button_layout = QHBoxLayout()
 
         # Continue button - process all files including those with errors
-        self.continue_btn = QPushButton(self.tr("Continue Anyway"))
+        self.continue_btn = QPushButton(self.tr(MenuActions.CONTINUE_ANYWAY))
         self.continue_btn.setToolTip(
             self.tr("Process all files, including those with errors")
         )
         self.continue_btn.clicked.connect(self._on_continue)
 
         # Skip selected button - skip files marked with checkbox
-        self.skip_btn = QPushButton(self.tr("Skip Selected"))
+        self.skip_btn = QPushButton(self.tr(MenuActions.SKIP_SELECTED))
         self.skip_btn.setToolTip(
             self.tr("Skip files that are checked in the Skip column")
         )
         self.skip_btn.clicked.connect(self._on_skip_selected)
 
         # Cancel button
-        self.cancel_btn = QPushButton(self.tr("Cancel"))
+        self.cancel_btn = QPushButton(self.tr(ButtonLabels.CANCEL))
         self.cancel_btn.clicked.connect(self._on_cancel)
 
         button_layout.addStretch()

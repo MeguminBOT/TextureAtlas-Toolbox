@@ -27,10 +27,13 @@ from PySide6.QtWidgets import (
     QComboBox,
     QGroupBox,
     QGridLayout,
+    QListWidget,
+    QListWidgetItem,
     QMessageBox,
-    QTabWidget,
     QSpinBox,
     QDoubleSpinBox,
+    QSplitter,
+    QStackedWidget,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
@@ -78,6 +81,12 @@ from utils.duration_utils import (
     load_duration_display_value,
     resolve_native_duration_type,
 )
+from gui.theme_manager import (
+    ACCENT_PRESETS,
+    FONT_OPTIONS,
+    THEME_LABELS,
+    THEME_LABELS_REV,
+)
 
 
 class AppConfigWindow(QDialog):
@@ -109,7 +118,8 @@ class AppConfigWindow(QDialog):
         self.app_config = app_config
         self.setWindowTitle(self.tr(WindowTitles.APP_OPTIONS))
         self.setModal(True)
-        self.resize(520, 750)
+        self.setMinimumSize(520, 450)
+        self.resize(680, 700)
 
         self.get_system_info()
 
@@ -227,6 +237,9 @@ class AppConfigWindow(QDialog):
         self.smart_grouping_cb = None
         self.duration_input_type_combo = None
         self.color_scheme_combo = None
+        self.theme_combo = None
+        self.accent_combo = None
+        self.font_combo = None
         self.duration_label = None
         self.duration_spinbox = None
         self._duration_display_type = None
@@ -241,30 +254,67 @@ class AppConfigWindow(QDialog):
         main_layout = QVBoxLayout(self)
         main_layout.setSpacing(10)
 
-        tab_widget = QTabWidget()
+        # Category list on the left, stacked pages on the right
+        splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        system_tab = self.create_system_tab()
-        tab_widget.addTab(system_tab, self.tr(TabTitles.SYSTEM_RESOURCES))
+        self.category_list = QListWidget()
+        self.category_list.setMinimumWidth(130)
+        self.category_list.setMaximumWidth(180)
+        self.category_list.setSpacing(1)
 
-        interface_tab = self.create_interface_tab()
-        tab_widget.addTab(interface_tab, self.tr(TabTitles.INTERFACE))
+        self.page_stack = QStackedWidget()
 
-        extraction_tab = self.create_extraction_tab()
-        tab_widget.addTab(extraction_tab, self.tr(TabTitles.EXTRACTION_DEFAULTS))
+        # row index -> page index mapping (section headers have no page)
+        self._row_to_page = {}
 
-        generator_tab = self.create_generator_tab()
-        tab_widget.addTab(generator_tab, self.tr(TabTitles.GENERATOR_DEFAULTS))
+        sections = [
+            (
+                self.tr(TabTitles.GENERAL),
+                [
+                    (self.tr(TabTitles.SYSTEM_RESOURCES), self.create_system_tab()),
+                    (self.tr(TabTitles.INTERFACE), self.create_interface_tab()),
+                    (self.tr(TabTitles.UPDATES), self.create_update_tab()),
+                ],
+            ),
+            (
+                self.tr(TabTitles.DEFAULTS),
+                [
+                    (self.tr(TabTitles.EXTRACTION), self.create_extraction_tab()),
+                    (self.tr(TabTitles.GENERATOR), self.create_generator_tab()),
+                    (self.tr(TabTitles.OPTIMIZER), self.create_optimizer_tab()),
+                    (self.tr(TabTitles.COMPRESSION), self.create_compression_tab()),
+                ],
+            ),
+        ]
 
-        optimizer_tab = self.create_optimizer_tab()
-        tab_widget.addTab(optimizer_tab, self.tr(TabTitles.OPTIMIZER_DEFAULTS))
+        page_index = 0
+        for section_title, items in sections:
+            # Section header — bold, non-selectable
+            header = QListWidgetItem(section_title)
+            header_font = header.font()
+            header_font.setBold(True)
+            header.setFont(header_font)
+            header.setFlags(Qt.ItemFlag.NoItemFlags)
+            self.category_list.addItem(header)
 
-        compression_tab = self.create_compression_tab()
-        tab_widget.addTab(compression_tab, self.tr(TabTitles.COMPRESSION_DEFAULTS))
+            for title, page_widget in items:
+                item = QListWidgetItem("    " + title)
+                self.category_list.addItem(item)
+                self.page_stack.addWidget(page_widget)
+                self._row_to_page[self.category_list.count() - 1] = page_index
+                page_index += 1
 
-        update_tab = self.create_update_tab()
-        tab_widget.addTab(update_tab, self.tr(TabTitles.UPDATES))
+        self.category_list.currentRowChanged.connect(self._on_category_changed)
+        # Select first selectable item (row 1, after the first header)
+        self.category_list.setCurrentRow(1)
 
-        main_layout.addWidget(tab_widget)
+        splitter.addWidget(self.category_list)
+        splitter.addWidget(self.page_stack)
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([160, 520])
+
+        main_layout.addWidget(splitter)
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -287,6 +337,16 @@ class AppConfigWindow(QDialog):
 
         main_layout.addLayout(button_layout)
 
+    def _on_category_changed(self, row: int) -> None:
+        """Switch the stacked page when a category is selected.
+
+        Section headers are non-selectable, but if a header row is
+        reached (e.g. via keyboard), this finds the nearest valid page.
+        """
+        page = self._row_to_page.get(row)
+        if page is not None:
+            self.page_stack.setCurrentIndex(page)
+
     def _wrap_in_scroll_area(self, content_widget: QWidget) -> QScrollArea:
         """Wrap a widget in a styled scroll area for consistent tab appearance.
 
@@ -303,11 +363,17 @@ class AppConfigWindow(QDialog):
         return scroll_area
 
     def _apply_color_scheme(self, scheme: str) -> None:
-        """Apply the specified color scheme to the application immediately.
+        """Apply the current theme to the application.
 
-        Args:
-            scheme: One of 'auto', 'light', or 'dark'.
+        Delegates to the main window's ``_apply_current_theme()`` so that
+        the full theme engine (QSS, palette, icons) is used instead of
+        only setting the Qt color scheme hint.
         """
+        parent = self.parent()
+        if parent is not None and hasattr(parent, "_apply_current_theme"):
+            parent._apply_current_theme()
+            return
+        # Fallback: plain Qt color-scheme hint when parent unavailable
         app = QApplication.instance()
         if app is None:
             return
@@ -1447,7 +1513,7 @@ class AppConfigWindow(QDialog):
             )
         )
         note_label.setFont(QFont("Arial", 8, QFont.Weight.ExtraLight))
-        note_label.setStyleSheet("QLabel { color: #666; }")
+        note_label.setStyleSheet("QLabel { color: palette(placeholderText); }")
         note_label.setWordWrap(True)
         group_layout.addWidget(note_label)
 
@@ -1589,6 +1655,23 @@ class AppConfigWindow(QDialog):
             index = self.color_scheme_combo.findData(color_scheme)
             if index >= 0:
                 self.color_scheme_combo.setCurrentIndex(index)
+        if self.theme_combo:
+            family = interface.get("theme_family", "clean")
+            variant = interface.get("theme_variant", "dark")
+            theme_key = f"{family}_{variant}"
+            index = self.theme_combo.findData(theme_key)
+            if index >= 0:
+                self.theme_combo.setCurrentIndex(index)
+        if self.accent_combo:
+            accent = interface.get("accent_key", "default")
+            index = self.accent_combo.findData(accent)
+            if index >= 0:
+                self.accent_combo.setCurrentIndex(index)
+        if self.font_combo:
+            font = interface.get("font_override", "")
+            index = self.font_combo.findData(font)
+            if index >= 0:
+                self.font_combo.setCurrentIndex(index)
 
         # Load generator defaults
         generator_defaults = self.app_config.get("generator_defaults", {})
@@ -1673,6 +1756,34 @@ class AppConfigWindow(QDialog):
                 self.merge_duplicates_cb.setChecked(True)
             if self.smart_grouping_cb:
                 self.smart_grouping_cb.setChecked(True)
+
+            # Reset interface checkboxes from defaults
+            iface_defaults = self.app_config.DEFAULTS.get("interface", {})
+            if self.remember_input_dir_cb:
+                self.remember_input_dir_cb.setChecked(
+                    iface_defaults.get("remember_input_directory", True)
+                )
+            if self.remember_output_dir_cb:
+                self.remember_output_dir_cb.setChecked(
+                    iface_defaults.get("remember_output_directory", True)
+                )
+            if self.filter_single_frame_spritemaps_cb:
+                self.filter_single_frame_spritemaps_cb.setChecked(
+                    iface_defaults.get("filter_single_frame_spritemaps", True)
+                )
+            if self.filter_unused_spritemap_symbols_cb:
+                self.filter_unused_spritemap_symbols_cb.setChecked(
+                    iface_defaults.get("filter_unused_spritemap_symbols", False)
+                )
+            if self.spritemap_root_animation_only_cb:
+                self.spritemap_root_animation_only_cb.setChecked(
+                    iface_defaults.get("spritemap_root_animation_only", False)
+                )
+            if self.use_native_file_dialog_cb:
+                self.use_native_file_dialog_cb.setChecked(
+                    iface_defaults.get("use_native_file_dialog", False)
+                )
+
             if self.duration_input_type_combo:
                 default_type = self.app_config.DEFAULTS.get("interface", {}).get(
                     "duration_input_type", "fps"
@@ -1687,6 +1798,18 @@ class AppConfigWindow(QDialog):
                 index = self.color_scheme_combo.findData(default_scheme)
                 if index >= 0:
                     self.color_scheme_combo.setCurrentIndex(index)
+            if self.theme_combo:
+                index = self.theme_combo.findData("clean_dark")
+                if index >= 0:
+                    self.theme_combo.setCurrentIndex(index)
+            if self.accent_combo:
+                index = self.accent_combo.findData("default")
+                if index >= 0:
+                    self.accent_combo.setCurrentIndex(index)
+            if self.font_combo:
+                index = self.font_combo.findData("")
+                if index >= 0:
+                    self.font_combo.setCurrentIndex(index)
 
             gen_defaults = self.app_config.DEFAULTS["generator_defaults"]
             self._load_generator_settings(gen_defaults)
@@ -1813,6 +1936,16 @@ class AppConfigWindow(QDialog):
                 )
             if self.color_scheme_combo:
                 interface["color_scheme"] = self.color_scheme_combo.currentData()
+            if self.theme_combo:
+                theme_key = self.theme_combo.currentData()
+                if theme_key and "_" in theme_key:
+                    family, variant = theme_key.split("_", 1)
+                    interface["theme_family"] = family
+                    interface["theme_variant"] = variant
+            if self.accent_combo:
+                interface["accent_key"] = self.accent_combo.currentData()
+            if self.font_combo:
+                interface["font_override"] = self.font_combo.currentData() or ""
 
             # Save generator defaults
             generator_defaults = self._collect_generator_settings()
@@ -1890,8 +2023,9 @@ class AppConfigWindow(QDialog):
 
         # Appearance group
         appearance_group = QGroupBox(self.tr("Appearance"))
-        appearance_layout = QHBoxLayout(appearance_group)
+        appearance_layout = QGridLayout(appearance_group)
 
+        row = 0
         color_scheme_label = QLabel(self.tr("Color scheme:"))
         color_scheme_tooltip = self.tr(
             "Override the operating system's dark/light mode:\n\n"
@@ -1900,19 +2034,70 @@ class AppConfigWindow(QDialog):
             "• Dark: Always use dark theme"
         )
         color_scheme_label.setToolTip(color_scheme_tooltip)
-        appearance_layout.addWidget(color_scheme_label)
+        appearance_layout.addWidget(color_scheme_label, row, 0)
 
         self.color_scheme_combo = QComboBox()
         self.color_scheme_combo.addItem(self.tr("Auto (System)"), "auto")
         self.color_scheme_combo.addItem(self.tr("Light"), "light")
         self.color_scheme_combo.addItem(self.tr("Dark"), "dark")
         self.color_scheme_combo.setToolTip(color_scheme_tooltip)
-        appearance_layout.addWidget(self.color_scheme_combo)
-        appearance_layout.addStretch()
+        appearance_layout.addWidget(self.color_scheme_combo, row, 1)
+        row += 1
+
+        theme_label = QLabel(self.tr("Theme:"))
+        theme_tooltip = self.tr(
+            "Visual style for the application:\n\n"
+            "• Clean: Minimal borders, cool grays\n"
+            "• Material: Material Design 3 (rounded, bold accents)\n"
+            "• Fluent: Fluent Design with subtle gradients\n\n"
+            "Each family has Light, Dark, and AMOLED variants."
+        )
+        theme_label.setToolTip(theme_tooltip)
+        appearance_layout.addWidget(theme_label, row, 0)
+
+        self.theme_combo = QComboBox()
+        for key, label in THEME_LABELS.items():
+            self.theme_combo.addItem(self.tr(label), key)
+        self.theme_combo.setToolTip(theme_tooltip)
+        appearance_layout.addWidget(self.theme_combo, row, 1)
+        row += 1
+
+        accent_label = QLabel(self.tr("Accent color:"))
+        accent_tooltip = self.tr(
+            "Accent colour used for highlights and interactive elements."
+        )
+        accent_label.setToolTip(accent_tooltip)
+        appearance_layout.addWidget(accent_label, row, 0)
+
+        self.accent_combo = QComboBox()
+        for accent_key in ACCENT_PRESETS:
+            display = (
+                self.tr("Default")
+                if accent_key == "default"
+                else accent_key.capitalize()
+            )
+            self.accent_combo.addItem(display, accent_key)
+        self.accent_combo.setToolTip(accent_tooltip)
+        appearance_layout.addWidget(self.accent_combo, row, 1)
+        row += 1
+
+        font_label = QLabel(self.tr("Font:"))
+        font_tooltip = self.tr(
+            "Font family for the UI. 'Theme Default' uses the\n"
+            "font recommended by the selected theme family."
+        )
+        font_label.setToolTip(font_tooltip)
+        appearance_layout.addWidget(font_label, row, 0)
+
+        self.font_combo = QComboBox()
+        for font_value, font_display in FONT_OPTIONS:
+            self.font_combo.addItem(self.tr(font_display), font_value or "")
+        self.font_combo.setToolTip(font_tooltip)
+        appearance_layout.addWidget(self.font_combo, row, 1)
 
         layout.addWidget(appearance_group)
 
-        dir_group = QGroupBox(self.tr("Directory Memory"))
+        dir_group = QGroupBox(self.tr("Folder Memory"))
         dir_layout = QVBoxLayout(dir_group)
 
         self.remember_input_dir_cb = QCheckBox(
@@ -1920,7 +2105,7 @@ class AppConfigWindow(QDialog):
         )
         self.remember_input_dir_cb.setToolTip(
             self.tr(
-                "When enabled, the app will remember and restore the last used input directory on startup"
+                "When enabled, the app will remember and restore the last used input folder on startup"
             )
         )
         dir_layout.addWidget(self.remember_input_dir_cb)
@@ -1930,7 +2115,7 @@ class AppConfigWindow(QDialog):
         )
         self.remember_output_dir_cb.setToolTip(
             self.tr(
-                "When enabled, the app will remember and restore the last used output directory on startup"
+                "When enabled, the app will remember and restore the last used output folder on startup"
             )
         )
         dir_layout.addWidget(self.remember_output_dir_cb)

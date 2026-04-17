@@ -9,6 +9,8 @@ pillow==11.3.0
 psutil==6.1.0
 py7zr==1.0.0
 pyside6==6.9.2
+qt-material==2.14
+qtawesome==1.4.0
 requests==2.32.3
 tqdm==4.67.1
 urllib3==2.2.3

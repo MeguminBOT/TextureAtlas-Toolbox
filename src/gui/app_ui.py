@@ -34,7 +34,6 @@ from PySide6.QtWidgets import (
     QListView,
     QMenu,
     QMenuBar,
-    QProgressBar,
     QPushButton,
     QScrollArea,
     QSizePolicy,
@@ -43,7 +42,6 @@ from PySide6.QtWidgets import (
     QSplitter,
     QStatusBar,
     QTabWidget,
-    QTextEdit,
     QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
@@ -588,35 +586,6 @@ class Ui_TextureAtlasToolboxApp(object):
 
         self.main_layout.addWidget(self.generate_button)
 
-        self.progress_panel = QFrame(self.tool_generate)
-        self.progress_panel.setObjectName("progress_panel")
-        self.progress_panel.setMaximumSize(QSize(16777215, 150))
-        self.progress_panel.setFrameShape(QFrame.Shape.StyledPanel)
-        self.progress_panel.setFrameShadow(QFrame.Shadow.Raised)
-        self.progress_layout = QVBoxLayout(self.progress_panel)
-        self.progress_layout.setSpacing(6)
-        self.progress_layout.setObjectName("progress_layout")
-        self.progress_layout.setContentsMargins(10, 10, 10, 10)
-        self.progress_bar = QProgressBar(self.progress_panel)
-        self.progress_bar.setObjectName("progress_bar")
-        self.progress_bar.setVisible(False)
-        self.progress_bar.setValue(24)
-
-        self.progress_layout.addWidget(self.progress_bar)
-
-        self.status_label = QLabel(self.progress_panel)
-        self.status_label.setObjectName("status_label")
-
-        self.progress_layout.addWidget(self.status_label)
-
-        self.log_text = QTextEdit(self.progress_panel)
-        self.log_text.setObjectName("log_text")
-        self.log_text.setMaximumSize(QSize(16777215, 80))
-
-        self.progress_layout.addWidget(self.log_text)
-
-        self.main_layout.addWidget(self.progress_panel)
-
         self.tools_tab.addTab(self.tool_generate, "")
         self.tool_editor = QWidget()
         self.tool_editor.setObjectName("tool_editor")
@@ -628,22 +597,22 @@ class Ui_TextureAtlasToolboxApp(object):
         sizePolicy.setHeightForWidth(self.tool_editor.sizePolicy().hasHeightForWidth())
         self.tool_editor.setSizePolicy(sizePolicy)
         self.editor_tab_layout = QVBoxLayout(self.tool_editor)
-        self.editor_tab_layout.setSpacing(8)
+        self.editor_tab_layout.setSpacing(4)
         self.editor_tab_layout.setObjectName("editor_tab_layout")
         self.editor_tab_layout.setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
-        self.editor_tab_layout.setContentsMargins(8, 8, 8, 8)
+        self.editor_tab_layout.setContentsMargins(4, 4, 4, 4)
         self.editor_outer_splitter = QSplitter(self.tool_editor)
         self.editor_outer_splitter.setObjectName("editor_outer_splitter")
         self.editor_outer_splitter.setOrientation(Qt.Orientation.Horizontal)
         self.editor_outer_splitter.setChildrenCollapsible(False)
         self.editor_lists_widget = QWidget(self.editor_outer_splitter)
         self.editor_lists_widget.setObjectName("editor_lists_widget")
-        self.editor_lists_widget.setMinimumSize(QSize(280, 0))
-        self.editor_lists_widget.setMaximumSize(QSize(420, 16777215))
+        self.editor_lists_widget.setMinimumSize(QSize(160, 0))
+        self.editor_lists_widget.setMaximumSize(QSize(300, 16777215))
         self.editor_lists_layout = QVBoxLayout(self.editor_lists_widget)
-        self.editor_lists_layout.setSpacing(8)
+        self.editor_lists_layout.setSpacing(4)
         self.editor_lists_layout.setObjectName("editor_lists_layout")
-        self.editor_lists_layout.setContentsMargins(8, 8, 8, 8)
+        self.editor_lists_layout.setContentsMargins(4, 4, 4, 4)
         self.editor_anim_label = QLabel(self.editor_lists_widget)
         self.editor_anim_label.setObjectName("editor_anim_label")
 
@@ -659,9 +628,9 @@ class Ui_TextureAtlasToolboxApp(object):
         self.editor_lists_layout.addWidget(self.animation_tree)
 
         self.editor_button_row = QHBoxLayout()
-        self.editor_button_row.setSpacing(4)
+        self.editor_button_row.setSpacing(3)
         self.editor_button_row.setObjectName("editor_button_row")
-        self.editor_button_row.setContentsMargins(4, 4, 4, 4)
+        self.editor_button_row.setContentsMargins(0, 0, 0, 0)
         self.load_files_button = QPushButton(self.editor_lists_widget)
         self.load_files_button.setObjectName("load_files_button")
 
@@ -771,12 +740,12 @@ class Ui_TextureAtlasToolboxApp(object):
         self.editor_inner_splitter.addWidget(self.canvas_panel)
         self.controls_panel = QWidget(self.editor_inner_splitter)
         self.controls_panel.setObjectName("controls_panel")
-        self.controls_panel.setMinimumSize(QSize(280, 0))
-        self.controls_panel.setMaximumSize(QSize(320, 16777215))
+        self.controls_panel.setMinimumSize(QSize(180, 0))
+        self.controls_panel.setMaximumSize(QSize(260, 16777215))
         self.controls_panel_layout = QVBoxLayout(self.controls_panel)
-        self.controls_panel_layout.setSpacing(8)
+        self.controls_panel_layout.setSpacing(6)
         self.controls_panel_layout.setObjectName("controls_panel_layout")
-        self.controls_panel_layout.setContentsMargins(8, 8, 8, 8)
+        self.controls_panel_layout.setContentsMargins(4, 0, 0, 0)
         self.controls_group = QGroupBox(self.controls_panel)
         self.controls_group.setObjectName("controls_group")
         self.controls_group.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
@@ -785,9 +754,9 @@ class Ui_TextureAtlasToolboxApp(object):
         self.controls_layout = QFormLayout(self.controls_group)
         self.controls_layout.setObjectName("controls_layout")
         self.controls_layout.setRowWrapPolicy(QFormLayout.RowWrapPolicy.DontWrapRows)
-        self.controls_layout.setHorizontalSpacing(8)
-        self.controls_layout.setVerticalSpacing(8)
-        self.controls_layout.setContentsMargins(8, 8, 8, 8)
+        self.controls_layout.setHorizontalSpacing(6)
+        self.controls_layout.setVerticalSpacing(4)
+        self.controls_layout.setContentsMargins(4, 4, 4, 4)
         self.label_offset_x = QLabel(self.controls_group)
         self.label_offset_x.setObjectName("label_offset_x")
 
@@ -854,9 +823,9 @@ class Ui_TextureAtlasToolboxApp(object):
         self.display_group.setCheckable(False)
         self.display_layout = QFormLayout(self.display_group)
         self.display_layout.setObjectName("display_layout")
-        self.display_layout.setHorizontalSpacing(8)
-        self.display_layout.setVerticalSpacing(8)
-        self.display_layout.setContentsMargins(8, 8, 8, 8)
+        self.display_layout.setHorizontalSpacing(6)
+        self.display_layout.setVerticalSpacing(4)
+        self.display_layout.setContentsMargins(4, 4, 4, 4)
         self.label_canvas_width = QLabel(self.display_group)
         self.label_canvas_width.setObjectName("label_canvas_width")
 
@@ -1038,9 +1007,7 @@ class Ui_TextureAtlasToolboxApp(object):
 
     def retranslateUi(self, TextureAtlasToolboxApp):
         self.select_directory.setText(
-            QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "Select directory", None
-            )
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Select folder", None)
         )
         self.select_files.setText(
             QCoreApplication.translate("TextureAtlasToolboxApp", "Select files", None)
@@ -1061,10 +1028,14 @@ class Ui_TextureAtlasToolboxApp(object):
             QCoreApplication.translate("TextureAtlasToolboxApp", "Preferences", None)
         )
         self.help_manual.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "User Manual", None)
+            QCoreApplication.translate(
+                "TextureAtlasToolboxApp", "User Manual (Online)", None
+            )
         )
         self.help_fnf.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "FNF Guide", None)
+            QCoreApplication.translate(
+                "TextureAtlasToolboxApp", "FNF Guide (Online)", None
+            )
         )
         self.show_contributors.setText(
             QCoreApplication.translate(
@@ -1101,22 +1072,22 @@ class Ui_TextureAtlasToolboxApp(object):
         # endif // QT_CONFIG(statustip)
         self.input_button.setText(
             QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "Select input directory", None
+                "TextureAtlasToolboxApp", "Select Input Folder", None
             )
         )
         self.output_button.setText(
             QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "Select output directory", None
+                "TextureAtlasToolboxApp", "Select Output Folder", None
             )
         )
         self.input_dir_label.setText(
             QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "No input directory selected", None
+                "TextureAtlasToolboxApp", "No input folder selected", None
             )
         )
         self.output_dir_label.setText(
             QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "No output directory selected", None
+                "TextureAtlasToolboxApp", "No output folder selected", None
             )
         )
         # if QT_CONFIG(statustip)
@@ -1464,13 +1435,13 @@ class Ui_TextureAtlasToolboxApp(object):
         self.add_directory_button.setStatusTip(
             QCoreApplication.translate(
                 "TextureAtlasToolboxApp",
-                "Adds all images from the selected directory to the atlas generator",
+                "Adds all images from the selected folder to the atlas generator",
                 None,
             )
         )
         # endif // QT_CONFIG(statustip)
         self.add_directory_button.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Directory", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Folder", None)
         )
         # if QT_CONFIG(statustip)
         self.add_files_button.setStatusTip(
@@ -1632,25 +1603,6 @@ class Ui_TextureAtlasToolboxApp(object):
         self.generate_button.setText(
             QCoreApplication.translate("TextureAtlasToolboxApp", "Generate Atlas", None)
         )
-        self.status_label.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Ready", None)
-        )
-        placeholder_text = QCoreApplication.translate(
-            "TextureAtlasToolboxApp",
-            "Atlas generation log will appear here...",
-            None,
-        )
-
-        self.log_text.setHtml(
-            '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
-            '<html><head><meta name="qrichtext" content="1" /><meta charset="utf-8" /><style type="text/css">\n'
-            "p, li { white-space: pre-wrap; }\n"
-            "hr { height: 1px; border-width: 0; }\n"
-            'li.unchecked::marker { content: "\\2610"; }\n'
-            'li.checked::marker { content: "\\2612"; }\n'
-            "</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-            f'<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">{placeholder_text}</p></body></html>'
-        )
         self.tools_tab.setTabText(
             self.tools_tab.indexOf(self.tool_generate),
             QCoreApplication.translate("TextureAtlasToolboxApp", "Generate", None),
@@ -1682,13 +1634,13 @@ class Ui_TextureAtlasToolboxApp(object):
             QCoreApplication.translate("TextureAtlasToolboxApp", "50%", None)
         )
         self.center_view_button.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Center View", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Center", None)
         )
         self.fit_canvas_button.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Fit Canvas", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Fit", None)
         )
         self.reset_zoom_button.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Reset Zoom", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Reset", None)
         )
         self.zoom_label.setText(
             QCoreApplication.translate("TextureAtlasToolboxApp", "Zoom: 100%", None)
@@ -1701,69 +1653,57 @@ class Ui_TextureAtlasToolboxApp(object):
             )
         )
         self.controls_group.setTitle(
-            QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "Alignment controls", None
-            )
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Alignment", None)
         )
         self.label_offset_x.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Frame offset X", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "X:", None)
         )
         self.label_offset_y.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Frame offset Y", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Y:", None)
         )
         self.offset_x_spin.setSuffix(" px")
         self.offset_y_spin.setSuffix(" px")
         self.reset_offset_button.setText(
-            QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "Reset to default", None
-            )
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Reset", None)
         )
         self.apply_all_button.setText(
-            QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "Apply to all frames", None
-            )
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Apply", None)
         )
         self.save_overrides_button.setText(
-            QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "Save Alignment to Extract Tab", None
-            )
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Save Overrides", None)
         )
         self.display_group.setTitle(
-            QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "Canvas controls", None
-            )
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Display", None)
         )
         self.label_canvas_width.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Canvas width", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "W:", None)
         )
         self.canvas_width_spin.setSuffix(" px")
         self.label_canvas_height.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Canvas height", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "H:", None)
         )
         self.canvas_height_spin.setSuffix(" px")
         self.label_canvas_origin.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Canvas origin", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Origin:", None)
         )
         self.ghost_checkbox.setText(
             QCoreApplication.translate("TextureAtlasToolboxApp", "Enable", None)
         )
         self.label_snapping.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Snapping", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Snap:", None)
         )
         self.snap_checkbox.setText(
             QCoreApplication.translate("TextureAtlasToolboxApp", "Enable", None)
         )
         self.snap_step_spin.setSuffix(" px")
         self.label_ghost_frame.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Ghost frame", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Ghost:", None)
         )
         self.detach_canvas_button.setText(
-            QCoreApplication.translate("TextureAtlasToolboxApp", "Detach canvas", None)
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Detach", None)
         )
         self.export_composite_button.setText(
-            QCoreApplication.translate(
-                "TextureAtlasToolboxApp", "Export Composite to Sprites", None
-            )
+            QCoreApplication.translate("TextureAtlasToolboxApp", "Export", None)
         )
         self.tools_tab.setTabText(
             self.tools_tab.indexOf(self.tool_editor),

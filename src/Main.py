@@ -18,9 +18,15 @@ from utils.qt_environment import configure_qt_environment
 configure_qt_environment()
 
 try:
-    from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
+    from PySide6.QtWidgets import (
+        QApplication,
+        QMainWindow,
+        QFileDialog,
+        QMessageBox,
+        QMenu,
+    )
     from PySide6.QtCore import QThread, Signal, QTimer, Qt, QCoreApplication, QSize
-    from PySide6.QtGui import QIcon, QAction
+    from PySide6.QtGui import QIcon, QAction, QActionGroup
 except ImportError as _qt_err:
     print(
         "\n"
@@ -59,7 +65,6 @@ from gui.app_ui import Ui_TextureAtlasToolboxApp  # noqa: E402
 from gui.app_config_window import AppConfigWindow  # noqa: E402
 from gui.settings_window import SettingsWindow  # noqa: E402
 from gui.extractor.find_replace_window import FindReplaceWindow  # noqa: E402
-from gui.help_window import HelpWindow  # noqa: E402
 from gui.contributors_window import ContributorsWindow  # noqa: E402
 from gui.extractor.processing_window import ProcessingWindow  # noqa: E402
 from gui.extractor.compression_settings_window import (  # noqa: E402
@@ -68,14 +73,17 @@ from gui.extractor.compression_settings_window import (  # noqa: E402
 from gui.machine_translation_disclaimer_dialog import (  # noqa: E402
     MachineTranslationDisclaimerDialog,
 )
+from gui.theme_manager import (  # noqa: E402
+    apply_theme,
+    refresh_icons,
+    icons,
+    THEME_LABELS,
+    ACCENT_PRESETS,
+    FONT_OPTIONS,
+)
 from gui.first_start_dialog import (  # noqa: E402
     show_first_start_dialog,
     restart_application,
-)
-from utils.combo_options import (  # noqa: E402
-    ANIMATION_FORMAT_OPTIONS,
-    FRAME_FORMAT_OPTIONS,
-    get_index_by_display,
 )
 
 
@@ -166,11 +174,12 @@ class TextureAtlasToolboxApp(QMainWindow):
         # Initialize UI
         self.ui = Ui_TextureAtlasToolboxApp()
         self.ui.setupUi(self)
-        self._resize_tools_tab_to_window()
+        self._install_central_layout()
         self._default_minimum_size = QSize(900, 768)
         self._editor_minimum_size = QSize(1280, 850)
         self._pre_editor_size: Optional[QSize] = None
         self.setMinimumSize(self._default_minimum_size)
+        self._initial_size = self._compute_initial_size()
 
         # Initialize advanced menu variables
         defaults = (
@@ -195,13 +204,30 @@ class TextureAtlasToolboxApp(QMainWindow):
             self.extract_tab_widget.update_frame_rate_display()
 
         self.update_dynamic_tab_labels()
+        self.ui.tools_tab.setCurrentIndex(self._extract_tab_index)
         self.ui.tools_tab.currentChanged.connect(self._on_tools_tab_changed)
         self._on_tools_tab_changed(self.ui.tools_tab.currentIndex())
 
-        # Show first-start dialog for new users
+        # Apply saved theme (must happen after all tabs are created)
+        self._assign_tab_icon_keys()
+        self._assign_button_icon_keys()
+        self._apply_current_theme()
+
+        # Show first-start / upgrade wizard for new users or major upgrades
+        def _preview_theme(family, variant):
+            app = QApplication.instance()
+            if app:
+                apply_theme(app, self, family, variant)
+
         dialog_shown, restart_needed = show_first_start_dialog(
-            self, self.translation_manager, self.app_config
+            self,
+            self.translation_manager,
+            self.app_config,
+            apply_theme_callback=_preview_theme,
         )
+        if dialog_shown:
+            # Re-apply the saved theme (wizard may have changed it)
+            self._apply_current_theme()
         if restart_needed:
             restart_application()
 
@@ -266,6 +292,52 @@ class TextureAtlasToolboxApp(QMainWindow):
         self.ui.options_menu.addSeparator()
         self.ui.options_menu.addAction(self.language_action)
 
+        # ── Theme submenu ────────────────────────────────────────────────
+        current_family = self.app_config.get_theme_family()
+        current_variant = self.app_config.get_theme_variant()
+        current_key = f"{current_family}_{current_variant}"
+
+        theme_menu = QMenu(self.tr("Theme"), self)
+        theme_group = QActionGroup(self)
+        theme_group.setExclusive(True)
+        for key, label in THEME_LABELS.items():
+            action = QAction(label, self, checkable=True)
+            action.setData(key)
+            action.setChecked(key == current_key)
+            theme_group.addAction(action)
+            theme_menu.addAction(action)
+        theme_group.triggered.connect(self._on_theme_action)
+        self.ui.options_menu.addMenu(theme_menu)
+
+        # ── Accent colour submenu ────────────────────────────────────────
+        current_accent = self.app_config.get_accent_key()
+        accent_menu = QMenu(self.tr("Accent Colour"), self)
+        accent_group = QActionGroup(self)
+        accent_group.setExclusive(True)
+        for accent_key in ACCENT_PRESETS:
+            label = accent_key.capitalize()
+            action = QAction(label, self, checkable=True)
+            action.setData(accent_key)
+            action.setChecked(accent_key == current_accent)
+            accent_group.addAction(action)
+            accent_menu.addAction(action)
+        accent_group.triggered.connect(self._on_accent_action)
+        self.ui.options_menu.addMenu(accent_menu)
+
+        # ── Font submenu ─────────────────────────────────────────────────
+        current_font = self.app_config.get_font_override()
+        font_menu = QMenu(self.tr("Font"), self)
+        font_group = QActionGroup(self)
+        font_group.setExclusive(True)
+        for fkey, flabel in FONT_OPTIONS:
+            action = QAction(flabel, self, checkable=True)
+            action.setData(fkey or "")
+            action.setChecked((fkey or "") == current_font)
+            font_group.addAction(action)
+            font_menu.addAction(action)
+        font_group.triggered.connect(self._on_font_action)
+        self.ui.options_menu.addMenu(font_menu)
+
     def setup_generate_tab(self):
         """Set up the Generate tab with proper functionality."""
         from gui.generate_tab_widget import GenerateTabWidget
@@ -316,6 +388,8 @@ class TextureAtlasToolboxApp(QMainWindow):
 
     def update_dynamic_tab_labels(self):
         """Refresh translated titles for tabs that are added at runtime."""
+        if hasattr(self, "_extract_tab_index") and self._extract_tab_index != -1:
+            self.ui.tools_tab.setTabText(self._extract_tab_index, self.tr("Extract"))
         if hasattr(self, "_editor_tab_index") and self._editor_tab_index != -1:
             self.ui.tools_tab.setTabText(self._editor_tab_index, self.tr("Editor"))
         if hasattr(self, "_optimize_tab_index") and self._optimize_tab_index != -1:
@@ -325,8 +399,35 @@ class TextureAtlasToolboxApp(QMainWindow):
         """Set up the Extract tab with proper functionality."""
         from gui.extract_tab_widget import ExtractTabWidget
 
-        self.extract_tab_widget = ExtractTabWidget(self, use_existing_ui=True)
+        self.extract_tab_widget = ExtractTabWidget(self, use_existing_ui=False)
 
+        # Replace the Designer's placeholder tab with the standalone widget
+        old_index = self.ui.tools_tab.indexOf(self.ui.tool_extract)
+        if old_index != -1:
+            self.ui.tools_tab.removeTab(old_index)
+            self.ui.tools_tab.insertTab(
+                old_index, self.extract_tab_widget, self.tr("Extract")
+            )
+        else:
+            old_index = self.ui.tools_tab.addTab(
+                self.extract_tab_widget, self.tr("Extract")
+            )
+        self._extract_tab_index = old_index
+
+        # Alias the standalone widget so self.ui.tool_extract references work
+        self.ui.tool_extract = self.extract_tab_widget
+
+        # Alias widget references so existing self.ui.* code continues to work
+        self.ui.listbox_png = self.extract_tab_widget.listbox_png
+        self.ui.listbox_data = self.extract_tab_widget.listbox_data
+        self.ui.animation_export_group = self.extract_tab_widget.animation_export_group
+        self.ui.frame_export_group = self.extract_tab_widget.frame_export_group
+        self.ui.animation_format_combobox = (
+            self.extract_tab_widget.animation_format_combobox
+        )
+        self.ui.threshold_label = self.extract_tab_widget.threshold_label
+        self.ui.input_dir_label = self.extract_tab_widget.input_dir_label
+        self.ui.output_dir_label = self.extract_tab_widget.output_dir_label
         self.ui.frame_format_combobox = self.extract_tab_widget.frame_format_combobox
         self.ui.frame_rate_entry = self.extract_tab_widget.frame_rate_entry
         self.ui.loop_delay_entry = self.extract_tab_widget.loop_delay_entry
@@ -364,6 +465,9 @@ class TextureAtlasToolboxApp(QMainWindow):
         self.ui.compression_settings_button = (
             self.extract_tab_widget.compression_settings_button
         )
+        self.ui.resampling_method_combobox = (
+            self.extract_tab_widget.resampling_method_combobox
+        )
 
         print("[Startup] Extract tab initialized.")
 
@@ -374,52 +478,38 @@ class TextureAtlasToolboxApp(QMainWindow):
                 version=self.current_version
             )
         )
-        self.resize(900, 770)
+        self.resize(self._initial_size)
 
         # Set application icon if available
         icon_path = Path("assets/icon.ico")
         if icon_path.exists():
             self.setWindowIcon(QIcon(str(icon_path)))
 
-        # Initialize directory labels with translated text
-        self.ui.input_dir_label.setText(self.tr("No input directory selected"))
-        self.ui.output_dir_label.setText(self.tr("No output directory selected"))
+        # Extract tab defaults are handled by ExtractTabWidget.setup_default_values()
 
-        # Initialize default values from app config
-        defaults = (
-            self.app_config.get_extraction_defaults()
-            if hasattr(self.app_config, "get_extraction_defaults")
-            else {}
-        )
+    def _compute_initial_size(self) -> QSize:
+        """Compute initial window size as 70% of the primary screen, clamped.
 
-        # Set default values for UI elements
-        self.ui.frame_rate_entry.setValue(defaults.get("frame_rate", 24))
-        self.ui.loop_delay_entry.setValue(defaults.get("loop_delay", 250))
-        self.ui.min_period_entry.setValue(defaults.get("min_period", 0))
-        self.ui.scale_entry.setValue(defaults.get("scale", 1.0))
-        self.ui.threshold_entry.setValue(
-            defaults.get("threshold", 0.5) * 100.0
-        )  # Convert from 0-1 to 0-100 for UI
-        self.ui.frame_scale_entry.setValue(defaults.get("frame_scale", 1.0))
-
-        # Set default groupbox states
-        self.ui.animation_export_group.setChecked(
-            defaults.get("animation_export", True)
-        )
-        self.ui.frame_export_group.setChecked(defaults.get("frame_export", True))
-
-        # Set default selections using index mapping to avoid translation issues
-        if "animation_format" in defaults:
-            format_index = get_index_by_display(
-                ANIMATION_FORMAT_OPTIONS, defaults["animation_format"]
-            )
-            self.ui.animation_format_combobox.setCurrentIndex(format_index)
-
-        if "frame_format" in defaults:
-            format_index = get_index_by_display(
-                FRAME_FORMAT_OPTIONS, defaults["frame_format"]
-            )
-            self.ui.frame_format_combobox.setCurrentIndex(format_index)
+        On small screens (e.g. 1280x720) the minimum sizes are reduced to
+        fit the available area so the window never overflows.
+        """
+        screen = QApplication.primaryScreen()
+        if screen is not None:
+            avail = screen.availableSize()
+            # Shrink minimum sizes if the screen is too small
+            min_w = min(self._default_minimum_size.width(), avail.width())
+            min_h = min(self._default_minimum_size.height(), avail.height())
+            self._default_minimum_size = QSize(min_w, min_h)
+            self.setMinimumSize(self._default_minimum_size)
+            ed_w = min(self._editor_minimum_size.width(), avail.width())
+            ed_h = min(self._editor_minimum_size.height(), avail.height())
+            self._editor_minimum_size = QSize(ed_w, ed_h)
+            # 70% of available, clamped between minimum and available
+            w = max(min_w, min(int(avail.width() * 0.7), avail.width()))
+            h = max(min_h, min(int(avail.height() * 0.7), avail.height()))
+        else:
+            w, h = 900, 770
+        return QSize(w, h)
 
     def _on_tools_tab_changed(self, index: int):
         editor_active = hasattr(self, "_editor_tab_index") and index == getattr(
@@ -430,36 +520,162 @@ class TextureAtlasToolboxApp(QMainWindow):
     def _apply_editor_window_constraints(self, editor_active: bool):
         if not hasattr(self, "_default_minimum_size"):
             return
+        screen = QApplication.primaryScreen()
+        max_w = screen.availableSize().width() if screen else 99999
+        max_h = screen.availableSize().height() if screen else 99999
         if editor_active:
             if self._pre_editor_size is None:
                 self._pre_editor_size = self.size()
             self.setMinimumSize(self._editor_minimum_size)
-            target_width = max(self.width(), self._editor_minimum_size.width())
-            target_height = max(self.height(), self._editor_minimum_size.height())
+            target_width = min(
+                max(self.width(), self._editor_minimum_size.width()), max_w
+            )
+            target_height = min(
+                max(self.height(), self._editor_minimum_size.height()), max_h
+            )
             if target_width != self.width() or target_height != self.height():
                 self.resize(target_width, target_height)
         else:
             self.setMinimumSize(self._default_minimum_size)
             if self._pre_editor_size is not None:
-                target_width = max(
-                    self._default_minimum_size.width(), self._pre_editor_size.width()
+                target_width = min(
+                    max(
+                        self._default_minimum_size.width(),
+                        self._pre_editor_size.width(),
+                    ),
+                    max_w,
                 )
-                target_height = max(
-                    self._default_minimum_size.height(), self._pre_editor_size.height()
+                target_height = min(
+                    max(
+                        self._default_minimum_size.height(),
+                        self._pre_editor_size.height(),
+                    ),
+                    max_h,
                 )
                 self.resize(target_width, target_height)
                 self._pre_editor_size = None
-        self._resize_tools_tab_to_window()
 
-    def resizeEvent(self, event):  # noqa: D401 - Qt API
-        super().resizeEvent(event)
-        self._resize_tools_tab_to_window()
+    def _install_central_layout(self):
+        """Replace Designer's absolute positioning with a proper layout."""
+        from PySide6.QtWidgets import QVBoxLayout as _QVBox
 
-    def _resize_tools_tab_to_window(self):
         central = self.centralWidget()
-        if not central or not hasattr(self.ui, "tools_tab"):
+        if central is None or not hasattr(self.ui, "tools_tab"):
             return
-        self.ui.tools_tab.setGeometry(central.rect())
+        if central.layout() is None:
+            lay = _QVBox(central)
+            lay.setContentsMargins(0, 0, 0, 0)
+            lay.addWidget(self.ui.tools_tab)
+
+    def _apply_current_theme(self):
+        """Read theme settings from config and apply the active theme."""
+        app = QApplication.instance()
+        if app is None:
+            return
+        apply_theme(
+            app,
+            self,
+            self.app_config.get_theme_family(),
+            self.app_config.get_theme_variant(),
+            accent_key=self.app_config.get_accent_key(),
+            font_override=self.app_config.get_font_override(),
+        )
+
+    def _assign_tab_icon_keys(self):
+        """Tag each tab's root widget with a tabIconKey for refresh_icons()."""
+        tab = self.ui.tools_tab
+        for idx in range(tab.count()):
+            widget = tab.widget(idx)
+            if widget is self.ui.tool_extract:
+                widget.setProperty("tabIconKey", "layers")
+            elif widget is getattr(self.ui, "tool_generate", None):
+                widget.setProperty("tabIconKey", "grid")
+            elif widget is getattr(
+                self, "editor_tab_widget", None
+            ) or widget is getattr(self.ui, "tool_editor", None):
+                widget.setProperty("tabIconKey", "crosshair")
+            elif widget is getattr(self, "optimize_tab_widget", None):
+                widget.setProperty("tabIconKey", "image")
+
+    def _assign_button_icon_keys(self):
+        """Tag buttons across all tabs with iconKey so refresh_icons() works."""
+        # Extract tab
+        ext = getattr(self, "extract_tab_widget", None)
+        if ext:
+            _tag = self._set_icon_key
+            _tag(ext, "input_button", "folder_open")
+            _tag(ext, "output_button", "folder_open")
+            _tag(ext, "compression_settings_button", "settings")
+            _tag(ext, "_overrides_button", "layers")
+            _tag(ext, "show_override_settings_button", "eye")
+            _tag(ext, "_list_btn", "list_view")
+            _tag(ext, "_tree_btn", "tree_view")
+            _tag(ext, "reset_button", "reset")
+            _tag(ext, "start_process_button", "play")
+
+        # Generate tab
+        gen = getattr(self, "generate_tab_widget", None)
+        if gen:
+            _tag = self._set_icon_key
+            _tag(gen, "add_directory_button", "folder_plus")
+            _tag(gen, "add_files_button", "file_plus")
+            _tag(gen, "add_existing_atlas_button", "image")
+            _tag(gen, "add_animation_button", "film")
+            _tag(gen, "clear_frames_button", "trash")
+            _tag(gen, "generate_button", "play")
+            _tag(gen, "compression_settings_button", "settings")
+
+        # Editor tab
+        edit = getattr(self, "editor_tab_widget", None)
+        if edit:
+            _tag = self._set_icon_key
+            _tag(edit, "load_files_button", "folder_open")
+            _tag(edit, "remove_animation_button", "trash")
+            _tag(edit, "combine_button", "layers")
+            _tag(edit, "zoom_out_button", "zoom_out")
+            _tag(edit, "zoom_in_button", "zoom_in")
+            _tag(edit, "reset_zoom_button", "reset")
+            _tag(edit, "center_view_button", "center")
+            _tag(edit, "fit_canvas_button", "fit")
+            _tag(edit, "detach_canvas_button", "maximize")
+            _tag(edit, "reset_offset_button", "reset")
+            _tag(edit, "apply_all_button", "check")
+            _tag(edit, "save_overrides_button", "save")
+            _tag(edit, "export_composite_button", "download")
+
+        # Optimize tab
+        opt = getattr(self, "optimize_tab_widget", None)
+        if opt:
+            _tag = self._set_icon_key
+            _tag(opt, "_add_files_btn", "file_plus")
+            _tag(opt, "_add_folder_btn", "folder_plus")
+            _tag(opt, "_clear_btn", "trash")
+            _tag(opt, "_select_output_btn", "folder_open")
+            _tag(opt, "_optimize_btn", "download")
+
+    @staticmethod
+    def _set_icon_key(obj, attr: str, key: str):
+        """Set iconKey on a widget attribute if it exists."""
+        widget = getattr(obj, attr, None)
+        if widget is not None:
+            widget.setProperty("iconKey", key)
+
+    def _on_theme_action(self, action: QAction):
+        """Handle a theme menu radio selection."""
+        key = action.data()  # e.g. "clean_dark"
+        family, variant = key.split("_", 1)
+        self.app_config.set_theme_settings(family=family, variant=variant)
+        self._apply_current_theme()
+
+    def _on_accent_action(self, action: QAction):
+        """Handle an accent-colour menu selection."""
+        self.app_config.set_theme_settings(accent_key=action.data())
+        self._apply_current_theme()
+
+    def _on_font_action(self, action: QAction):
+        """Handle a font menu selection."""
+        self.app_config.set_theme_settings(font_override=action.data())
+        self._apply_current_theme()
 
     def setup_connections(self):
         """Sets up signal-slot connections for UI elements."""
@@ -521,26 +737,26 @@ class TextureAtlasToolboxApp(QMainWindow):
             )
 
     def show_help_manual(self):
-        """Shows the main help window with application manual."""
-        try:
-            HelpWindow.create_main_help_window(self)
-        except Exception as e:
-            QMessageBox.warning(
-                self,
-                self.tr("Error"),
-                self.tr("Could not open help window: {error}").format(error=str(e)),
+        """Open the online user manual in the default browser."""
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+
+        QDesktopServices.openUrl(
+            QUrl(
+                "https://github.com/MeguminBOT/TextureAtlas-Toolbox/blob/main/docs/user-manual.md"
             )
+        )
 
     def show_help_fnf(self):
-        """Shows the FNF-specific help window."""
-        try:
-            HelpWindow.create_fnf_help_window(self)
-        except Exception as e:
-            QMessageBox.warning(
-                self,
-                self.tr("Error"),
-                self.tr("Could not open FNF help window: {error}").format(error=str(e)),
+        """Open the online FNF guide in the default browser."""
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+
+        QDesktopServices.openUrl(
+            QUrl(
+                "https://github.com/MeguminBOT/TextureAtlas-Toolbox/blob/main/docs/fnf-guide.md"
             )
+        )
 
     def show_contributors_window(self):
         """Shows the contributors window."""
@@ -1311,12 +1527,8 @@ def main():
     app.setApplicationVersion(APP_VERSION)
     app.setOrganizationName("AutisticLulu")
 
-    # Apply color scheme from config before creating the main window
+    # Create and show the main window (theme is applied inside __init__)
     config = AppConfig()
-    color_scheme = config.get_color_scheme()
-    apply_color_scheme(app, color_scheme)
-
-    # Create and show the main window (reuse the config instance)
     window = TextureAtlasToolboxApp(app_config=config)
     window.show()
 

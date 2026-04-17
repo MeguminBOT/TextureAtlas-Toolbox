@@ -1,0 +1,184 @@
+name: Build Nuitka Distributions
+
+on:
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.14'
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+
+      - name: Get app version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep 'APP_VERSION' src/utils/version.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nuitka
+          pip install -r setup/requirements-portable.txt
+
+      - name: Build with Nuitka
+        shell: bash
+        run: |
+          nuitka \
+            --standalone \
+            --assume-yes-for-downloads \
+            --deployment \
+            --msvc=latest \
+            --follow-imports \
+            --enable-plugin=pyside6 \
+            --include-qt-plugins=qml \
+            --windows-console-mode=attach \
+            --include-data-dir=assets=assets \
+            --include-data-dir=docs=docs \
+            --include-data-dir=ImageMagick=ImageMagick \
+            --include-data-files='src/translations/translations.qrc=translations/' \
+            --include-data-files='src/translations/*.ts=translations/' \
+            --include-data-files='src/translations/*.qm=translations/' \
+            --include-data-files='ImageMagick/*.dll=ImageMagick/' \
+            --include-data-files='ImageMagick/modules/coders/*.dll=ImageMagick/modules/coders/' \
+            --include-data-files=LICENSE=LICENSE \
+            --include-data-files=README.md=README.md \
+            --include-package=src \
+            --windows-icon-from-ico=assets/icon.ico \
+            --company-name="AutisticLulu" \
+            --product-name="TextureAtlas Toolbox" \
+            --file-version=${{ steps.version.outputs.version }} \
+            --product-version=${{ steps.version.outputs.version }} \
+            --copyright="Copyright © 2026 AutisticLulu. Licensed under the GNU Affero General Public License (AGPL)" \
+            --file-description="TextureAtlas Toolbox v${{ steps.version.outputs.version }}" \
+            --output-filename=TextureAtlasToolbox.exe \
+            --output-dir=_build-output \
+            src/Main.py
+
+      - name: Upload Windows distribution
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: TextureAtlasToolbox-win-x64-nuitka-v${{ steps.version.outputs.version }}
+          path: _build-output/Main.dist/
+          if-no-files-found: error
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+
+      - name: Get app version
+        id: version
+        run: |
+          VERSION=$(grep 'APP_VERSION' src/utils/version.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf ccache libxcb-cursor0 libxkbcommon-x11-0 imagemagick libmagickwand-dev
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nuitka
+          pip install -r setup/requirements-portable.txt
+
+      - name: Build with Nuitka
+        run: |
+          nuitka \
+            --standalone \
+            --assume-yes-for-downloads \
+            --deployment \
+            --follow-imports \
+            --enable-plugin=pyside6 \
+            --include-qt-plugins=qml \
+            --include-data-dir=assets=assets \
+            --include-data-dir=docs=docs \
+            --include-data-files='src/translations/translations.qrc=translations/' \
+            --include-data-files='src/translations/*.ts=translations/' \
+            --include-data-files='src/translations/*.qm=translations/' \
+            --include-data-files=LICENSE=LICENSE \
+            --include-data-files=README.md=README.md \
+            --include-package=src \
+            --output-filename=TextureAtlasToolbox \
+            --output-dir=_build-output \
+            src/Main.py
+
+      - name: Upload Linux distribution
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: TextureAtlasToolbox-linux-x64-nuitka-v${{ steps.version.outputs.version }}
+          path: _build-output/Main.dist/
+          if-no-files-found: error
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+
+      - name: Get app version
+        id: version
+        run: |
+          VERSION=$(grep 'APP_VERSION' src/utils/version.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install system dependencies
+        run: brew install imagemagick ccache
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nuitka
+          pip install -r setup/requirements-portable.txt
+
+      - name: Build with Nuitka
+        run: |
+          nuitka \
+            --standalone \
+            --assume-yes-for-downloads \
+            --deployment \
+            --follow-imports \
+            --enable-plugin=pyside6 \
+            --include-qt-plugins=qml \
+            --include-data-dir=assets=assets \
+            --include-data-dir=docs=docs \
+            --include-data-files='src/translations/translations.qrc=translations/' \
+            --include-data-files='src/translations/*.ts=translations/' \
+            --include-data-files='src/translations/*.qm=translations/' \
+            --include-data-files=LICENSE=LICENSE \
+            --include-data-files=README.md=README.md \
+            --include-package=src \
+            --output-filename=TextureAtlasToolbox \
+            --output-dir=_build-output \
+            src/Main.py
+
+      - name: Upload macOS distribution
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: TextureAtlasToolbox-mac-x64-nuitka-v${{ steps.version.outputs.version }}
+          path: _build-output/Main.dist/
+          if-no-files-found: error

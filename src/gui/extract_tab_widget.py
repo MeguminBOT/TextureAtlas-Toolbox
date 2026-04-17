@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
+    QFormLayout,
+    QGridLayout,
     QGroupBox,
     QLabel,
     QPushButton,
@@ -25,6 +27,13 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QMenu,
     QMessageBox,
+    QScrollArea,
+    QSizePolicy,
+    QSplitter,
+    QStackedWidget,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QHeaderView,
 )
 from PySide6.QtCore import Qt, QCoreApplication
 from PySide6.QtGui import QAction
@@ -174,7 +183,7 @@ class SpritesheetFileDialog(QFileDialog):
             return
 
         self._address_line = address_line
-        self._address_line.setPlaceholderText(self.tr("Type a path and press Enter"))
+        self._address_line.setPlaceholderText(self.tr(Placeholders.TYPE_PATH))
         self._address_line.returnPressed.connect(self._handle_address_entered)
         self.directoryEntered.connect(self._sync_address_line)
         self.currentChanged.connect(self._sync_address_line)
@@ -331,291 +340,622 @@ class ExtractTabWidget(BaseTabWidget):
             )
 
     def _build_ui(self):
-        """Set up the UI components for the extract tab."""
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(5, 5, 5, 5)
+        """Set up the UI components for the extract tab (mockup v2 layout)."""
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
 
-        top_section = self.create_top_section()
-        main_layout.addWidget(top_section)
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        layout.setSpacing(6)
+        layout.setContentsMargins(6, 6, 6, 6)
 
-        export_section = self.create_export_section()
-        main_layout.addWidget(export_section)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.setChildrenCollapsible(False)
 
-        bottom_section = self.create_bottom_section()
-        main_layout.addWidget(bottom_section)
+        # ── Left panel: file lists ──
+        left_panel = self._create_left_panel()
+        splitter.addWidget(left_panel)
 
-    def create_top_section(self):
-        """Create the top section with file lists and directory buttons."""
-        top_widget = QWidget()
-        layout = QHBoxLayout(top_widget)
+        # ── Right panel: controls (scrollable) ──
+        controls = self._create_controls_panel()
+        scroll = QScrollArea()
+        scroll.setWidget(controls)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        splitter.addWidget(scroll)
 
-        lists_widget = QWidget()
-        lists_layout = QHBoxLayout(lists_widget)
+        splitter.setStretchFactor(0, 35)
+        splitter.setStretchFactor(1, 65)
+        layout.addWidget(splitter, 1)
 
+        # ── Bottom action bar ──
+        bar = self._create_action_bar()
+        layout.addLayout(bar)
+
+        # Wrap entire content in scroll area (matches mockup)
+        scroll_outer = QScrollArea()
+        scroll_outer.setWidget(content)
+        scroll_outer.setWidgetResizable(True)
+        scroll_outer.setFrameShape(QFrame.Shape.NoFrame)
+        outer.addWidget(scroll_outer)
+
+    def _create_left_panel(self):
+        """Create the left panel with toggle bar, dual lists, and tree view."""
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+        left_layout.setContentsMargins(0, 0, 4, 0)
+        left_layout.setSpacing(4)
+
+        # ── Toggle bar: Lists / Tree ──
+        toggle_bar = QHBoxLayout()
+        toggle_bar.setSpacing(4)
+        self._list_btn = QPushButton(self.tr("Lists"))
+        self._list_btn.setCheckable(True)
+        self._list_btn.setChecked(True)
+        self._list_btn.setToolTip(self.tr("Dual list view"))
+        self._tree_btn = QPushButton(self.tr("Tree"))
+        self._tree_btn.setCheckable(True)
+        self._tree_btn.setToolTip(self.tr("Unified treeview"))
+        toggle_bar.addWidget(self._list_btn)
+        toggle_bar.addWidget(self._tree_btn)
+        toggle_bar.addStretch()
+        left_layout.addLayout(toggle_bar)
+
+        # ── Stacked widget: dual-list (0) vs tree (1) ──
+        self._view_stack = QStackedWidget()
+
+        # Mode 0: Dual lists in group boxes
+        dual = QWidget()
+        dl = QHBoxLayout(dual)
+        dl.setContentsMargins(0, 0, 0, 0)
+        dl.setSpacing(4)
+
+        png_grp = QGroupBox(self.tr("Spritesheets"))
+        pl = QVBoxLayout(png_grp)
         self.listbox_png = EnhancedListWidget()
         self.listbox_png.setObjectName("listbox_png")
-        self.listbox_png.setFixedSize(200, 621)
+        self.listbox_png.setTextElideMode(Qt.TextElideMode.ElideRight)
+        self.listbox_png.setMinimumWidth(120)
         self.listbox_png.setAlternatingRowColors(False)
         self.listbox_png.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        lists_layout.addWidget(self.listbox_png)
+        pl.addWidget(self.listbox_png)
+        dl.addWidget(png_grp)
 
+        data_grp = QGroupBox(self.tr("Animations"))
+        al = QVBoxLayout(data_grp)
         self.listbox_data = EnhancedListWidget()
         self.listbox_data.setObjectName("listbox_data")
-        self.listbox_data.setFixedSize(200, 621)
+        self.listbox_data.setTextElideMode(Qt.TextElideMode.ElideRight)
+        self.listbox_data.setMinimumWidth(120)
         self.listbox_data.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        lists_layout.addWidget(self.listbox_data)
+        al.addWidget(self.listbox_data)
+        dl.addWidget(data_grp)
 
-        layout.addWidget(lists_widget)
+        self._view_stack.addWidget(dual)
 
-        dir_widget = QWidget()
-        dir_layout = QVBoxLayout(dir_widget)
+        # Mode 1: Unified tree view
+        tree_page = QWidget()
+        tl = QVBoxLayout(tree_page)
+        tl.setContentsMargins(0, 0, 0, 0)
+        self.unified_tree = QTreeWidget()
+        self.unified_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.unified_tree.setHeaderLabels(
+            [
+                self.tr("Atlas"),
+                self.tr("Format"),
+                self.tr("Frames"),
+            ]
+        )
+        header = self.unified_tree.header()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setStretchLastSection(False)
+        tl.addWidget(self.unified_tree)
+        self._view_stack.addWidget(tree_page)
 
-        self.input_button = QPushButton(self.tr("Select input directory"))
-        self.input_button.setFixedSize(171, 24)
-        dir_layout.addWidget(self.input_button)
+        left_layout.addWidget(self._view_stack, 1)
 
-        self.input_dir_label = QLabel(self.tr("No input directory selected"))
-        self.input_dir_label.setFixedSize(451, 21)
+        # ── Stats label ──
+        self._stats_label = QLabel("")
+        self._stats_label.setProperty("cssClass", "secondary")
+        self._stats_label.setWordWrap(True)
+        left_layout.addWidget(self._stats_label)
+
+        # ── Toggle connections ──
+        self._list_btn.clicked.connect(lambda: self._set_view(0))
+        self._tree_btn.clicked.connect(lambda: self._set_view(1))
+
+        return left_panel
+
+    def _set_view(self, idx: int):
+        """Switch between dual-list (0) and tree (1) view."""
+        self._view_stack.setCurrentIndex(idx)
+        self._list_btn.setChecked(idx == 0)
+        self._tree_btn.setChecked(idx == 1)
+        if idx == 1:
+            self._populate_tree()
+        self.update_stats_label()
+
+    def _populate_tree(self):
+        """Rebuild the unified tree from current listbox_png items and data_dict."""
+        self.unified_tree.clear()
+        if not self.parent_app:
+            return
+
+        data_dict = getattr(self.parent_app, "data_dict", {})
+        selected_name = (
+            self.listbox_png.currentItem().text()
+            if self.listbox_png.currentItem()
+            else None
+        )
+
+        for i in range(self.listbox_png.count()):
+            item = self.listbox_png.item(i)
+            if not item:
+                continue
+            sheet_name = item.text()
+            data_files = data_dict.get(sheet_name, {})
+
+            # Determine format label from metadata type
+            fmt = ""
+            if isinstance(data_files, dict):
+                if "xml" in data_files:
+                    fmt = "XML"
+                elif "json" in data_files:
+                    fmt = "JSON"
+                elif "spritemap" in data_files:
+                    fmt = "Spritemap"
+                elif "plist" in data_files:
+                    fmt = "Plist"
+                elif "atlas" in data_files:
+                    fmt = "Atlas"
+                elif "txt" in data_files:
+                    fmt = "TXT"
+                elif "css" in data_files:
+                    fmt = "CSS"
+                elif "tpsheet" in data_files:
+                    fmt = "TPsheet"
+                elif "tpset" in data_files:
+                    fmt = "TPset"
+                elif "paper2dsprites" in data_files:
+                    fmt = "Paper2D"
+
+            top = QTreeWidgetItem(self.unified_tree, [sheet_name, fmt, ""])
+            font = top.font(0)
+            font.setBold(True)
+            top.setFont(0, font)
+
+            # Parse animations with frame counts for this spritesheet
+            anim_frame_counts = self._get_animation_frame_counts(sheet_name, data_files)
+            total_frames = 0
+            for aname, fcount in anim_frame_counts.items():
+                child = QTreeWidgetItem(top, [aname, "", ""])
+                if fcount > 0:
+                    child.setText(2, str(fcount))
+                total_frames += fcount
+            if total_frames > 0:
+                top.setText(2, str(total_frames))
+            if sheet_name == selected_name:
+                top.setExpanded(True)
+
+    def _get_animation_frame_counts(self, sheet_name, data_files):
+        """Return an ordered dict of ``{animation_name: frame_count}``.
+
+        Uses the same parsing logic as ``populate_animation_list`` but without
+        touching ``listbox_data``, so it can be called for every sheet at once.
+        """
+        if not isinstance(data_files, dict):
+            return {}
+
+        smart = self._is_smart_grouping_enabled()
+        frame_counts: dict[str, int] = {}
+
+        try:
+            if "xml" in data_files:
+                from parsers.xml_parser import XmlParser
+
+                parser = XmlParser(
+                    directory=str(Path(data_files["xml"]).parent),
+                    xml_filename=Path(data_files["xml"]).name,
+                )
+                frame_counts = self._frame_counts_from_parser(parser, smart)
+
+            elif "txt" in data_files:
+                from parsers.txt_parser import TxtParser
+
+                parser = TxtParser(
+                    directory=str(Path(data_files["txt"]).parent),
+                    txt_filename=Path(data_files["txt"]).name,
+                )
+                frame_counts = self._frame_counts_from_parser(parser, smart)
+
+            elif "spritemap" in data_files:
+                spritemap_info = data_files.get("spritemap", {})
+                symbol_map = spritemap_info.get("symbol_map", {})
+                if symbol_map:
+                    frame_counts = {n: 0 for n in sorted(symbol_map.keys())}
+                else:
+                    from parsers.spritemap_parser import SpritemapParser
+
+                    animation_path = spritemap_info.get("animation_json")
+                    if animation_path:
+                        parser = SpritemapParser(
+                            directory=str(Path(animation_path).parent),
+                            animation_filename=Path(animation_path).name,
+                            filter_single_frame=self.filter_single_frame_spritemaps,
+                            filter_unused_symbols=self.filter_unused_spritemap_symbols,
+                            root_animation_only=self.spritemap_root_animation_only,
+                        )
+                        frame_counts = self._frame_counts_from_parser(parser, smart)
+
+            elif "json" in data_files:
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["json"], smart
+                )
+
+            elif "plist" in data_files:
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["plist"], smart
+                )
+
+            elif "atlas" in data_files:
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["atlas"], smart
+                )
+
+            elif "css" in data_files:
+                frame_counts = self._frame_counts_via_registry(data_files["css"], smart)
+
+            elif "tpsheet" in data_files:
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["tpsheet"], smart
+                )
+
+            elif "tpset" in data_files:
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["tpset"], smart
+                )
+
+            elif "paper2dsprites" in data_files:
+                frame_counts = self._frame_counts_via_registry(
+                    data_files["paper2dsprites"], smart
+                )
+        except Exception as e:
+            print(f"Error parsing animations for {sheet_name}: {e}")
+
+        # Append editor composites
+        if self.parent_app and hasattr(self.parent_app, "editor_composite_animations"):
+            composites = self.parent_app.editor_composite_animations.get(sheet_name, {})
+            for cname in sorted(composites.keys()):
+                if cname not in frame_counts:
+                    frame_counts[cname] = len(composites[cname])
+
+        return dict(sorted(frame_counts.items()))
+
+    @staticmethod
+    def _frame_counts_from_parser(parser, smart: bool) -> dict[str, int]:
+        """Return ``{animation_name: frame_count}`` from a parser instance."""
+        from utils.utilities import Utilities
+
+        raw = parser.extract_raw_sprite_names()
+        if raw:
+            groups = Utilities.group_names_by_animation(raw)
+            if smart:
+                return {name: len(frames) for name, frames in groups.items()}
+            # Non-smart: strip trailing digits the traditional way
+            names = parser.extract_names()
+            # Count raw sprites belonging to each stripped name
+            counts: dict[str, int] = {n: 0 for n in names}
+            for sprite_name in raw:
+                for anim_name in names:
+                    if sprite_name == anim_name or sprite_name.startswith(anim_name):
+                        counts[anim_name] = counts.get(anim_name, 0) + 1
+                        break
+            return counts
+        # Fallback: names only, no counts
+        names = parser.get_data(smart_grouping=smart)
+        return {n: 0 for n in names}
+
+    def _frame_counts_via_registry(self, metadata_path, smart_grouping):
+        """Return ``{animation_name: frame_count}`` using ParserRegistry."""
+        import inspect
+        from parsers.parser_registry import ParserRegistry
+
+        if not ParserRegistry._all_parsers:
+            ParserRegistry.initialize()
+
+        parser_cls = ParserRegistry.detect_parser(metadata_path)
+        if not parser_cls:
+            return {}
+
+        filename = Path(metadata_path).name
+        directory = str(Path(metadata_path).parent)
+
+        sig = inspect.signature(parser_cls.__init__)
+        params = list(sig.parameters.keys())
+
+        filename_param = None
+        for param in params:
+            if param.endswith("_filename") or param == "filename":
+                filename_param = param
+                break
+
+        if filename_param:
+            parser = parser_cls(directory=directory, **{filename_param: filename})
+        else:
+            parser = parser_cls(directory=directory, filename=filename)
+
+        return self._frame_counts_from_parser(parser, smart_grouping)
+
+    def _get_names_via_registry(self, metadata_path, smart_grouping):
+        """Return sorted animation names using the ParserRegistry."""
+        import inspect
+        from parsers.parser_registry import ParserRegistry
+
+        if not ParserRegistry._all_parsers:
+            ParserRegistry.initialize()
+
+        parser_cls = ParserRegistry.detect_parser(metadata_path)
+        if not parser_cls:
+            return []
+
+        filename = Path(metadata_path).name
+        directory = str(Path(metadata_path).parent)
+
+        sig = inspect.signature(parser_cls.__init__)
+        params = list(sig.parameters.keys())
+
+        filename_param = None
+        for param in params:
+            if param.endswith("_filename") or param == "filename":
+                filename_param = param
+                break
+
+        if filename_param:
+            parser = parser_cls(directory=directory, **{filename_param: filename})
+        else:
+            parser = parser_cls(directory=directory, filename=filename)
+
+        result = parser.get_data(smart_grouping=smart_grouping)
+        return sorted(result) if result else []
+
+    def _refresh_tree_if_visible(self):
+        """Repopulate the tree so counts stay accurate in both views."""
+        if hasattr(self, "unified_tree"):
+            self._populate_tree()
+
+    def update_stats_label(self):
+        """Update the stats label with current counts."""
+        spritesheet_count = (
+            self.listbox_png.count() if hasattr(self, "listbox_png") else 0
+        )
+        animation_count = 0
+        if hasattr(self, "unified_tree"):
+            for i in range(self.unified_tree.topLevelItemCount()):
+                animation_count += self.unified_tree.topLevelItem(i).childCount()
+        if hasattr(self, "_stats_label"):
+            self._stats_label.setText(
+                self.tr("{sheets} spritesheets | {anims} animations").format(
+                    sheets=spritesheet_count, anims=animation_count
+                )
+            )
+
+    def _create_controls_panel(self):
+        """Create the right-side controls panel (directories, export, filename)."""
+        controls = QWidget()
+        cl = QVBoxLayout(controls)
+        cl.setSpacing(6)
+        cl.setContentsMargins(4, 0, 0, 0)
+
+        # ── Directories group ──
+        dir_grp = QGroupBox(self.tr("Directories"))
+        dlay = QVBoxLayout(dir_grp)
+
+        self.input_button = QPushButton(self.tr("Select Input Folder"))
+        dlay.addWidget(self.input_button)
+
+        self.input_dir_label = QLabel(self.tr("No input folder selected"))
+        self.input_dir_label.setProperty("cssClass", "path")
         self.input_dir_label.setFrameShape(QFrame.Shape.NoFrame)
-        self.input_dir_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        dir_layout.addWidget(self.input_dir_label)
+        self.input_dir_label.setWordWrap(True)
+        self.input_dir_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
+        dlay.addWidget(self.input_dir_label)
 
-        self.output_button = QPushButton(self.tr("Select output directory"))
-        self.output_button.setFixedSize(171, 24)
-        dir_layout.addWidget(self.output_button)
+        self.output_button = QPushButton(self.tr("Select Output Folder"))
+        dlay.addWidget(self.output_button)
 
-        self.output_dir_label = QLabel(self.tr("No output directory selected"))
-        self.output_dir_label.setFixedSize(451, 21)
+        self.output_dir_label = QLabel(self.tr("No output folder selected"))
+        self.output_dir_label.setProperty("cssClass", "path")
         self.output_dir_label.setFrameShape(QFrame.Shape.NoFrame)
-        self.output_dir_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        dir_layout.addWidget(self.output_dir_label)
+        self.output_dir_label.setWordWrap(True)
+        self.output_dir_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
+        dlay.addWidget(self.output_dir_label)
 
-        dir_layout.addStretch()
-        layout.addWidget(dir_widget)
+        cl.addWidget(dir_grp)
 
-        return top_widget
+        # ── Export groups side by side ──
+        export_row = QHBoxLayout()
+        export_row.setSpacing(4)
 
-    def create_export_section(self):
-        """Create the export settings section."""
-        export_widget = QWidget()
-        layout = QHBoxLayout(export_widget)
+        self.animation_export_group = self._create_animation_export_group()
+        export_row.addWidget(self.animation_export_group)
 
-        self.animation_export_group = self.create_animation_export_group()
-        layout.addWidget(self.animation_export_group)
+        self.frame_export_group = self._create_frame_export_group()
+        export_row.addWidget(self.frame_export_group)
 
-        self.frame_export_group = self.create_frame_export_group()
-        layout.addWidget(self.frame_export_group)
+        cl.addLayout(export_row)
 
-        return export_widget
+        # ── Filename group ──
+        fn_grp = self._create_filename_group()
+        cl.addWidget(fn_grp)
 
-    def create_animation_export_group(self):
-        """Create the animation export group box."""
+        cl.addStretch()
+        return controls
+
+    def _create_animation_export_group(self):
+        """Create the animation export group box with form layout."""
         group = QGroupBox(self.tr(GroupTitles.ANIMATION_EXPORT))
-        group.setFixedSize(191, 331)
-        group.setAlignment(Qt.AlignmentFlag.AlignCenter)
         group.setCheckable(True)
         group.setChecked(True)
 
-        format_label = QLabel(self.tr(Labels.FORMAT))
-        format_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        format_label.setGeometry(40, 30, 111, 16)
-        format_label.setParent(group)
+        form = QFormLayout(group)
+        form.setHorizontalSpacing(6)
+        form.setVerticalSpacing(4)
 
-        self.animation_format_combobox = QComboBox(group)
-        self.animation_format_combobox.setGeometry(10, 50, 171, 24)
+        self.animation_format_combobox = QComboBox()
         self.animation_format_combobox.addItems(
             get_display_texts(ANIMATION_FORMAT_OPTIONS)
         )
+        form.addRow(self.tr(Labels.FORMAT) + ":", self.animation_format_combobox)
 
-        self.frame_rate_label = QLabel(self.tr(Labels.FRAME_RATE))
-        self.frame_rate_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.frame_rate_label.setGeometry(40, 80, 111, 16)
-        self.frame_rate_label.setParent(group)
-
-        self.frame_rate_entry = QSpinBox(group)
-        self.frame_rate_entry.setGeometry(10, 100, 171, 24)
+        self.frame_rate_entry = QSpinBox()
         configure_spinbox(self.frame_rate_entry, SpinBoxConfig.FRAME_RATE)
+        self.frame_rate_label = QLabel(self.tr(Labels.FRAME_RATE) + ":")
+        form.addRow(self.frame_rate_label, self.frame_rate_entry)
 
-        loop_delay_label = QLabel(self.tr(Labels.LOOP_DELAY))
-        loop_delay_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        loop_delay_label.setGeometry(40, 130, 111, 16)
-        loop_delay_label.setParent(group)
-
-        self.loop_delay_entry = QSpinBox(group)
-        self.loop_delay_entry.setGeometry(10, 150, 171, 24)
+        self.loop_delay_entry = QSpinBox()
         self.loop_delay_entry.setRange(0, 10000)
         self.loop_delay_entry.setValue(250)
+        self.loop_delay_entry.setSuffix(" ms")
+        form.addRow(self.tr(Labels.LOOP_DELAY) + ":", self.loop_delay_entry)
 
-        min_period_label = QLabel(self.tr(Labels.MIN_PERIOD))
-        min_period_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        min_period_label.setGeometry(40, 180, 111, 16)
-        min_period_label.setParent(group)
-
-        self.min_period_entry = QSpinBox(group)
-        self.min_period_entry.setGeometry(10, 200, 171, 24)
+        self.min_period_entry = QSpinBox()
         self.min_period_entry.setRange(0, 10000)
         self.min_period_entry.setValue(0)
+        form.addRow(self.tr(Labels.MIN_PERIOD) + ":", self.min_period_entry)
 
-        scale_label = QLabel(self.tr(Labels.SCALE))
-        scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        scale_label.setGeometry(40, 230, 111, 16)
-        scale_label.setParent(group)
-
-        self.scale_entry = QDoubleSpinBox(group)
-        self.scale_entry.setGeometry(10, 250, 171, 24)
+        self.scale_entry = QDoubleSpinBox()
         configure_spinbox(self.scale_entry, SpinBoxConfig.SCALE)
+        form.addRow(self.tr(Labels.SCALE) + ":", self.scale_entry)
 
-        threshold_label = QLabel(self.tr(Labels.ALPHA_THRESHOLD))
-        threshold_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        threshold_label.setGeometry(40, 280, 111, 16)
-        threshold_label.setParent(group)
-
-        self.threshold_entry = QSpinBox(group)
-        self.threshold_entry.setGeometry(10, 300, 171, 24)
+        self.threshold_entry = QSpinBox()
         self.threshold_entry.setRange(0, 100)
         self.threshold_entry.setValue(50)
+        self.threshold_label = QLabel(self.tr(Labels.ALPHA_THRESHOLD) + ":")
+        form.addRow(self.threshold_label, self.threshold_entry)
 
         return group
 
-    def create_frame_export_group(self):
-        """Create the frame export group box."""
+    def _create_frame_export_group(self):
+        """Create the frame export group box with form layout."""
         group = QGroupBox(self.tr(GroupTitles.FRAME_EXPORT))
-        group.setFixedSize(191, 331)
-        group.setAlignment(Qt.AlignmentFlag.AlignCenter)
         group.setCheckable(True)
         group.setChecked(True)
 
-        format_label = QLabel(self.tr(Labels.FORMAT))
-        format_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        format_label.setGeometry(40, 30, 111, 16)
-        format_label.setParent(group)
+        form = QFormLayout(group)
+        form.setHorizontalSpacing(6)
+        form.setVerticalSpacing(4)
 
-        self.frame_format_combobox = QComboBox(group)
-        self.frame_format_combobox.setGeometry(10, 50, 171, 24)
+        self.frame_format_combobox = QComboBox()
         self.frame_format_combobox.addItems(get_display_texts(FRAME_FORMAT_OPTIONS))
+        form.addRow(self.tr(Labels.FORMAT) + ":", self.frame_format_combobox)
 
-        selection_label = QLabel(self.tr(Labels.FRAME_SELECTION_TITLE))
-        selection_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        selection_label.setGeometry(40, 80, 111, 16)
-        selection_label.setParent(group)
-
-        self.frame_selection_combobox = QComboBox(group)
-        self.frame_selection_combobox.setGeometry(10, 100, 171, 24)
+        self.frame_selection_combobox = QComboBox()
         populate_combobox(
             self.frame_selection_combobox, FRAME_SELECTION_OPTIONS, self.tr
         )
+        form.addRow(
+            self.tr(Labels.FRAME_SELECTION_TITLE) + ":", self.frame_selection_combobox
+        )
 
-        scale_label = QLabel(self.tr(Labels.FRAME_SCALE))
-        scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        scale_label.setGeometry(40, 130, 111, 16)
-        scale_label.setParent(group)
-
-        self.frame_scale_entry = QDoubleSpinBox(group)
-        self.frame_scale_entry.setGeometry(10, 150, 171, 24)
+        self.frame_scale_entry = QDoubleSpinBox()
         configure_spinbox(self.frame_scale_entry, SpinBoxConfig.FRAME_SCALE)
+        form.addRow(self.tr(Labels.FRAME_SCALE) + ":", self.frame_scale_entry)
 
-        resampling_label = QLabel(self.tr(Labels.RESAMPLING))
-        resampling_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        resampling_label.setGeometry(40, 180, 111, 16)
-        resampling_label.setParent(group)
-
-        self.resampling_method_combobox = QComboBox(group)
-        self.resampling_method_combobox.setGeometry(10, 200, 171, 24)
+        self.resampling_method_combobox = QComboBox()
         self.resampling_method_combobox.addItems(
             ["Nearest", "Bilinear", "Bicubic", "Lanczos", "Box", "Hamming"]
         )
+        form.addRow(self.tr(Labels.RESAMPLING) + ":", self.resampling_method_combobox)
 
         self.compression_settings_button = QPushButton(
             self.tr(ButtonLabels.COMPRESSION_SETTINGS)
         )
-        self.compression_settings_button.setGeometry(10, 240, 171, 24)
-        self.compression_settings_button.setParent(group)
+        form.addRow(self.compression_settings_button)
 
         return group
 
-    def create_bottom_section(self):
-        """Create the bottom section with filename settings and buttons."""
-        bottom_widget = QWidget()
-        layout = QVBoxLayout(bottom_widget)
+    def _create_filename_group(self):
+        """Create the filename settings group box with grid layout."""
+        fn_grp = QGroupBox(self.tr("Filename"))
+        grid = QGridLayout(fn_grp)
+        grid.setHorizontalSpacing(6)
+        grid.setVerticalSpacing(4)
 
-        filename_section = self.create_filename_section()
-        layout.addWidget(filename_section)
-
-        buttons_section = self.create_buttons_section()
-        layout.addWidget(buttons_section)
-
-        return bottom_widget
-
-    def create_filename_section(self):
-        """Create the filename settings section."""
-        filename_widget = QWidget()
-        layout = QHBoxLayout(filename_widget)
-
-        cropping_label = QLabel(self.tr(Labels.CROPPING_METHOD))
-        cropping_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(cropping_label)
-
+        grid.addWidget(QLabel(self.tr(Labels.CROPPING_METHOD) + ":"), 0, 0)
         self.cropping_method_combobox = QComboBox()
         populate_combobox(
             self.cropping_method_combobox, CROPPING_METHOD_OPTIONS, self.tr
         )
-        layout.addWidget(self.cropping_method_combobox)
+        grid.addWidget(self.cropping_method_combobox, 0, 1)
 
-        format_label = QLabel(self.tr(Labels.FILENAME_FORMAT))
-        layout.addWidget(format_label)
-
+        grid.addWidget(QLabel(self.tr(Labels.FILENAME_FORMAT) + ":"), 0, 2)
         self.filename_format_combobox = QComboBox()
         populate_combobox(
             self.filename_format_combobox, FILENAME_FORMAT_OPTIONS, self.tr
         )
-        layout.addWidget(self.filename_format_combobox)
+        grid.addWidget(self.filename_format_combobox, 0, 3)
 
-        prefix_label = QLabel(self.tr(Labels.PREFIX))
-        layout.addWidget(prefix_label)
-
+        grid.addWidget(QLabel(self.tr(Labels.PREFIX) + ":"), 1, 0)
         self.filename_prefix_entry = QLineEdit()
-        layout.addWidget(self.filename_prefix_entry)
+        grid.addWidget(self.filename_prefix_entry, 1, 1)
 
-        suffix_label = QLabel(self.tr(Labels.SUFFIX))
-        layout.addWidget(suffix_label)
-
+        grid.addWidget(QLabel(self.tr(Labels.SUFFIX) + ":"), 1, 2)
         self.filename_suffix_entry = QLineEdit()
-        layout.addWidget(self.filename_suffix_entry)
+        grid.addWidget(self.filename_suffix_entry, 1, 3)
 
-        return filename_widget
+        return fn_grp
 
-    def create_buttons_section(self):
-        """Create the control buttons section."""
-        buttons_widget = QWidget()
-        layout = QHBoxLayout(buttons_widget)
+    def _create_action_bar(self):
+        """Create the bottom action bar matching mockup v2 layout."""
+        bar = QHBoxLayout()
+        bar.setSpacing(4)
 
-        self.advanced_filename_button = QPushButton(
-            self.tr("Advanced filename options")
+        # Consolidated "Overrides" dropdown button (replaces 3 separate buttons)
+        self.override_spritesheet_settings_button = QPushButton()
+        self.override_spritesheet_settings_button.setVisible(False)
+        self.override_animation_settings_button = QPushButton()
+        self.override_animation_settings_button.setVisible(False)
+
+        self._overrides_button = QPushButton(self.tr("Overrides"))
+        self._overrides_menu = QMenu(self)
+        self._override_spritesheet_action = self._overrides_menu.addAction(
+            self.tr("Spritesheet settings")
         )
-        layout.addWidget(self.advanced_filename_button)
-
-        self.show_override_settings_button = QPushButton(
-            self.tr("Show override settings")
+        self._override_animation_action = self._overrides_menu.addAction(
+            self.tr("Animation settings")
         )
-        layout.addWidget(self.show_override_settings_button)
-
-        self.override_spritesheet_settings_button = QPushButton(
-            self.tr("Override spritesheet settings")
+        self._overrides_menu.addSeparator()
+        self._advanced_filename_action = self._overrides_menu.addAction(
+            self.tr("Filename options")
         )
-        layout.addWidget(self.override_spritesheet_settings_button)
+        self._overrides_button.setMenu(self._overrides_menu)
+        bar.addWidget(self._overrides_button)
 
-        self.override_animation_settings_button = QPushButton(
-            self.tr("Override animation settings")
-        )
-        layout.addWidget(self.override_animation_settings_button)
+        # Keep hidden references for alias compatibility
+        self.advanced_filename_button = QPushButton()
+        self.advanced_filename_button.setVisible(False)
+
+        self.show_override_settings_button = QPushButton(self.tr("Show"))
+        self.show_override_settings_button.setToolTip(self.tr("Show Active Overrides"))
+        bar.addWidget(self.show_override_settings_button)
+
+        bar.addStretch()
 
         self.reset_button = QPushButton(self.tr(ButtonLabels.RESET))
-        layout.addWidget(self.reset_button)
+        bar.addWidget(self.reset_button)
 
         self.start_process_button = QPushButton(self.tr("Start process"))
-        layout.addWidget(self.start_process_button)
+        self.start_process_button.setProperty("cssClass", "primary")
+        self.start_process_button.setMinimumHeight(32)
+        bar.addWidget(self.start_process_button)
 
-        return buttons_widget
+        return bar
 
     def setup_connections(self):
         """Set up signal-slot connections."""
@@ -631,20 +971,20 @@ class ExtractTabWidget(BaseTabWidget):
             self.start_process_button.clicked.connect(self.parent_app.start_process)
         if hasattr(self, "reset_button"):
             self.reset_button.clicked.connect(self.clear_filelist)
-        if hasattr(self, "advanced_filename_button"):
-            self.advanced_filename_button.clicked.connect(
+        if hasattr(self, "_advanced_filename_action"):
+            self._advanced_filename_action.triggered.connect(
                 self.parent_app.create_find_and_replace_window
             )
         if hasattr(self, "show_override_settings_button"):
             self.show_override_settings_button.clicked.connect(
                 self.parent_app.create_settings_window
             )
-        if hasattr(self, "override_spritesheet_settings_button"):
-            self.override_spritesheet_settings_button.clicked.connect(
+        if hasattr(self, "_override_spritesheet_action"):
+            self._override_spritesheet_action.triggered.connect(
                 self.override_spritesheet_settings
             )
-        if hasattr(self, "override_animation_settings_button"):
-            self.override_animation_settings_button.clicked.connect(
+        if hasattr(self, "_override_animation_action"):
+            self._override_animation_action.triggered.connect(
                 self.override_animation_settings
             )
         if hasattr(self, "compression_settings_button"):
@@ -665,6 +1005,11 @@ class ExtractTabWidget(BaseTabWidget):
             self.listbox_data.currentItemChanged.connect(self.update_ui_state)
             self.listbox_data.customContextMenuRequested.connect(
                 self.show_listbox_data_menu
+            )
+
+        if hasattr(self, "unified_tree"):
+            self.unified_tree.customContextMenuRequested.connect(
+                self._show_tree_context_menu
             )
 
         if hasattr(self, "animation_format_combobox"):
@@ -976,6 +1321,9 @@ class ExtractTabWidget(BaseTabWidget):
                 display_name=display_name,
             )
 
+        self._refresh_tree_if_visible()
+        self.update_stats_label()
+
     def populate_spritesheet_list_from_files(self, files, temp_folder=None):
         """Populate the spritesheet listbox from manually selected files.
 
@@ -1006,6 +1354,9 @@ class ExtractTabWidget(BaseTabWidget):
                     search_directory=search_directory,
                     display_name=display_name,
                 )
+
+        self._refresh_tree_if_visible()
+        self.update_stats_label()
 
     def _format_display_name(
         self, base_directory: Optional[Path], spritesheet_path: Path
@@ -1389,6 +1740,7 @@ class ExtractTabWidget(BaseTabWidget):
             # If no data files found, try to use the unknown parser
             self._populate_using_unknown_parser()
             self._append_editor_composites_to_list(spritesheet_name)
+            self._refresh_tree_if_visible()
             return
 
         data_files = self.parent_app.data_dict[spritesheet_name]
@@ -1479,6 +1831,7 @@ class ExtractTabWidget(BaseTabWidget):
             self._populate_unknown_parser_fallback()
 
         self._append_editor_composites_to_list(spritesheet_name)
+        self._refresh_tree_if_visible()
 
     def _parse_with_registry(self, metadata_path: str):
         """Parse a metadata file using the ParserRegistry.
@@ -1598,13 +1951,17 @@ class ExtractTabWidget(BaseTabWidget):
 
         self.listbox_png.clear()
         self.listbox_data.clear()
+        if hasattr(self, "unified_tree"):
+            self.unified_tree.clear()
 
-        self.input_dir_label.setText(self.tr("No input directory selected"))
-        self.output_dir_label.setText(self.tr("No output directory selected"))
+        self.input_dir_label.setText(self.tr("No input folder selected"))
+        self.output_dir_label.setText(self.tr("No output folder selected"))
 
         self.parent_app.settings_manager.animation_settings.clear()
         self.parent_app.settings_manager.spritesheet_settings.clear()
         self.parent_app.data_dict.clear()
+
+        self.update_stats_label()
 
     def delete_selected_spritesheet(self):
         """Delete one or more selected spritesheets and their settings."""
@@ -1641,6 +1998,92 @@ class ExtractTabWidget(BaseTabWidget):
         remaining = self.listbox_png.currentItem()
         if remaining:
             self.populate_animation_list(remaining.text())
+
+        self._refresh_tree_if_visible()
+        self.update_stats_label()
+
+    def _show_tree_context_menu(self, position):
+        """Display a context menu for the unified tree view.
+
+        For top-level items (spritesheets): offers editor, settings, delete.
+        For child items (animations): delegates to the animation menu logic.
+        """
+        if not self.parent_app:
+            return
+
+        item = self.unified_tree.itemAt(position)
+        if item is None:
+            return
+
+        _trc = lambda text: QCoreApplication.translate("TextureAtlasToolboxApp", text)
+
+        menu = QMenu(self)
+
+        if item.parent() is None:
+            # Top-level spritesheet item
+            sheet_name = item.text(0)
+
+            # Sync the list selection so downstream actions work
+            for i in range(self.listbox_png.count()):
+                li = self.listbox_png.item(i)
+                if li and li.text() == sheet_name:
+                    self.listbox_png.setCurrentItem(li)
+                    break
+
+            editor_action = QAction(_trc(MenuActions.ADD_TO_EDITOR), self)
+            editor_action.triggered.connect(
+                lambda checked=False: self.open_spritesheets_in_editor(
+                    self.listbox_png.selectedItems()
+                )
+            )
+            menu.addAction(editor_action)
+            menu.addSeparator()
+
+            settings_action = QAction(_trc(MenuActions.OVERRIDE_SETTINGS), self)
+            settings_action.triggered.connect(self.override_spritesheet_settings)
+            menu.addAction(settings_action)
+            menu.addSeparator()
+
+            delete_action = QAction(_trc(ButtonLabels.DELETE), self)
+            delete_action.triggered.connect(self.delete_selected_spritesheet)
+            menu.addAction(delete_action)
+        else:
+            # Child animation item — sync the spritesheet first, then the anim
+            parent_item = item.parent()
+            sheet_name = parent_item.text(0)
+            anim_name = item.text(0)
+
+            for i in range(self.listbox_png.count()):
+                li = self.listbox_png.item(i)
+                if li and li.text() == sheet_name:
+                    self.listbox_png.setCurrentItem(li)
+                    break
+
+            for j in range(self.listbox_data.count()):
+                ai = self.listbox_data.item(j)
+                if ai and ai.text() == anim_name:
+                    self.listbox_data.setCurrentItem(ai)
+                    break
+
+            editor_action = QAction(_trc(MenuActions.ADD_TO_EDITOR), self)
+            editor_action.triggered.connect(
+                lambda checked=False: self.open_spritesheets_in_editor(
+                    self.listbox_png.selectedItems()
+                )
+            )
+            menu.addAction(editor_action)
+            menu.addSeparator()
+
+            preview_action = QAction(_trc(MenuActions.PREVIEW_ANIMATION), self)
+            preview_action.triggered.connect(self.preview_selected_animation)
+            menu.addAction(preview_action)
+            menu.addSeparator()
+
+            settings_action = QAction(_trc(MenuActions.OVERRIDE_SETTINGS), self)
+            settings_action.triggered.connect(self.override_animation_settings)
+            menu.addAction(settings_action)
+
+        menu.exec(self.unified_tree.mapToGlobal(position))
 
     def show_listbox_png_menu(self, position):
         """Display a context menu for the spritesheet listbox.
@@ -2120,6 +2563,9 @@ class ExtractTabWidget(BaseTabWidget):
                     if isinstance(editor_defs, dict):
                         editor_defs.pop(item.text(), None)
 
+        self._refresh_tree_if_visible()
+        self.update_stats_label()
+
     def override_animation_settings(self):
         """Opens window to override settings for selected animation."""
         if not self.parent_app:
@@ -2273,9 +2719,13 @@ class ExtractTabWidget(BaseTabWidget):
 
         has_spritesheet_selected = self.listbox_png.currentItem() is not None
         self.override_spritesheet_settings_button.setEnabled(has_spritesheet_selected)
+        if hasattr(self, "_override_spritesheet_action"):
+            self._override_spritesheet_action.setEnabled(has_spritesheet_selected)
 
         has_animation_selected = self.listbox_data.currentItem() is not None
         self.override_animation_settings_button.setEnabled(has_animation_selected)
+        if hasattr(self, "_override_animation_action"):
+            self._override_animation_action.setEnabled(has_animation_selected)
 
     def on_animation_format_change(self):
         """Handles animation format selection changes."""
@@ -2501,11 +2951,11 @@ class ExtractTabWidget(BaseTabWidget):
         if not self.parent_app:
             return False, "No parent application"
 
-        if self.input_dir_label.text() == self.tr("No input directory selected"):
-            return False, self.tr("Please select an input directory first.")
+        if self.input_dir_label.text() == self.tr("No input folder selected"):
+            return False, self.tr("Please select an input folder first.")
 
-        if self.output_dir_label.text() == self.tr("No output directory selected"):
-            return False, self.tr("Please select an output directory first.")
+        if self.output_dir_label.text() == self.tr("No output folder selected"):
+            return False, self.tr("Please select an output folder first.")
 
         if not (
             self.animation_export_group.isChecked()
@@ -2614,6 +3064,8 @@ class ExtractTabWidget(BaseTabWidget):
                     break
 
         self.listbox_data.clear()
+        self._refresh_tree_if_visible()
+        self.update_stats_label()
 
     def prepare_for_extraction(self):
         """Validate inputs and prepare the extraction workflow.

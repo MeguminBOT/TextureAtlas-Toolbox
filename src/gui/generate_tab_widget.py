@@ -8,12 +8,15 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QComboBox,
     QLabel,
+    QMenu,
     QPushButton,
     QCheckBox,
+    QScrollArea,
 )
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QSize, Qt, QThread, Signal
 
 from gui.base_tab_widget import BaseTabWidget
+from gui.job_progress_window import JobProgressWindow
 
 try:
     from PIL import Image, ImageSequence
@@ -336,6 +339,7 @@ class GenerateTabWidget(BaseTabWidget):
         self._added_frame_paths = set()
         self.output_path = ""
         self.worker = None
+        self._progress_window = None
         self.animation_groups = {}
         self.atlas_settings = {}
 
@@ -373,6 +377,52 @@ class GenerateTabWidget(BaseTabWidget):
         self.bind_ui_elements()
         self.setup_custom_widgets()
         self.setup_connections()
+        self._relax_generate_constraints()
+
+    # ------------------------------------------------------------------
+    # Designer layout overrides
+    # ------------------------------------------------------------------
+
+    def _relax_generate_constraints(self):
+        """Override Designer size constraints so the Generate tab stays
+        usable at smaller window sizes, matching the compact mockup layout.
+        """
+        ui = self.ui
+
+        # Outer layout – tighter margins
+        ui.main_layout.setContentsMargins(6, 6, 6, 6)
+        ui.main_layout.setSpacing(6)
+
+        # Splitter – non-collapsible, equal stretch
+        ui.main_splitter.setChildrenCollapsible(False)
+
+        # File panel – reduce inner margins
+        ui.file_panel_layout.setContentsMargins(6, 6, 6, 6)
+        ui.file_panel_layout.setSpacing(6)
+        ui.input_layout.setContentsMargins(4, 8, 4, 4)
+        ui.input_layout.setSpacing(4)
+
+        # Settings panel – reduce inner margins
+        ui.settings_panel_layout.setContentsMargins(6, 6, 6, 6)
+        ui.settings_panel_layout.setSpacing(6)
+
+        # Wrap settings panel in a scroll area for overflow handling
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(scroll.Shape.NoFrame)
+        scroll.setWidget(ui.settings_panel)
+        ui.main_splitter.insertWidget(1, scroll)
+
+        # Equal stretch factors after reparenting
+        ui.main_splitter.setStretchFactor(0, 50)
+        ui.main_splitter.setStretchFactor(1, 50)
+
+        # Reduce animation tree minimum height
+        self.animation_tree.setMinimumHeight(80)
+
+        # Add padding to input buttons
+        ui.input_buttons_layout.setSpacing(4)
+        ui.input_buttons_layout.setContentsMargins(0, 2, 0, 2)
 
     def _build_ui(self):
         """Not supported; GenerateTabWidget requires existing UI.
@@ -462,12 +512,15 @@ class GenerateTabWidget(BaseTabWidget):
 
     def bind_ui_elements(self):
         """Bind to UI elements from the compiled UI."""
-        # File management buttons
+        # File management — consolidate 3 loading buttons into a single
+        # "Add" dropdown, keeping Clear All and New Animation separate.
         self.add_files_button = self.ui.add_files_button
         self.add_directory_button = self.ui.add_directory_button
         self.add_animation_button = self.ui.add_animation_button
         self.add_existing_atlas_button = self.ui.add_existing_atlas_button
         self.clear_frames_button = self.ui.clear_frames_button
+
+        self._create_consolidated_add_button()
 
         # Frame info
         self.frame_info_label = self.ui.frame_info_label
@@ -491,13 +544,64 @@ class GenerateTabWidget(BaseTabWidget):
         # Generate button
         self.generate_button = self.ui.generate_button
 
-        # Progress
-        self.progress_bar = self.ui.progress_bar
-        self.status_label = self.ui.status_label
-        self.log_text = self.ui.log_text
-
         # Set tooltips for generator tab controls
         self._setup_generator_tooltips()
+
+    def _create_consolidated_add_button(self):
+        """Replace the three separate loading buttons with one 'Add' dropdown.
+
+        Hides ``add_files_button``, ``add_directory_button``, and
+        ``add_existing_atlas_button`` from the Designer layout and inserts
+        a single ``QToolButton`` with a popup menu in their place.
+        """
+        layout = self.ui.input_buttons_layout
+
+        # Hide the three individual loading buttons
+        self.add_files_button.setVisible(False)
+        self.add_directory_button.setVisible(False)
+        self.add_existing_atlas_button.setVisible(False)
+
+        # Build a dropdown menu with all three actions
+        add_menu = QMenu(self.parent_app or self)
+        self._add_job_action = add_menu.addAction(self.tr("Add Spritesheet Job"))
+        add_menu.addSeparator()
+        self._add_files_action = add_menu.addAction(self.tr("Add Files"))
+        self._add_directory_action = add_menu.addAction(self.tr("Add Folder"))
+        self._add_atlas_action = add_menu.addAction(self.tr("Add Existing Atlas"))
+
+        # Set icons on menu actions for visual clarity
+        try:
+            from gui.theme_manager import icons as _icons
+
+            self._add_job_action.setIcon(_icons.icon("grid"))
+            self._add_files_action.setIcon(_icons.icon("file_plus"))
+            self._add_directory_action.setIcon(_icons.icon("folder_plus"))
+            self._add_atlas_action.setIcon(_icons.icon("image"))
+        except Exception:
+            pass
+
+        # Tag actions so refresh_icons() keeps them in sync with the theme
+        self._add_job_action.setProperty("iconKey", "grid")
+        self._add_files_action.setProperty("iconKey", "file_plus")
+        self._add_directory_action.setProperty("iconKey", "folder_plus")
+        self._add_atlas_action.setProperty("iconKey", "image")
+
+        self._add_button = QPushButton(self.tr("Add ▾"))
+        self._add_button.setMenu(add_menu)
+        self._add_button.setMinimumSize(QSize(0, 16))
+        self._add_button.setProperty("iconKey", "plus")
+        try:
+            from gui.theme_manager import icons
+
+            self._add_button.setIcon(icons.icon("plus"))
+            self._add_button.setIconSize(QSize(16, 16))
+        except Exception:
+            pass
+        # Clicking the button itself triggers "Add Files" (most common)
+        self._add_button.clicked.connect(self.add_files)
+
+        # Insert at position 0 (before the hidden buttons)
+        layout.insertWidget(0, self._add_button)
 
     def _setup_generator_tooltips(self):
         """Set up tooltips for generator tab UI controls."""
@@ -565,11 +669,12 @@ class GenerateTabWidget(BaseTabWidget):
 
     def setup_connections(self):
         """Set up signal-slot connections."""
-        # File management
-        self.add_files_button.clicked.connect(self.add_files)
-        self.add_directory_button.clicked.connect(self.add_directory)
+        # File management — consolidated Add dropdown menu actions
+        self._add_job_action.triggered.connect(self.add_job)
+        self._add_files_action.triggered.connect(self.add_files)
+        self._add_directory_action.triggered.connect(self.add_directory)
+        self._add_atlas_action.triggered.connect(self.add_existing_atlas)
         self.add_animation_button.clicked.connect(self.add_animation_group)
-        self.add_existing_atlas_button.clicked.connect(self.add_existing_atlas)
         self.clear_frames_button.clicked.connect(self.clear_frames)
 
         # Animation tree signals
@@ -591,6 +696,16 @@ class GenerateTabWidget(BaseTabWidget):
 
         # Generation
         self.generate_button.clicked.connect(self.generate_atlas)
+
+        # Job signals
+        self.animation_tree.job_added.connect(lambda _: self.update_frame_info())
+        self.animation_tree.job_removed.connect(lambda _: self.update_frame_info())
+
+    def add_job(self):
+        """Add a new atlas job (spritesheet)."""
+        self.animation_tree.add_job()
+        self.update_frame_info()
+        self.update_generate_button_state()
 
     def add_files(self):
         """Add individual files to a new animation group.
@@ -711,7 +826,7 @@ class GenerateTabWidget(BaseTabWidget):
                     QMessageBox.information(
                         self,
                         self.APP_NAME,
-                        self.tr("No image files found in the selected directory."),
+                        self.tr("No image files found in the selected folder."),
                     )
 
             self.update_frame_info()
@@ -796,6 +911,31 @@ class GenerateTabWidget(BaseTabWidget):
             )
             return
 
+        # If frames already exist, ask user how to handle the import
+        self._import_target_job = None
+        if self.animation_tree.get_total_frame_count() > 0:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Question)
+            msg.setWindowTitle(self.APP_NAME)
+            msg.setText(
+                self.tr(
+                    "An atlas is already loaded. How would you like to " "import '{0}'?"
+                ).format(atlas_name)
+            )
+            combine_btn = msg.addButton(
+                self.tr("Combine"), QMessageBox.ButtonRole.AcceptRole
+            )
+            new_job_btn = msg.addButton(
+                self.tr("New Job"), QMessageBox.ButtonRole.ActionRole
+            )
+            msg.addButton(QMessageBox.StandardButton.Cancel)
+            msg.exec()
+            clicked = msg.clickedButton()
+            if clicked == new_job_btn:
+                self._import_target_job = self.animation_tree.add_job(atlas_name)
+            elif clicked != combine_btn:
+                return
+
         # Group frames by animation name on main thread (lightweight)
         use_smart_grouping = self.main_app.app_config.get("interface", {}).get(
             "smart_animation_grouping", True
@@ -843,36 +983,41 @@ class GenerateTabWidget(BaseTabWidget):
         self._import_worker.import_failed.connect(self._on_import_failed)
 
         self.add_existing_atlas_button.setEnabled(False)
-        self.status_label.setText(self.tr("Importing atlas..."))
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
+        self._add_atlas_action.setEnabled(False)
+
+        # Open progress window for import
+        self._import_progress_window = JobProgressWindow(
+            self, title=self.tr("Importing Atlas")
+        )
+        self._import_progress_window.start()
+        self._import_progress_window.show()
 
         self._import_worker.start()
 
     def _on_import_progress(self, current, total, message):
         """Handle progress updates from atlas import worker."""
-        if total > 0:
-            self.progress_bar.setValue(int(100 * current / total))
-        self.status_label.setText(message)
+        if self._import_progress_window is not None:
+            self._import_progress_window.update_progress(current, total, message)
 
     def _on_import_completed(self, results):
         """Handle successful atlas import from worker thread."""
+        target_job = getattr(self, "_import_target_job", None)
         total_frames_added = 0
         for animation_name, frame_paths in results.items():
             if not frame_paths:
                 continue
-            self.animation_tree.add_animation_group(animation_name)
+            self.animation_tree.add_animation_group(animation_name, job_item=target_job)
             for frame_path in frame_paths:
                 if not self.is_frame_already_added(frame_path):
                     self.animation_tree.add_frame_to_animation(
-                        animation_name, frame_path
+                        animation_name, frame_path, job_item=target_job
                     )
                     self.input_frames.append(frame_path)
                     self._added_frame_paths.add(frame_path)
                     total_frames_added += 1
 
         self.add_existing_atlas_button.setEnabled(True)
-        self.progress_bar.setValue(0)
+        self._add_atlas_action.setEnabled(True)
 
         if total_frames_added > 0:
             QMessageBox.information(
@@ -903,14 +1048,19 @@ class GenerateTabWidget(BaseTabWidget):
 
             shutil.rmtree(self._import_temp_dir, ignore_errors=True)
 
-        self.status_label.setText("")
+        if self._import_progress_window is not None:
+            self._import_progress_window.finish(
+                success=total_frames_added > 0,
+                message=self.tr("Import completed."),
+            )
         self._import_worker = None
 
     def _on_import_failed(self, error_msg):
         """Handle failed atlas import from worker thread."""
         self.add_existing_atlas_button.setEnabled(True)
-        self.progress_bar.setValue(0)
-        self.status_label.setText("")
+        self._add_atlas_action.setEnabled(True)
+        if self._import_progress_window is not None:
+            self._import_progress_window.finish(success=False, message=str(error_msg))
 
         if self._import_temp_dir and self._import_temp_dir.exists():
             import shutil
@@ -1222,7 +1372,7 @@ class GenerateTabWidget(BaseTabWidget):
         )
 
         # Texture format combo
-        self.gpu_format_label = QLabel(self.tr("GPU Compression"))
+        self.gpu_format_label = QLabel(self.tr("GPU Compression (+)"))
         self.gpu_format_combo = QComboBox()
         self.gpu_format_combo.setMinimumWidth(140)
         for opt in TEXTURE_COMPRESSION_OPTIONS:
@@ -1230,10 +1380,11 @@ class GenerateTabWidget(BaseTabWidget):
         self.gpu_format_combo.setCurrentIndex(0)  # "None"
         self.gpu_format_combo.setToolTip(
             self.tr(
-                "Compress the atlas into a GPU-ready block format.\n\n"
+                "Export an additional GPU-compressed file (DDS / KTX2)\n"
+                "alongside the regular atlas image.\n\n"
                 "Requires the etcpak package (pip install etcpak) for\n"
                 "BC1/BC3/BC7/ETC formats, or external CLI tools for ASTC/PVRTC.\n\n"
-                "Select 'None' to save a regular image instead."
+                "Select 'None' to only save the regular image."
             )
         )
         self.gpu_format_combo.currentIndexChanged.connect(self._on_gpu_format_changed)
@@ -1278,7 +1429,7 @@ class GenerateTabWidget(BaseTabWidget):
                 layout.addWidget(self.gpu_format_combo, 9, 2)
                 layout.addWidget(self.gpu_container_label, 10, 0)
                 layout.addWidget(self.gpu_container_combo, 10, 2)
-                layout.addWidget(self.gpu_mipmap_check, 11, 2)
+                layout.addWidget(self.gpu_mipmap_check, 11, 0, 1, 3)
                 inserted = True
 
         if not inserted:
@@ -1353,25 +1504,29 @@ class GenerateTabWidget(BaseTabWidget):
         # Show a one-time disclaimer when a GPU format is first selected
         if has_format and not getattr(self, "_gpu_disclaimer_shown", False):
             self._gpu_disclaimer_shown = True
-            QMessageBox.information(
-                self,
-                self.tr("GPU Texture Compression"),
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setWindowTitle(self.tr("GPU Texture Compression"))
+            msg.setTextFormat(Qt.TextFormat.RichText)
+            msg.setText(
                 self.tr(
-                    "GPU texture compression produces hardware-specific formats "
-                    "(DDS / KTX2) that are <b>not</b> regular image files.\n\n"
+                    "GPU texture compression produces an <b>additional</b> "
+                    "hardware-specific file (DDS / KTX2) alongside the regular "
+                    "atlas image.<br><br>"
                     "Only use this when you know your target engine or renderer "
                     "supports the chosen format. Incorrect settings can produce "
-                    "files that appear corrupted or fail to load.\n\n"
-                    "Key points:\n"
+                    "files that appear corrupted or fail to load.<br><br>"
+                    "Key points:<br>"
                     "• Padding will be automatically raised to at least the "
                     "block size (typically 4 px) to prevent cross-sprite "
-                    "bleeding in compressed blocks.\n"
+                    "bleeding in compressed blocks.<br>"
                     "• DDS containers only support BC (DXT) formats; mobile "
-                    "formats (ETC, ASTC, PVRTC) require KTX2.\n"
+                    "formats (ETC, ASTC, PVRTC) require KTX2.<br>"
                     "• ASTC and PVRTC need external CLI tools installed "
                     "separately (astcenc / PVRTexToolCLI)."
                 ),
             )
+            msg.exec()
 
     def _setup_trim_checkbox(self):
         """Create and insert the trim sprites checkbox."""
@@ -1633,9 +1788,7 @@ class GenerateTabWidget(BaseTabWidget):
         import tempfile
 
         try:
-            temp_dir = Path(
-                tempfile.mkdtemp(prefix="tatgf_anim_")
-            )
+            temp_dir = Path(tempfile.mkdtemp(prefix="tatgf_anim_"))
             stem = Path(file_path).stem
             frame_paths = []
 
@@ -1652,6 +1805,7 @@ class GenerateTabWidget(BaseTabWidget):
                 self.temp_atlas_dirs.append(temp_dir)
             else:
                 import shutil
+
                 shutil.rmtree(temp_dir, ignore_errors=True)
 
             return frame_paths
@@ -1700,9 +1854,16 @@ class GenerateTabWidget(BaseTabWidget):
         """Update the frame info label."""
         total_frames = self.animation_tree.get_total_frame_count()
         animation_count = self.animation_tree.get_animation_count()
+        job_count = self.animation_tree.get_job_count()
 
         if total_frames == 0:
             self.frame_info_label.setText(self.tr("No frames loaded"))
+        elif job_count > 1:
+            self.frame_info_label.setText(
+                self.tr("{0} spritesheet(s) | {1} animation(s) | {2} frame(s)").format(
+                    job_count, animation_count, total_frames
+                )
+            )
         else:
             self.frame_info_label.setText(
                 self.tr("{0} animation(s), {1} frame(s) total").format(
@@ -1711,16 +1872,28 @@ class GenerateTabWidget(BaseTabWidget):
             )
 
     def update_generate_button_state(self):
-        """Update the generate button enabled state."""
+        """Update the generate button enabled state and text."""
         has_frames = self.animation_tree.get_total_frame_count() > 0
         self.generate_button.setEnabled(has_frames)
+        job_count = self.animation_tree.get_job_count()
+        if job_count > 1:
+            self.generate_button.setText(
+                self.tr("Generate All ({0} jobs)").format(job_count)
+            )
+        else:
+            self.generate_button.setText(self.tr("Generate"))
 
     def on_format_change(self, format_text):
         """Handle image format change."""
         self.jpeg_quality_spin.setEnabled(format_text == self.JPEG_FORMAT_NAME)
 
     def generate_atlas(self):
-        """Start the atlas generation process."""
+        """Start the atlas generation process.
+
+        For a single job, behaves like before (save-file dialog).
+        For multiple jobs, asks for an output directory and generates
+        each spritesheet sequentially.
+        """
         if self.animation_tree.get_total_frame_count() == 0:
             QMessageBox.warning(
                 self,
@@ -1729,42 +1902,117 @@ class GenerateTabWidget(BaseTabWidget):
             )
             return
 
-        # Open save dialog to select output path
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            self.tr(FileDialogTitles.SAVE_ATLAS_AS),
-            "",
-            self.get_output_file_filter(),
-        )
-
-        if not file_path:
-            # User cancelled the save dialog
+        jobs = self.animation_tree.get_jobs()
+        if not jobs:
             return
 
-        selected_path = Path(file_path)
-        if selected_path.suffix:
-            file_path = str(selected_path.with_suffix(""))
+        atlas_settings = self._build_atlas_settings()
+        current_version = getattr(self.main_app, "current_version", "2.0.0")
+        format_key, _format_ext = self._get_selected_export_format()
 
-        self.output_path = file_path
+        # Build per-job animation_groups dicts
+        job_queue = []
+        for job_name, animations in jobs.items():
+            animation_groups = {}
+            for anim_name, frames in animations.items():
+                sorted_frames = sorted(frames, key=lambda x: x["order"])
+                animation_groups[anim_name] = [f["path"] for f in sorted_frames]
+            if animation_groups:
+                job_queue.append((job_name, animation_groups))
 
-        # Get all animations from the tree
-        animations = self.animation_tree.get_animation_groups()
+        if not job_queue:
+            return
 
-        # Convert to the format expected by the new generator
-        animation_groups = {}
-        for animation_name, frames in animations.items():
-            # Sort frames by order
-            sorted_frames = sorted(frames, key=lambda x: x["order"])
-            animation_groups[animation_name] = [
-                frame["path"] for frame in sorted_frames
-            ]
+        if len(job_queue) == 1:
+            # Single job – classic save-file dialog
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                self.tr(FileDialogTitles.SAVE_ATLAS_AS),
+                "",
+                self.get_output_file_filter(),
+            )
+            if not file_path:
+                return
+            selected = Path(file_path)
+            if selected.suffix:
+                file_path = str(selected.with_suffix(""))
+            job_queue[0] = (job_queue[0][0], job_queue[0][1])
+            self._job_output_paths = {job_queue[0][0]: file_path}
+        else:
+            # Multiple jobs – pick output directory
+            output_dir = QFileDialog.getExistingDirectory(
+                self,
+                self.tr("Select output folder for spritesheets"),
+                "",
+            )
+            if not output_dir:
+                return
+            self._job_output_paths = {}
+            for jname, _anims in job_queue:
+                self._job_output_paths[jname] = str(Path(output_dir) / jname)
 
-        # Prepare settings for the new generator
+        # Stash state for sequential processing
+        self._pending_jobs = list(job_queue)
+        self._job_results = []
+        self._atlas_settings = atlas_settings
+        self._current_version = current_version
+        self._output_format_key = format_key
+
+        # Update UI
+        self.generate_button.setEnabled(False)
+
+        # Open dedicated progress window
+        total_jobs = len(self._pending_jobs)
+        self._progress_window = JobProgressWindow(
+            self, title=self.tr("Generating Atlas")
+        )
+        self._progress_window.start(total_steps=total_jobs)
+        self._progress_window.show()
+
+        self._start_next_job()
+
+    def _start_next_job(self):
+        """Pop the next job from the queue and launch a GeneratorWorker."""
+        if not self._pending_jobs:
+            self._on_all_jobs_completed()
+            return
+
+        job_name, animation_groups = self._pending_jobs.pop(0)
+        output_path = self._job_output_paths[job_name]
+        total_jobs = len(self._job_results) + len(self._pending_jobs) + 1
+        current_idx = len(self._job_results) + 1
+
+        job_status = self.tr("Generating {0} ({1}/{2})...").format(
+            job_name, current_idx, total_jobs
+        )
+        log_entry = self.tr("--- Job {0}/{1}: {2} ---").format(
+            current_idx, total_jobs, job_name
+        )
+
+        if self._progress_window is not None:
+            self._progress_window.update_progress(
+                current_idx - 1, total_jobs, job_status
+            )
+            self._progress_window.append_log(log_entry)
+
+        all_frames = [p for paths in animation_groups.values() for p in paths]
+
+        self.worker = GeneratorWorker(
+            all_frames, output_path, self._atlas_settings, self._current_version
+        )
+        self.worker.animation_groups = animation_groups
+        self.worker.output_format = self._output_format_key
+        self.worker.progress_updated.connect(self.on_progress_updated)
+        self.worker.generation_completed.connect(self._on_job_completed)
+        self.worker.generation_failed.connect(self._on_job_failed)
+        self._current_job_name = job_name
+        self.worker.start()
+
+    def _build_atlas_settings(self):
+        """Collect atlas settings from the current UI state."""
         method = self.atlas_size_method_combobox.currentText()
         algorithm_hint = self._determine_algorithm_hint()
         heuristic_hint = self._get_selected_heuristic()
-
-        # Get rotation/flip/trim settings from checkboxes
         allow_rotation = self.allow_rotation_check.isChecked()
         allow_vertical_flip = self.allow_flip_check.isChecked()
         trim_sprites = (
@@ -1772,172 +2020,175 @@ class GenerateTabWidget(BaseTabWidget):
             if hasattr(self, "trim_sprites_check")
             else False
         )
-
-        # Get image format from combo box
         image_format = self.image_format_combo.currentText().upper()
 
-        if method == "Automatic":
-            atlas_settings = {
-                "max_size": 4096,
-                "padding": self.padding_spin.value(),
-                "power_of_2": self.power_of_2_check.isChecked(),
-                "allow_rotation": allow_rotation,
-                "allow_vertical_flip": allow_vertical_flip,
-                "trim_sprites": trim_sprites,
-                "atlas_size_method": "automatic",
-                "preferred_algorithm": algorithm_hint,
-                "heuristic_hint": heuristic_hint,
-                "image_format": image_format,
-            }
-        elif method == "MinMax":
-            atlas_settings = {
-                "max_size": self.atlas_size_spinbox_2.value(),
-                "min_size": self.atlas_size_spinbox_1.value(),
-                "padding": self.padding_spin.value(),
-                "power_of_2": self.power_of_2_check.isChecked(),
-                "allow_rotation": allow_rotation,
-                "allow_vertical_flip": allow_vertical_flip,
-                "trim_sprites": trim_sprites,
-                "atlas_size_method": "minmax",
-                "preferred_algorithm": algorithm_hint,
-                "heuristic_hint": heuristic_hint,
-                "image_format": image_format,
-            }
+        base = {
+            "padding": self.padding_spin.value(),
+            "power_of_2": self.power_of_2_check.isChecked(),
+            "allow_rotation": allow_rotation,
+            "allow_vertical_flip": allow_vertical_flip,
+            "trim_sprites": trim_sprites,
+            "preferred_algorithm": algorithm_hint,
+            "heuristic_hint": heuristic_hint,
+            "image_format": image_format,
+        }
+
+        if method == "MinMax":
+            base.update(
+                {
+                    "max_size": self.atlas_size_spinbox_2.value(),
+                    "min_size": self.atlas_size_spinbox_1.value(),
+                    "atlas_size_method": "minmax",
+                }
+            )
         elif method == "Manual":
-            atlas_settings = {
-                "max_size": max(
-                    self.atlas_size_spinbox_1.value(), self.atlas_size_spinbox_2.value()
-                ),
-                "min_size": min(
-                    self.atlas_size_spinbox_1.value(), self.atlas_size_spinbox_2.value()
-                ),
-                "padding": self.padding_spin.value(),
-                "power_of_2": self.power_of_2_check.isChecked(),
-                "allow_rotation": allow_rotation,
-                "allow_vertical_flip": allow_vertical_flip,
-                "trim_sprites": trim_sprites,
-                "atlas_size_method": "manual",
-                "forced_width": self.atlas_size_spinbox_1.value(),
-                "forced_height": self.atlas_size_spinbox_2.value(),
-                "preferred_algorithm": algorithm_hint,
-                "heuristic_hint": heuristic_hint,
-                "image_format": image_format,
-            }
+            base.update(
+                {
+                    "max_size": max(
+                        self.atlas_size_spinbox_1.value(),
+                        self.atlas_size_spinbox_2.value(),
+                    ),
+                    "min_size": min(
+                        self.atlas_size_spinbox_1.value(),
+                        self.atlas_size_spinbox_2.value(),
+                    ),
+                    "atlas_size_method": "manual",
+                    "forced_width": self.atlas_size_spinbox_1.value(),
+                    "forced_height": self.atlas_size_spinbox_2.value(),
+                }
+            )
         else:
-            # Fallback to automatic
-            atlas_settings = {
-                "max_size": 4096,
-                "padding": self.padding_spin.value(),
-                "power_of_2": self.power_of_2_check.isChecked(),
-                "allow_rotation": allow_rotation,
-                "allow_vertical_flip": allow_vertical_flip,
-                "trim_sprites": trim_sprites,
-                "atlas_size_method": "automatic",
-                "preferred_algorithm": algorithm_hint,
-                "heuristic_hint": heuristic_hint,
-                "image_format": image_format,
-            }
+            base.update(
+                {
+                    "max_size": 4096,
+                    "atlas_size_method": "automatic",
+                }
+            )
 
-        # Add compression settings to atlas_settings
-        atlas_settings["compression_settings"] = self._get_compression_settings()
+        base["compression_settings"] = self._get_compression_settings()
 
-        # Add GPU texture compression settings
         if hasattr(self, "gpu_format_combo"):
             gpu_fmt = self.gpu_format_combo.currentData()
             if gpu_fmt and gpu_fmt != "none":
-                atlas_settings["texture_format"] = gpu_fmt
-                atlas_settings["texture_container"] = (
+                base["texture_format"] = gpu_fmt
+                base["texture_container"] = (
                     self.gpu_container_combo.currentData() or "dds"
                 )
-                atlas_settings["generate_mipmaps"] = self.gpu_mipmap_check.isChecked()
+                base["generate_mipmaps"] = self.gpu_mipmap_check.isChecked()
 
-        # Create a dummy input_frames list for the worker (for compatibility)
-        all_input_frames = []
-        for frames in animation_groups.values():
-            all_input_frames.extend(frames)
+        return base
 
-        # Get app version from main app
-        current_version = "2.0.0"  # Default fallback
-        if hasattr(self.main_app, "current_version"):
-            current_version = self.main_app.current_version
-
-        # Get selected output format
-        format_key, format_ext = self._get_selected_export_format()
-
-        # Start generation in worker thread
-        self.worker = GeneratorWorker(
-            all_input_frames, self.output_path, atlas_settings, current_version
+    def _on_job_completed(self, results):
+        """Handle a single job finishing; advance to the next."""
+        self._job_results.append((self._current_job_name, results))
+        log_entry = self.tr("Completed: {0} ({1}x{2}, {3} frames)").format(
+            results.get("atlas_path", "?"),
+            results.get("atlas_size", [0, 0])[0],
+            results.get("atlas_size", [0, 0])[1],
+            results.get("frames_count", 0),
         )
-        self.worker.animation_groups = (
-            animation_groups  # Pass animation groups to worker
+        if self._progress_window is not None:
+            self._progress_window.append_log(log_entry)
+        self._start_next_job()
+
+    def _on_job_failed(self, error_message):
+        """Handle a job failure; log and continue with remaining jobs."""
+        self._job_results.append((self._current_job_name, {"error": error_message}))
+        log_entry = self.tr("FAILED: {0} - {1}").format(
+            self._current_job_name, error_message
         )
-        self.worker.output_format = format_key  # Set the output format
-        self.worker.progress_updated.connect(self.on_progress_updated)
-        self.worker.generation_completed.connect(self.on_generation_completed)
-        self.worker.generation_failed.connect(self.on_generation_failed)
+        if self._progress_window is not None:
+            self._progress_window.append_log(log_entry)
+        self._start_next_job()
 
-        # Update UI
-        self.generate_button.setEnabled(False)
-        self.progress_bar.setVisible(True)
-        self.status_label.setText(self.tr("Generating atlas..."))
-        self.log_text.clear()
+    def _on_all_jobs_completed(self):
+        """Called after every queued job has finished (or failed)."""
+        self.generate_button.setEnabled(True)
 
-        self.worker.start()
+        successes = [(name, r) for name, r in self._job_results if "error" not in r]
+        failures = [(name, r) for name, r in self._job_results if "error" in r]
+
+        if len(self._job_results) == 1 and successes:
+            # Single-job: show the same detailed message as before
+            name, results = successes[0]
+            message = self.tr("Atlas generated successfully!") + "\n\n"
+            message += self.tr("Atlas: {0}").format(results["atlas_path"]) + "\n"
+            message += (
+                self.tr("Size: {0}x{1}").format(
+                    results["atlas_size"][0], results["atlas_size"][1]
+                )
+                + "\n"
+            )
+            message += self.tr("Frames: {0}").format(results["frames_count"]) + "\n"
+            message += (
+                self.tr("Efficiency: {0:.1f}%").format(results["efficiency"]) + "\n"
+            )
+            message += (
+                self.tr("Format: {0}").format(self.atlas_type_combo.currentText())
+                + "\n"
+            )
+            message += self.tr("Metadata files: {0}").format(
+                len(results["metadata_files"])
+            )
+        elif successes or failures:
+            # Multi-job summary
+            lines = []
+            if successes:
+                lines.append(
+                    self.tr("{0} spritesheet(s) generated successfully:").format(
+                        len(successes)
+                    )
+                )
+                for name, r in successes:
+                    lines.append(f"  - {name}: {r.get('atlas_path', '?')}")
+            if failures:
+                lines.append(
+                    self.tr("{0} spritesheet(s) failed:").format(len(failures))
+                )
+                for name, r in failures:
+                    lines.append(f"  - {name}: {r.get('error', '?')}")
+            message = "\n".join(lines)
+        # Finalize the progress window
+        if self._progress_window is not None:
+            has_failures = any("error" in r for _, r in self._job_results)
+            total_jobs = len(self._job_results)
+            self._progress_window.update_progress(total_jobs, total_jobs)
+            if has_failures:
+                self._progress_window.finish(
+                    success=False,
+                    message=self.tr("Generation finished: {0} OK, {1} failed").format(
+                        len(successes), len(failures)
+                    ),
+                )
+            else:
+                self._progress_window.finish(
+                    success=True,
+                    message=self.tr("Generation completed successfully!"),
+                )
+
+        # Show result dialogs after progress window is finalized
+        if len(self._job_results) == 1 and successes:
+            QMessageBox.information(self, self.APP_NAME, message)
+        elif successes or failures:
+            if failures:
+                QMessageBox.warning(self, self.APP_NAME, message)
+            else:
+                QMessageBox.information(self, self.APP_NAME, message)
 
     def on_progress_updated(self, current, total, message):
-        """Handle progress updates."""
-        if total > 0:
-            self.progress_bar.setValue(int((current / total) * 100))
-        self.status_label.setText(
-            self.tr("Progress: {0}/{1} - {2}").format(current, total, message)
-        )
-        self.log_text.append(f"{message}")
+        """Handle progress updates from the generator worker."""
+        status = self.tr("Progress: {0}/{1} - {2}").format(current, total, message)
+        if self._progress_window is not None:
+            self._progress_window.update_progress(current, total, status)
+            self._progress_window.append_log(message)
 
     def on_generation_completed(self, results):
-        """Handle successful generation completion."""
-        self.progress_bar.setVisible(False)
-        self.generate_button.setEnabled(True)
-
-        # Show results
-        message = self.tr("Atlas generated successfully!") + "\n\n"
-        message += self.tr("Atlas: {0}").format(results["atlas_path"]) + "\n"
-        message += (
-            self.tr("Size: {0}x{1}").format(
-                results["atlas_size"][0], results["atlas_size"][1]
-            )
-            + "\n"
-        )
-        message += self.tr("Frames: {0}").format(results["frames_count"]) + "\n"
-        message += self.tr("Efficiency: {0:.1f}%").format(results["efficiency"]) + "\n"
-        message += (
-            self.tr("Format: {0}").format(self.atlas_type_combo.currentText()) + "\n"
-        )
-        message += self.tr("Metadata files: {0}").format(len(results["metadata_files"]))
-
-        self.status_label.setText(self.tr("Generation completed successfully!"))
-        self.log_text.append("\n" + "=" * 50)
-        self.log_text.append(self.tr("GENERATION COMPLETED SUCCESSFULLY!"))
-        self.log_text.append("=" * 50)
-        self.log_text.append(message)
-
-        QMessageBox.information(self, self.APP_NAME, message)
+        """Handle generation completion (legacy single-job path)."""
+        self._on_job_completed(results)
 
     def on_generation_failed(self, error_message):
-        """Handle generation failure."""
-        self.progress_bar.setVisible(False)
-        self.generate_button.setEnabled(True)
-
-        self.status_label.setText(self.tr("Generation failed!"))
-        self.log_text.append("\n" + "=" * 50)
-        self.log_text.append(self.tr("Generation failed!").upper())
-        self.log_text.append("=" * 50)
-        self.log_text.append(self.tr("Error: {0}").format(error_message))
-
-        QMessageBox.critical(
-            self,
-            self.APP_NAME,
-            self.tr("Atlas generation failed:\n\n{0}").format(error_message),
-        )
+        """Handle generation failure (legacy single-job path)."""
+        self._on_job_failed(error_message)
 
     def on_atlas_size_method_changed(self, method_text):
         """Handle atlas size method change."""
@@ -1949,8 +2200,6 @@ class GenerateTabWidget(BaseTabWidget):
             # Change labels
             self.atlas_size_label_1.setText(self.tr("Width"))
             self.atlas_size_label_2.setText(self.tr("Height"))
-
-            self.log_text.append(self.tr("Atlas sizing: Automatic mode selected."))
 
         elif method_text == "MinMax":
             # Enable spinboxes for min/max size input
@@ -1967,12 +2216,6 @@ class GenerateTabWidget(BaseTabWidget):
             if self.atlas_size_spinbox_2.value() == 0:
                 self.atlas_size_spinbox_2.setValue(2048)
 
-            self.log_text.append(
-                self.tr(
-                    "Atlas sizing: MinMax mode enabled - atlas will be constrained between min and max sizes"
-                )
-            )
-
         elif method_text == "Manual":
             # Enable spinboxes for manual width/height input
             self.atlas_size_spinbox_1.setEnabled(True)
@@ -1987,12 +2230,6 @@ class GenerateTabWidget(BaseTabWidget):
                 self.atlas_size_spinbox_1.setValue(1024)
             if self.atlas_size_spinbox_2.value() == 0:
                 self.atlas_size_spinbox_2.setValue(1024)
-
-            self.log_text.append(
-                self.tr(
-                    "Atlas sizing: Manual mode enabled - exact dimensions will be forced (warning will be shown if frames don't fit)"
-                )
-            )
 
     def __del__(self):
         """Cleanup temporary directories and worker thread when widget is destroyed."""

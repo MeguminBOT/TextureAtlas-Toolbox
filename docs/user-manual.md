@@ -8,6 +8,8 @@ Complete guide for using TextureAtlas Toolbox to extract, generate, and edit tex
 ## Table of Contents
 
 -   [Getting Started](#getting-started)
+-   [First Launch Wizard](#first-launch-wizard)
+-   [Themes and Appearance](#themes-and-appearance)
 -   [Interface Overview](#interface-overview)
     -   [Extract Tab](#extract-tab)
     -   [Generate Tab](#generate-tab)
@@ -22,12 +24,45 @@ Complete guide for using TextureAtlas Toolbox to extract, generate, and edit tex
 ## Getting Started
 
 1. Launch TextureAtlas Toolbox.
-2. Choose your workflow:
-    - **Extract tab**: Convert existing atlases into animations (GIF/WebP/APNG) and individual
-      frames.
+2. On first launch a **setup wizard** guides you through language, update preferences, and theme
+   selection.
+3. Choose your workflow:
+    - **Extract tab** (default): Convert existing atlases into animations (GIF/WebP/APNG) and
+      individual frames.
     - **Generate tab**: Build new atlases from loose frame images.
     - **Editor tab**: Manually align sprites and apply offset fixes.
-3. Configure your settings and enjoy!
+4. Configure your settings and enjoy!
+
+## First Launch Wizard
+
+The first time you open the app (or after a major upgrade) a three-step wizard appears:
+
+1. **Language** — Choose your UI language. A quality indicator shows whether the translation is
+   native, reviewed, or machine-generated.
+2. **What's New** — Overview of the latest changes and an option to enable automatic update
+   checks.
+3. **Theme** — Pick a theme family, light/dark/AMOLED variant, and accent colour. A live
+   preview panel shows sample widgets that update in real-time as you change options.
+
+Fresh installs default to the **Clean** family with **Light** or **Dark** automatically
+detected from your operating system colour scheme.
+
+## Themes and Appearance
+
+TextureAtlas Toolbox ships with six theme families, each available in Light, Dark, and AMOLED
+variants (18 combinations):
+
+| Family       | Description                                          |
+| ------------ | ---------------------------------------------------- |
+| Clean        | Minimal, modern look with subtle borders             |
+| Material     | Google Material Design via `qt-material`              |
+| Fluent       | Windows 11 Fluent Design with rounded controls       |
+| Windows 95   | Retro pixel-art UI with MS Sans Serif font           |
+| Windows XP   | Classic XP chrome with pixel-art icons               |
+
+You can also choose from eight accent colour presets (Default, Blue, Purple, Green, Red,
+Orange, Pink, Teal). All theme settings are available in **Options → Theme** and persist
+between sessions.
 
 ## Interface Overview
 

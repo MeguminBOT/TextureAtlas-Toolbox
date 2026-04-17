@@ -21,7 +21,13 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from utils.translation_manager import tr as translate
-from utils.ui_constants import ButtonLabels
+from utils.ui_constants import (
+    ButtonLabels,
+    CheckBoxLabels,
+    MenuActions,
+    Placeholders,
+    WindowTitles,
+)
 
 
 class FindReplaceWindow(QDialog):
@@ -47,7 +53,7 @@ class FindReplaceWindow(QDialog):
             parent: Parent widget for the dialog.
         """
         super().__init__(parent)
-        self.setWindowTitle(self.tr("Find and Replace"))
+        self.setWindowTitle(self.tr(WindowTitles.FIND_AND_REPLACE))
         self.setGeometry(200, 200, 500, 400)
         self.on_store_callback = on_store_callback
         self.replace_rules = replace_rules or []
@@ -73,7 +79,9 @@ class FindReplaceWindow(QDialog):
             )
         )
         instructions.setWordWrap(True)
-        instructions.setStyleSheet("color: #666666; margin-bottom: 10px;")
+        instructions.setStyleSheet(
+            "color: palette(placeholderText); margin-bottom: 10px;"
+        )
         layout.addWidget(instructions)
 
         scroll_area = QScrollArea()
@@ -91,11 +99,11 @@ class FindReplaceWindow(QDialog):
 
         buttons_row = QHBoxLayout()
 
-        add_btn = QPushButton(self.tr("Add Rule"))
+        add_btn = QPushButton(self.tr(MenuActions.ADD_RULE))
         add_btn.clicked.connect(self.add_rule)
         buttons_row.addWidget(add_btn)
 
-        preset_btn = QPushButton(self.tr("Add Preset Rule"))
+        preset_btn = QPushButton(self.tr(MenuActions.ADD_PRESET_RULE))
         preset_menu = QMenu(self)
         preset_menu.addAction(
             self.tr("Remove sprite name"), self._add_preset_remove_sprite
@@ -143,7 +151,7 @@ class FindReplaceWindow(QDialog):
         rule_frame.setStyleSheet(
             """
             QGroupBox {
-                border: 1px solid #cccccc;
+                border: 1px solid palette(mid);
                 border-radius: 5px;
                 margin-top: 5px;
                 padding-top: 10px;
@@ -159,7 +167,7 @@ class FindReplaceWindow(QDialog):
         find_label.setMinimumWidth(60)
         find_entry = QLineEdit()
         find_entry.setText(rule_data.get("find", ""))
-        find_entry.setPlaceholderText(self.tr("Text to find..."))
+        find_entry.setPlaceholderText(self.tr(Placeholders.TEXT_TO_FIND))
         find_layout.addWidget(find_label)
         find_layout.addWidget(find_entry)
         rule_layout.addLayout(find_layout)
@@ -169,13 +177,13 @@ class FindReplaceWindow(QDialog):
         replace_label.setMinimumWidth(60)
         replace_entry = QLineEdit()
         replace_entry.setText(rule_data.get("replace", ""))
-        replace_entry.setPlaceholderText(self.tr("Replacement text..."))
+        replace_entry.setPlaceholderText(self.tr(Placeholders.REPLACEMENT_TEXT))
         replace_layout.addWidget(replace_label)
         replace_layout.addWidget(replace_entry)
         rule_layout.addLayout(replace_layout)
 
         options_layout = QHBoxLayout()
-        regex_checkbox = QCheckBox(self.tr("Regular Expression"))
+        regex_checkbox = QCheckBox(self.tr(CheckBoxLabels.REGEX))
         regex_checkbox.setChecked(rule_data.get("regex", False))
 
         delete_btn = QPushButton(self.tr(ButtonLabels.DELETE))

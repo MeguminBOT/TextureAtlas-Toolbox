@@ -1,0 +1,5 @@
+Checkmark icon shape derived from XP.css by Adam Hammad.
+https://github.com/botoxparty/XP.css
+
+Licensed under the MIT License.
+Copyright 2020 Adam Hammad, Jordan Scales

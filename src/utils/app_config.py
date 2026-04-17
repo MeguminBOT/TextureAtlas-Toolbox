@@ -16,6 +16,7 @@ class AppConfig:
 
     DEFAULTS = {
         "first_run_completed": False,
+        "setup_wizard_version": 0,
         "language": "auto",
         "resource_limits": {
             "cpu_cores": "auto",
@@ -117,6 +118,10 @@ class AppConfig:
             "duration_input_type": "fps",
             "smart_animation_grouping": True,
             "color_scheme": "auto",
+            "theme_family": "clean",
+            "theme_variant": "dark",
+            "accent_key": "default",
+            "font_override": "",
         },
     }
 
@@ -178,6 +183,10 @@ class AppConfig:
         "use_native_file_dialog": bool,
         "origin_mode": str,
         "color_scheme": str,
+        "theme_family": str,
+        "theme_variant": str,
+        "accent_key": str,
+        "font_override": str,
         "opt_preset": str,
         "opt_compress_level": int,
         "opt_optimize": bool,
@@ -568,4 +577,60 @@ class AppConfig:
         if "interface" not in self.settings:
             self.settings["interface"] = {}
         self.settings["interface"]["color_scheme"] = scheme
+        self.save()
+
+    def get_theme_family(self):
+        """Return the stored theme family.
+
+        Returns:
+            One of 'clean', 'material', or 'fluent'.
+        """
+        return self.settings.get("interface", {}).get("theme_family", "clean")
+
+    def get_theme_variant(self):
+        """Return the stored theme variant.
+
+        Returns:
+            One of 'light', 'dark', or 'amoled'.
+        """
+        return self.settings.get("interface", {}).get("theme_variant", "dark")
+
+    def get_accent_key(self):
+        """Return the stored accent colour key.
+
+        Returns:
+            An accent preset name such as 'default', 'blue', 'purple', etc.
+        """
+        return self.settings.get("interface", {}).get("accent_key", "default")
+
+    def get_font_override(self):
+        """Return the stored font override, or empty string for theme default.
+
+        Returns:
+            Font family name, or empty string.
+        """
+        return self.settings.get("interface", {}).get("font_override", "")
+
+    def set_theme_settings(
+        self, *, family=None, variant=None, accent_key=None, font_override=None
+    ):
+        """Update one or more theme settings and persist to disk.
+
+        Args:
+            family: Theme family ('clean', 'material', 'fluent').
+            variant: Theme variant ('light', 'dark', 'amoled').
+            accent_key: Accent colour preset name.
+            font_override: Font family name, or empty string for default.
+        """
+        if "interface" not in self.settings:
+            self.settings["interface"] = {}
+        iface = self.settings["interface"]
+        if family is not None:
+            iface["theme_family"] = family
+        if variant is not None:
+            iface["theme_variant"] = variant
+        if accent_key is not None:
+            iface["accent_key"] = accent_key
+        if font_override is not None:
+            iface["font_override"] = font_override
         self.save()

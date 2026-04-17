@@ -17,6 +17,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels, WindowTitles
 
 
 class ContributorsWindow(QDialog):
@@ -31,8 +32,9 @@ class ContributorsWindow(QDialog):
             parent: Parent widget for the dialog.
         """
         super().__init__(parent)
-        self.setWindowTitle(self.tr("Contributors"))
-        self.setGeometry(200, 200, 600, 500)
+        self.setWindowTitle(self.tr(WindowTitles.CONTRIBUTORS))
+        self.setMinimumSize(360, 300)
+        self.resize(550, 480)
         self.setup_ui()
 
     def setup_ui(self):
@@ -43,15 +45,16 @@ class ContributorsWindow(QDialog):
         layout.setContentsMargins(20, 20, 20, 20)
 
         title_label = QLabel(self.tr("TextureAtlas Toolbox\nContributors"))
-        title_font = QFont("Arial", 16, QFont.Weight.Bold)
+        title_font = QFont()
+        title_font.setPointSize(16)
+        title_font.setBold(True)
         title_label.setFont(title_font)
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setFrameShape(QFrame.Shape.NoFrame)
 
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
@@ -62,7 +65,7 @@ class ContributorsWindow(QDialog):
         scroll_area.setWidget(content_widget)
         layout.addWidget(scroll_area)
 
-        close_btn = QPushButton(self.tr("Close"))
+        close_btn = QPushButton(self.tr(ButtonLabels.CLOSE))
         close_btn.clicked.connect(self.close)
         close_btn.setMaximumWidth(100)
 
@@ -126,13 +129,15 @@ class ContributorsWindow(QDialog):
         card_layout.setContentsMargins(15, 15, 15, 15)
 
         name_label = QLabel(contributor_data["name"])
-        name_font = QFont("Arial", 12, QFont.Weight.Bold)
+        name_font = QFont()
+        name_font.setPointSize(12)
+        name_font.setBold(True)
         name_label.setFont(name_font)
         card_layout.addWidget(name_label)
 
         if "role" in contributor_data:
             role_label = QLabel(contributor_data["role"])
-            role_label.setStyleSheet("color: #666666;")
+            role_label.setStyleSheet("color: palette(placeholderText);")
             card_layout.addWidget(role_label)
 
         if "description" in contributor_data:

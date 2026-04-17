@@ -22,6 +22,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QColor, QPainter
 
 from utils.translation_manager import tr as translate
+from utils.ui_constants import ButtonLabels, WindowTitles
 
 
 class BackgroundHandlerWindow(QDialog):
@@ -53,7 +54,7 @@ class BackgroundHandlerWindow(QDialog):
         self.result = {}
         self.checkbox_vars = {}
 
-        self.setWindowTitle(self.tr("Background Color Options"))
+        self.setWindowTitle(self.tr(WindowTitles.BACKGROUND_COLOR_OPTIONS))
         self.setModal(True)
         self.resize(750, 550)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
@@ -164,7 +165,9 @@ class BackgroundHandlerWindow(QDialog):
             )
         )
         transparency_tip.setFont(QFont("Arial", 8))
-        transparency_tip.setStyleSheet("QLabel { margin-left: 10px; color: #0066cc; }")
+        transparency_tip.setStyleSheet(
+            "QLabel { margin-left: 10px; color: palette(link); }"
+        )
         options_layout.addWidget(transparency_tip)
 
         main_layout.addWidget(options_frame)
@@ -178,7 +181,7 @@ class BackgroundHandlerWindow(QDialog):
         apply_btn.setDefault(True)
         button_layout.addWidget(apply_btn)
 
-        cancel_btn = QPushButton(self.tr("Cancel"))
+        cancel_btn = QPushButton(self.tr(ButtonLabels.CANCEL))
         cancel_btn.clicked.connect(self.on_cancel)
         cancel_btn.setMinimumWidth(120)
         button_layout.addWidget(cancel_btn)
@@ -198,13 +201,11 @@ class BackgroundHandlerWindow(QDialog):
         Returns:
             QFrame containing the checkbox, filename, and color samples.
         """
-        bg_color = "#f0f0f0" if index % 2 == 0 else "#ffffff"
-
         entry_frame = QFrame()
         entry_frame.setFrameStyle(QFrame.Shape.Box)
         entry_frame.setLineWidth(1)
         entry_frame.setStyleSheet(
-            f"QFrame {{ background-color: {bg_color}; border: 1px solid #ccc; }}"
+            f"QFrame {{ background-color: palette(alternateBase); border: 1px solid palette(mid); }}"
         )
 
         layout = QVBoxLayout(entry_frame)
@@ -243,7 +244,9 @@ class BackgroundHandlerWindow(QDialog):
                 )
             )
             more_label.setFont(QFont("Arial", 8))
-            more_label.setStyleSheet("QLabel { margin-left: 25px; color: gray; }")
+            more_label.setStyleSheet(
+                "QLabel { margin-left: 25px; color: palette(placeholderText); }"
+            )
             layout.addWidget(more_label)
 
         return entry_frame

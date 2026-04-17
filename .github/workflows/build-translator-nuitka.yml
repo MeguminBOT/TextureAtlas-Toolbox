@@ -1,0 +1,173 @@
+name: Build Translation Editor Nuitka
+
+on:
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.14'
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: tools/translator-app
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+
+      - name: Get app version
+        id: version
+        shell: bash
+        working-directory: .
+        run: |
+          VERSION=$(grep 'setApplicationVersion' tools/translator-app/src/Main.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nuitka PySide6 requests
+
+      - name: Build with Nuitka
+        shell: bash
+        run: |
+          nuitka \
+            --standalone \
+            --assume-yes-for-downloads \
+            --deployment \
+            --msvc=latest \
+            --follow-imports \
+            --enable-plugin=pyside6 \
+            --windows-console-mode=attach \
+            --include-package=src \
+            --include-data-dir=src/assets=assets \
+            --include-data-dir=src/translations=translations \
+            --include-data-dir=templates=templates \
+            --windows-icon-from-ico=src/assets/icon-ts.ico \
+            --company-name="AutisticLulu" \
+            --product-name="Translation Editor" \
+            --file-version=${{ steps.version.outputs.version }} \
+            --product-version=${{ steps.version.outputs.version }} \
+            --copyright="Copyright © 2026 AutisticLulu. Licensed under the GNU Affero General Public License (AGPL)" \
+            --file-description="Translation Editor v${{ steps.version.outputs.version }}" \
+            --output-filename=TranslationEditor.exe \
+            --output-dir=_build-output \
+            src/Main.py
+
+      - name: Upload Windows distribution
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: TranslationEditor-win-x64-nuitka-v${{ steps.version.outputs.version }}
+          path: tools/translator-app/_build-output/Main.dist/
+          if-no-files-found: error
+
+  build-linux:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/translator-app
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+
+      - name: Get app version
+        id: version
+        working-directory: .
+        run: |
+          VERSION=$(grep 'setApplicationVersion' tools/translator-app/src/Main.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install system dependencies
+        working-directory: .
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf ccache libxcb-cursor0 libxkbcommon-x11-0
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nuitka PySide6 requests
+
+      - name: Build with Nuitka
+        run: |
+          nuitka \
+            --standalone \
+            --assume-yes-for-downloads \
+            --deployment \
+            --follow-imports \
+            --enable-plugin=pyside6 \
+            --include-package=src \
+            --include-data-dir=src/assets=assets \
+            --include-data-dir=src/translations=translations \
+            --include-data-dir=templates=templates \
+            --output-filename=TranslationEditor \
+            --output-dir=_build-output \
+            src/Main.py
+
+      - name: Upload Linux distribution
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: TranslationEditor-linux-x64-nuitka-v${{ steps.version.outputs.version }}
+          path: tools/translator-app/_build-output/Main.dist/
+          if-no-files-found: error
+
+  build-macos:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: tools/translator-app
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+
+      - name: Get app version
+        id: version
+        working-directory: .
+        run: |
+          VERSION=$(grep 'setApplicationVersion' tools/translator-app/src/Main.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nuitka PySide6 requests
+
+      - name: Build with Nuitka
+        run: |
+          nuitka \
+            --standalone \
+            --assume-yes-for-downloads \
+            --deployment \
+            --follow-imports \
+            --enable-plugin=pyside6 \
+            --include-package=src \
+            --include-data-dir=src/assets=assets \
+            --include-data-dir=src/translations=translations \
+            --include-data-dir=templates=templates \
+            --output-filename=TranslationEditor \
+            --output-dir=_build-output \
+            src/Main.py
+
+      - name: Upload macOS distribution
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: TranslationEditor-mac-x64-nuitka-v${{ steps.version.outputs.version }}
+          path: tools/translator-app/_build-output/Main.dist/
+          if-no-files-found: error

@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 from utils.translation_manager import tr as translate
-from utils.ui_constants import ButtonLabels
+from utils.ui_constants import ButtonLabels, WindowTitles
 
 # Optional: compiled Qt resources for icons (generated via pyside6-rcc).
 try:
@@ -73,7 +73,7 @@ class LanguageSelectionWindow(QDialog):
         self.setup_ui()
         self.setup_connections()
 
-        self.setWindowTitle(self.tr("Language Settings"))
+        self.setWindowTitle(self.tr(WindowTitles.LANGUAGE_SETTINGS))
         self.setModal(True)
         self.setFixedSize(500, 300)
 
@@ -168,7 +168,9 @@ class LanguageSelectionWindow(QDialog):
                 unknown=self.QUALITY_MARKERS["unknown"],
             )
         )
-        self.info_label.setStyleSheet("color: #666; font-size: 10px;")
+        self.info_label.setStyleSheet(
+            "color: palette(placeholderText); font-size: 10px;"
+        )
         self.info_label.setWordWrap(True)
         layout.addWidget(self.info_label)
 

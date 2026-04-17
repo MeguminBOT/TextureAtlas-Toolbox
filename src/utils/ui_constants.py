@@ -187,6 +187,7 @@ _TAB_TITLE_STRINGS = (
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Interface"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Extraction Defaults"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Generator Defaults"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Optimizer Defaults"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Compression Defaults"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Updates"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Editor"),
@@ -194,11 +195,11 @@ _TAB_TITLE_STRINGS = (
 
 # File dialog titles
 _FILE_DIALOG_STRINGS = (
-    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select Input Directory"),
-    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select Output Directory"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select Input Folder"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select Output Folder"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select Files"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select frames"),
-    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select directory with frame images"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select folder with frame images"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select Atlas Image File"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select Atlas Data File"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Select animation files"),
@@ -431,8 +432,8 @@ _CHECKBOX_STRINGS = (
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Trim transparent edges"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Check for updates on startup"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Auto-download and install updates"),
-    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Remember last used input directory"),
-    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Remember last used output directory"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Remember last used input folder"),
+    QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Remember last used output folder"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Hide single-frame spritemap animations"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Use native file picker when available"),
     QT_TRANSLATE_NOOP("TextureAtlasToolboxApp", "Merge duplicate frames"),
@@ -887,13 +888,19 @@ class TabTitles:
         tab_widget.addTab(widget, self.tr(TabTitles.INTERFACE))
     """
 
+    GENERAL = "General"
     SYSTEM_RESOURCES = "System Resources"
     INTERFACE = "Interface"
-    EXTRACTION_DEFAULTS = "Extraction Defaults"
-    GENERATOR_DEFAULTS = "Generator Defaults"
-    OPTIMIZER_DEFAULTS = "Optimizer Defaults"
-    COMPRESSION_DEFAULTS = "Compression Defaults"
     UPDATES = "Updates"
+    DEFAULTS = "Defaults"
+    EXTRACTION = "Extractor"
+    EXTRACTION_DEFAULTS = "Extraction Defaults"
+    GENERATOR = "Generator"
+    GENERATOR_DEFAULTS = "Generator Defaults"
+    OPTIMIZER = "Optimizer"
+    OPTIMIZER_DEFAULTS = "Optimizer Defaults"
+    COMPRESSION = "Compression"
+    COMPRESSION_DEFAULTS = "Compression Defaults"
     EDITOR = "Editor"
 
 
@@ -904,11 +911,11 @@ class FileDialogTitles:
         QFileDialog.getExistingDirectory(self, self.tr(FileDialogTitles.SELECT_INPUT_DIR), ...)
     """
 
-    SELECT_INPUT_DIR = "Select Input Directory"
-    SELECT_OUTPUT_DIR = "Select Output Directory"
+    SELECT_INPUT_DIR = "Select Input Folder"
+    SELECT_OUTPUT_DIR = "Select Output Folder"
     SELECT_FILES = "Select Files"
     SELECT_FRAMES = "Select frames"
-    SELECT_FRAME_DIR = "Select directory with frame images"
+    SELECT_FRAME_DIR = "Select folder with frame images"
     SELECT_ATLAS_IMAGE = "Select Atlas Image File"
     SELECT_ATLAS_DATA = "Select Atlas Data File"
     SELECT_ANIMATION_FILES = "Select animation files"
@@ -1038,8 +1045,8 @@ class CheckBoxLabels:
     AUTO_DOWNLOAD_AVAILABLE = "Automatically download updates when available"
 
     # Interface options
-    REMEMBER_INPUT_DIR = "Remember last used input directory"
-    REMEMBER_OUTPUT_DIR = "Remember last used output directory"
+    REMEMBER_INPUT_DIR = "Remember last used input folder"
+    REMEMBER_OUTPUT_DIR = "Remember last used output folder"
     HIDE_SINGLE_FRAME = "Hide single-frame spritemap animations"
     HIDE_UNUSED_SYMBOLS = "Hide symbols not used by the main animation"
     ROOT_ANIMATION_ONLY = "Only detect main animation"

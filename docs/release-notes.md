@@ -3,7 +3,7 @@ Version history and changelog for TextureAtlas Toolbox (formerly TextureAtlas to
 
 ## Table of Contents (Major Versions)
 
-- [Version 2.1.x](#version-21x)
+- [Version 3.0.x](#version-30x)
 - [Version 2.0.x](#version-20x)
 - [Version 1.9.x](#version-19x)
 - [Version 1.8.x](#version-18x)
@@ -20,57 +20,69 @@ Version history and changelog for TextureAtlas Toolbox (formerly TextureAtlas to
 
 ## Current Version
 
-### Version 2.1.0 (Current)
+### Version 3.0.0 (Current)
 Release date: **TBD**
 
 ---
 
 ## Version History
 
-### Version 2.1.x
+### Version 3.0.x
 
 _
 
-#### Version 2.1.0
+#### Version 3.0.0
 Release date: **TBD**
 
+##### Highlights
+- **UI overhaul**: 
+    - App now works on 1280x720 screens.
+    - Polished UI layout
+    - Themes added (Clean, Material, Fluent, Windows 95, Windows XP) each with Light, Dark, and AMOLED variants
+    - **Accent colour presets**: Eight accent colour options (Default, Blue, Purple, Green, Red, Orange, Pink, Teal) applied across all theme families
+    - **Step-based setup wizard**: Three-step first-launch wizard (Language → What's New → Theme) with a live preview panel showing sample widgets that restyle in real-time
+
 ##### New Features
-- Feature: **GPU Texture Extraction**: Load and extract sprites from DDS and KTX2 GPU-compressed atlas images (BC1/BC3/BC7, ETC1, ETC2, ASTC, PVRTC) using `texture2ddecoder`
-- Feature: **GPU Texture Compression**: Generate GPU-compressed atlas images in BC1/DXT1, BC3/DXT5, BC7, ETC1, ETC2, ASTC, and PVRTC formats
-- Feature: **DDS and KTX2 container output**: Store compressed textures in industry-standard DDS (DirectX) or KTX2 (Khronos) containers
-- Feature: **Mipmap generation**: Optionally generate full mipmap chains with Lanczos downsampling for GPU-compressed textures
-- Feature: **GPU compression in optimizer**: Post-process optimized images with GPU texture compression
+- Experimental Feature: **GPU Texture Extraction & Compression**
+    - Load and extract sprites from DDS and KTX2 GPU-compressed atlas images (BC1/BC3/BC7, ETC1, ETC2, ASTC, PVRTC) using `texture2ddecoder`
+    - Generate GPU-compressed atlas images in BC1/DXT1, BC3/DXT5, BC7, ETC1, ETC2, ASTC, and PVRTC formats
+    - Optionally generate full mipmap chains with Lanczos downsampling
+    - Post-process optimized images with GPU texture compression in the optimizer tab
+    - Store compressed textures in industry-standard DDS (DirectX) or KTX2 (Khronos) containers
+    - Automatic padding enforcement — padding auto-clamped to block size when GPU format is active
+    - Format-gated GPU controls — options only appear for metadata formats used by game engines
+    - One-time disclaimer dialog on first GPU format selection
 - Feature: **libGDX TexturePacker format**: New parser and exporter for libGDX TexturePacker `.atlas` files
 - Feature: **EXIF metadata in WebP/AVIF**: Extracted WebP and AVIF frames now include EXIF metadata
 - Feature: **Hierarchical sprite name paths**: Support hierarchical sprite names (e.g. `folder/sprite`) in export paths, preserving directory structure
-- Feature: **Persistent GPU compression defaults**: GPU texture format, container, and mipmap settings are saved in app config and restored across sessions for both generator and optimizer
-- Feature: **Format-specific sprite naming**: Generator now uses format-appropriate naming conventions for exported sprites
-- Feature: **JSON parser improvements**: JSON parsers now handle rotated dimensions, `frameTags`, and per-frame duration fields
+- Feature: **Job progress window**: Dedicated batch-job progress tracking dialog
+
+##### Enhancements
+- Enhancement: **Screen-adaptive sizing**: Initial window dimensions scale to the user's display resolution
+- Enhancement: **Extract tab tree overhaul**: Frame counts and stats displayed per-animation in the tree view
+- Enhancement: **Dialog consistency overhaul**: All dialog windows restyled for visual consistency across theme families
+- Enhancement: **Directory → Folder standardisation**: All user-facing strings changed from "directory" to "folder" for consistency
+- Enhancement: **Background atlas import**: Atlas import moved to background thread with progress indicator
+- Enhancement: **Granular progress reporting**: Sub-progress reporting in atlas generator for more responsive progress bars
+- Enhancement: **Format-specific sprite naming**: Generator now uses format-appropriate naming conventions for exported sprites (hopefully..)
+- Enhancement: **JSON parser improvements**: JSON parsers now handle rotated dimensions, `frameTags`, and per-frame duration fields
+- Enhancement: **Path sanitization utilities**: New `sanitize_path_name` and `basename_from_sprite_name` helpers
+- Enhancement: **Frame signature accuracy**: Increase frame signature prefix from 512 to 2048 bytes for better deduplication
+
 
 ##### Bugfixes
 - Bugfix: **Exporter spec compliance**: Spec-compliance fixes for Plist, Spine, and Aseprite exporters
 - Bugfix: **Image.fromarray TypeError**: Fix TypeError in standalone/compiled builds when using `Image.fromarray`
-- Bugfix: **ImageMagick compiled builds**: Fix ImageMagick path issues on compiled/standalone builds
+- Bugfix: **ImageMagick errors**: Fix ImageMagick path issues on compiled/standalone builds
 - Bugfix: **Error popup not displaying**: Fix `show_error_popup` never displaying when QApplication already exists
 - Bugfix: **Preview generator variable**: Fix `UnboundLocalError` for `owns_temp_dir` in preview generator
 - Bugfix: **Extract tab reset**: Remove duplicate `.clear()` calls in extract tab reset
 - Bugfix: **Generator thread leak**: Stop generator worker thread on widget destruction
 - Bugfix: **Temp directory leak**: Fix temp directory leak in `add_existing_atlas` on exception
 - Bugfix: **Atlas size guard**: Add atlas size guard to prevent excessive memory allocation
-- Bugfix: **Frame signature accuracy**: Increase frame signature prefix from 512 to 2048 bytes for better deduplication
 - Bugfix: **Image load failure reporting**: Surface image load failures as warnings in generator result instead of silently failing
 - Bugfix: **Parser error chaining**: Add exception chaining in base parser catch-all handler
 - Bugfix: **File I/O error handling**: Add error handling for file I/O in Aseprite, TXT, and CSS legacy parsers
-
-##### Enhancements
-- Enhancement: **GPU defaults in config window**: App config dialog now includes GPU Texture Compression group in both generator and optimizer defaults tabs
-- Enhancement: **Automatic padding enforcement**: Padding is auto-clamped to at least the compression block size when GPU format is active, preventing block-boundary bleeding
-- Enhancement: **Format-gated GPU controls**: GPU compression options only appear for metadata formats used by game engines that consume compressed textures
-- Enhancement: **One-time disclaimer dialog**: Informational dialog on first GPU format selection explains padding implications and experimental status
-- Enhancement: **Background atlas import**: Atlas import moved to background thread with progress indicator
-- Enhancement: **Granular progress reporting**: Sub-progress reporting in atlas generator for more responsive progress bars
-- Enhancement: **CPU detection**: Grab CPU and thread count directly from registry as primary method, fallback to wmic
-- Enhancement: **Path sanitization utilities**: New `sanitize_path_name` and `basename_from_sprite_name` helpers
 
 ##### Optimizations
 - Optimization: **O(1) frame dedup lookup**: Use set for O(1) `is_frame_already_added` lookup instead of list scan
@@ -79,8 +91,14 @@ Release date: **TBD**
 - Optimization: **Frame tuple caching**: Reuse cached frame tuples instead of rebuilding in non-smart grouping
 - Optimization: **Memory management**: Close source images after atlas compositing to free memory
 
+##### Tweaks / Removals
+- Tweak: **CPU detection**: Grab CPU and thread count directly from registry as primary method, fallback to wmic
+- Removed: **In-app User Manual**: Remove in-app manual and link to GitHub docs.
+
 ##### Dependencies
 - Added: **etcpak** pip package for BC1/BC3/BC7/ETC1/ETC2 compression
+- Added: **qt-material** for Material Design theme support
+- Added: **qtawesome** for icon font integration
 
 _
 

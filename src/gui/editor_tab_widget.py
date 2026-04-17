@@ -680,6 +680,25 @@ class EditorTabWidget(BaseTabWidget):
         self.origin_mode_combo = ui.origin_mode_combo
         self.status_label.setText(self._default_status_text)
         self._configure_origin_selector()
+        self._relax_editor_constraints(ui)
+
+    # ------------------------------------------------------------------
+    # Designer layout overrides
+    # ------------------------------------------------------------------
+
+    def _relax_editor_constraints(self, ui):
+        """Wrap the controls panel in a scroll area for overflow handling.
+
+        Size constraints, margins, spacing, and short label text are all
+        defined in ``app_ui.py`` / ``retranslateUi`` so they survive
+        language changes.  This method only adds the scroll wrapper which
+        cannot be expressed in the static Designer file.
+        """
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(scroll.Shape.NoFrame)
+        scroll.setWidget(ui.controls_panel)
+        ui.editor_inner_splitter.insertWidget(1, scroll)
 
     def _build_ui(self):
         """Create the editor UI programmatically when no prebuilt UI exists."""
@@ -693,13 +712,14 @@ class EditorTabWidget(BaseTabWidget):
 
         # Left column: animation + frame lists
         lists_widget = QWidget()
-        lists_widget.setMinimumWidth(280)
-        lists_widget.setMaximumWidth(420)
+        lists_widget.setMinimumWidth(160)
+        lists_widget.setMaximumWidth(300)
         lists_widget.setSizePolicy(
             QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         )
         lists_layout = QVBoxLayout(lists_widget)
-        lists_layout.setSpacing(8)
+        lists_layout.setContentsMargins(4, 4, 4, 4)
+        lists_layout.setSpacing(4)
 
         anim_label = QLabel(self.tr("Animations & Frames"))
         lists_layout.addWidget(anim_label)
@@ -761,17 +781,17 @@ class EditorTabWidget(BaseTabWidget):
         self.zoom_out_button.setToolTip(self.tr(Tooltips.ZOOM_OUT))
         self.zoom_in_button = QPushButton("+")
         self.zoom_in_button.setToolTip(self.tr(Tooltips.ZOOM_IN))
-        self.reset_zoom_button = QPushButton(self.tr(ButtonLabels.RESET_ZOOM))
+        self.reset_zoom_button = QPushButton(self.tr(ButtonLabels.RESET))
         self.zoom_100_button = QPushButton("100%")
         self.zoom_100_button.setToolTip(self.tr(Tooltips.ZOOM_100))
         self.zoom_50_button = QPushButton("50%")
         self.zoom_50_button.setToolTip(self.tr(Tooltips.ZOOM_50))
-        self.center_view_button = QPushButton(self.tr(ButtonLabels.CENTER_VIEW))
+        self.center_view_button = QPushButton(self.tr("Center"))
         self.center_view_button.setToolTip(self.tr(Tooltips.CENTER_VIEW))
-        self.fit_canvas_button = QPushButton(self.tr(ButtonLabels.FIT_CANVAS))
+        self.fit_canvas_button = QPushButton(self.tr("Fit"))
         self.fit_canvas_button.setToolTip(self.tr(Tooltips.FIT_CANVAS))
         self.zoom_label = QLabel("100%")
-        self.detach_canvas_button = QPushButton(self.tr(ButtonLabels.DETACH_CANVAS))
+        self.detach_canvas_button = QPushButton(self.tr("Detach"))
         canvas_toolbar.addWidget(self.zoom_out_button)
         canvas_toolbar.addWidget(self.zoom_in_button)
         canvas_toolbar.addWidget(self.reset_zoom_button)
@@ -789,36 +809,32 @@ class EditorTabWidget(BaseTabWidget):
 
         self.offset_x_spin = QSpinBox()
         self.offset_x_spin.setRange(-4096, 4096)
-        controls_layout.addRow(self.tr("Frame offset X"), self.offset_x_spin)
+        controls_layout.addRow(self.tr("X:"), self.offset_x_spin)
 
         self.offset_y_spin = QSpinBox()
         self.offset_y_spin.setRange(-4096, 4096)
-        controls_layout.addRow(self.tr("Frame offset Y"), self.offset_y_spin)
+        controls_layout.addRow(self.tr("Y:"), self.offset_y_spin)
 
         control_buttons = QHBoxLayout()
-        self.reset_offset_button = QPushButton(self.tr(ButtonLabels.RESET_TO_DEFAULT))
+        self.reset_offset_button = QPushButton(self.tr(ButtonLabels.RESET))
         control_buttons.addWidget(self.reset_offset_button)
-        self.apply_all_button = QPushButton(self.tr(ButtonLabels.APPLY_TO_ALL_FRAMES))
+        self.apply_all_button = QPushButton(self.tr(ButtonLabels.APPLY))
         control_buttons.addWidget(self.apply_all_button)
         controls_layout.addRow(control_buttons)
 
         self.canvas_width_spin = QSpinBox()
         self.canvas_width_spin.setRange(8, 4096)
-        controls_layout.addRow(self.tr("Canvas width"), self.canvas_width_spin)
+        controls_layout.addRow(self.tr("W:"), self.canvas_width_spin)
 
         self.canvas_height_spin = QSpinBox()
         self.canvas_height_spin.setRange(8, 4096)
-        controls_layout.addRow(self.tr("Canvas height"), self.canvas_height_spin)
+        controls_layout.addRow(self.tr("H:"), self.canvas_height_spin)
 
-        self.save_overrides_button = QPushButton(
-            self.tr(ButtonLabels.SAVE_ALIGNMENT_EXTRACT)
-        )
+        self.save_overrides_button = QPushButton(self.tr("Save Overrides"))
         self.save_overrides_button.setEnabled(False)
         controls_layout.addRow(self.save_overrides_button)
 
-        self.export_composite_button = QPushButton(
-            self.tr(ButtonLabels.EXPORT_COMPOSITE_SPRITES)
-        )
+        self.export_composite_button = QPushButton(self.tr("Export"))
         self.export_composite_button.setEnabled(False)
         controls_layout.addRow(self.export_composite_button)
 
@@ -859,16 +875,22 @@ class EditorTabWidget(BaseTabWidget):
         controls_panel.setSizePolicy(
             QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         )
-        controls_panel.setMinimumWidth(280)
-        controls_panel.setMaximumWidth(320)
+        controls_panel.setMinimumWidth(180)
+        controls_panel.setMaximumWidth(260)
         controls_panel_layout = QVBoxLayout(controls_panel)
-        controls_panel_layout.setContentsMargins(0, 0, 0, 0)
-        controls_panel_layout.setSpacing(8)
+        controls_panel_layout.setContentsMargins(4, 0, 0, 0)
+        controls_panel_layout.setSpacing(6)
         controls_panel_layout.addWidget(controls_group)
         controls_panel_layout.addWidget(display_group)
         controls_panel_layout.addStretch()
+
+        controls_scroll = QScrollArea()
+        controls_scroll.setWidgetResizable(True)
+        controls_scroll.setFrameShape(controls_scroll.Shape.NoFrame)
+        controls_scroll.setWidget(controls_panel)
+
         editor_splitter.addWidget(canvas_panel)
-        editor_splitter.addWidget(controls_panel)
+        editor_splitter.addWidget(controls_scroll)
         editor_splitter.setStretchFactor(0, 1)
         editor_splitter.setStretchFactor(1, 0)
         editor_splitter.setSizes([960, 320])

@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
     QWidget,
     QMessageBox,
     QScrollArea,
+    QFrame,
 )
 from PySide6.QtCore import Qt, QTimer, QThread, Signal, QSize
 from PySide6.QtGui import QPixmap, QImage, QPainter, QColor
@@ -62,6 +63,7 @@ from utils.ui_constants import (
     Tooltips,
     ButtonLabels,
     DialogTitles,
+    WindowTitles,
 )
 from utils.resampling import (
     RESAMPLING_DISPLAY_NAMES,
@@ -185,7 +187,8 @@ class FrameListWidget(QListWidget):
 
     def __init__(self):
         super().__init__()
-        self.setMaximumWidth(140)
+        self.setMinimumWidth(100)
+        self.setMaximumWidth(180)
         self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         self.currentItemChanged.connect(self._on_selection_changed)
         self.itemChanged.connect(self._on_item_changed)
@@ -315,7 +318,7 @@ class AnimationDisplay(QScrollArea):
         self.setWidgetResizable(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.setMinimumSize(600, 500)
+        self.setMinimumSize(200, 150)
         self.setStyleSheet("border: 1px solid gray; background-color: transparent;")
 
         self._background_color = QColor(127, 127, 127, 255)
@@ -589,9 +592,9 @@ class AnimationPreviewWindow(QDialog):
 
     def init_ui(self):
         """Build the dialog layout and connect signals."""
-        self.setWindowTitle(self.tr("Animation Preview"))
-        self.setMinimumSize(960, 480)
-        self.resize(1366, 768)
+        self.setWindowTitle(self.tr(WindowTitles.ANIMATION_PREVIEW))
+        self.setMinimumSize(640, 400)
+        self.resize(1100, 650)
 
         self.setWindowFlags(
             Qt.WindowType.Window
@@ -720,7 +723,7 @@ class AnimationPreviewWindow(QDialog):
 
         self.progress_label = QLabel("")
         self.progress_label.setAlignment(Qt.AlignmentFlag.AlignRight)
-        self.progress_label.setStyleSheet("color: #666;")
+        self.progress_label.setStyleSheet("color: palette(placeholderText);")
         info_layout.addWidget(self.progress_label)
 
         layout.addLayout(info_layout)
@@ -733,6 +736,15 @@ class AnimationPreviewWindow(QDialog):
         Returns:
             QWidget with grouped settings controls.
         """
+        outer = QWidget()
+        outer_layout = QVBoxLayout(outer)
+        outer_layout.setContentsMargins(0, 0, 0, 0)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
         panel = QWidget()
         panel.setMaximumWidth(300)
         layout = QVBoxLayout(panel)
@@ -924,7 +936,9 @@ class AnimationPreviewWindow(QDialog):
 
         self.update_format_settings()
 
-        return panel
+        scroll.setWidget(panel)
+        outer_layout.addWidget(scroll)
+        return outer
 
     def create_controls(self) -> QVBoxLayout:
         """Build playback control buttons and position slider.
