@@ -109,11 +109,13 @@ class PortableBuilder:
         output_dir: Path,
         python_version: str = DEFAULT_PYTHON_VERSION,
         verbose: bool = True,
+        no_archive: bool = False,
     ):
         self.project_root = project_root
         self.output_dir = output_dir
         self.python_version = python_version
         self.verbose = verbose
+        self.no_archive = no_archive
 
         # Get app version and build asset name
         self.app_version = get_app_version(project_root)
@@ -190,18 +192,26 @@ class PortableBuilder:
         self._create_launcher_scripts(dist_path)
 
         # Step 7: Create archives (ZIP and 7z)
-        self.log_step(7, total_steps, "Creating distribution archives")
-        zip_path, sevenz_path = self._create_archive(dist_path)
+        if not self.no_archive:
+            self.log_step(7, total_steps, "Creating distribution archives")
+            zip_path, sevenz_path = self._create_archive(dist_path)
 
-        self.log(f"\n{'='*60}")
-        self.log("BUILD COMPLETE!")
-        self.log(f"Distribution folder: {dist_path}")
-        self.log(f"ZIP archive: {zip_path}")
-        if sevenz_path:
-            self.log(f"7z archive: {sevenz_path}")
-        self.log(f"{'='*60}\n")
+            self.log(f"\n{'='*60}")
+            self.log("BUILD COMPLETE!")
+            self.log(f"Distribution folder: {dist_path}")
+            self.log(f"ZIP archive: {zip_path}")
+            if sevenz_path:
+                self.log(f"7z archive: {sevenz_path}")
+            self.log(f"{'='*60}\n")
 
-        return zip_path
+            return zip_path
+        else:
+            self.log(f"\n{'='*60}")
+            self.log("BUILD COMPLETE!")
+            self.log(f"Distribution folder: {dist_path}")
+            self.log(f"{'='*60}\n")
+
+            return dist_path
 
     def _configure_embedded_python(self, python_dir: Path) -> None:
         """Configure embedded Python to support pip and site-packages."""
@@ -785,20 +795,28 @@ pause
         self._create_unix_launcher_scripts(dist_path)
 
         # Step 5: Create archives
-        self.log_step(5, total_steps, "Creating distribution archives")
-        zip_path, sevenz_path = self._create_archive(dist_path)
-        tar_path = self._create_tar_archive(dist_path)
+        if not self.no_archive:
+            self.log_step(5, total_steps, "Creating distribution archives")
+            zip_path, sevenz_path = self._create_archive(dist_path)
+            tar_path = self._create_tar_archive(dist_path)
 
-        self.log(f"\n{'='*60}")
-        self.log("BUILD COMPLETE!")
-        self.log(f"Distribution folder: {dist_path}")
-        self.log(f"ZIP archive: {zip_path}")
-        if sevenz_path:
-            self.log(f"7z archive: {sevenz_path}")
-        self.log(f"tar.gz archive: {tar_path}")
-        self.log(f"{'='*60}\n")
+            self.log(f"\n{'='*60}")
+            self.log("BUILD COMPLETE!")
+            self.log(f"Distribution folder: {dist_path}")
+            self.log(f"ZIP archive: {zip_path}")
+            if sevenz_path:
+                self.log(f"7z archive: {sevenz_path}")
+            self.log(f"tar.gz archive: {tar_path}")
+            self.log(f"{'='*60}\n")
 
-        return zip_path
+            return zip_path
+        else:
+            self.log(f"\n{'='*60}")
+            self.log("BUILD COMPLETE!")
+            self.log(f"Distribution folder: {dist_path}")
+            self.log(f"{'='*60}\n")
+
+            return dist_path
 
     def _create_venv(self, venv_path: Path) -> None:
         """Create a virtual environment."""
@@ -970,6 +988,11 @@ def main() -> int:
         action="store_true",
         help="Suppress verbose output",
     )
+    parser.add_argument(
+        "--no-archive",
+        action="store_true",
+        help="Skip creating ZIP/7z/tar.gz archives (useful for CI where artifacts are uploaded directly)",
+    )
 
     args = parser.parse_args()
 
@@ -1009,6 +1032,7 @@ def main() -> int:
         output_dir=output_dir,
         python_version=args.python_version,
         verbose=not args.quiet,
+        no_archive=args.no_archive,
     )
 
     print(f"  Archive name: {builder.archive_name}", flush=True)

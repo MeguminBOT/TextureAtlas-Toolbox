@@ -16,23 +16,29 @@ jobs:
         working-directory: tools/translator-app
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Get app version
+        id: version
+        shell: bash
+        working-directory: .
+        run: |
+          VERSION=$(grep 'setApplicationVersion' tools/translator-app/src/Main.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Build portable distribution
-        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }}
+        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }} --no-archive
 
       - name: Upload Windows distribution
         uses: actions/upload-artifact@v4
         with:
-          name: TranslationEditor-win-x64-embedded-python
-          path: |
-            tools/translator-app/_build-output/portable/*.zip
-            tools/translator-app/_build-output/portable/*.7z
+          name: TranslationEditor-win-x64-embedded-python-v${{ steps.version.outputs.version }}
+          path: tools/translator-app/_build-output/portable/Translation Editor/
           if-no-files-found: error
 
   build-linux:
@@ -42,10 +48,17 @@ jobs:
         working-directory: tools/translator-app
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Get app version
+        id: version
+        working-directory: .
+        run: |
+          VERSION=$(grep 'setApplicationVersion' tools/translator-app/src/Main.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -56,16 +69,13 @@ jobs:
           sudo apt-get install -y libxcb-cursor0 libxkbcommon-x11-0
 
       - name: Build portable distribution
-        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }}
+        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }} --no-archive
 
       - name: Upload Linux distribution
         uses: actions/upload-artifact@v4
         with:
-          name: TranslationEditor-linux-x64-embedded-python
-          path: |
-            tools/translator-app/_build-output/portable/*.zip
-            tools/translator-app/_build-output/portable/*.7z
-            tools/translator-app/_build-output/portable/*.tar.gz
+          name: TranslationEditor-linux-x64-embedded-python-v${{ steps.version.outputs.version }}
+          path: tools/translator-app/_build-output/portable/Translation Editor/
           if-no-files-found: error
 
   build-macos:
@@ -75,22 +85,26 @@ jobs:
         working-directory: tools/translator-app
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Get app version
+        id: version
+        working-directory: .
+        run: |
+          VERSION=$(grep 'setApplicationVersion' tools/translator-app/src/Main.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Build portable distribution
-        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }}
+        run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }} --no-archive
 
       - name: Upload macOS distribution
         uses: actions/upload-artifact@v4
         with:
-          name: TranslationEditor-mac-x64-embedded-python
-          path: |
-            tools/translator-app/_build-output/portable/*.zip
-            tools/translator-app/_build-output/portable/*.7z
-            tools/translator-app/_build-output/portable/*.tar.gz
+          name: TranslationEditor-mac-x64-embedded-python-v${{ steps.version.outputs.version }}
+          path: tools/translator-app/_build-output/portable/Translation Editor/
           if-no-files-found: error
