@@ -15,7 +15,7 @@ jobs:
         working-directory: tools/translator-app
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Get app version
         id: version
@@ -26,7 +26,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -62,7 +62,7 @@ jobs:
             src/Main.py
 
       - name: Upload Windows distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: TranslationEditor-win-x64-nuitka-v${{ steps.version.outputs.version }}
           path: tools/translator-app/_build-output/Main.dist/
@@ -75,7 +75,7 @@ jobs:
         working-directory: tools/translator-app
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Get app version
         id: version
@@ -85,7 +85,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -117,7 +117,7 @@ jobs:
             src/Main.py
 
       - name: Upload Linux distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: TranslationEditor-linux-x64-nuitka-v${{ steps.version.outputs.version }}
           path: tools/translator-app/_build-output/Main.dist/
@@ -130,7 +130,7 @@ jobs:
         working-directory: tools/translator-app
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Get app version
         id: version
@@ -140,7 +140,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -166,7 +166,7 @@ jobs:
             src/Main.py
 
       - name: Upload macOS distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: TranslationEditor-mac-x64-nuitka-v${{ steps.version.outputs.version }}
           path: tools/translator-app/_build-output/Main.dist/

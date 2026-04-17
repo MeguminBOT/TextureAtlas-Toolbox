@@ -5,7 +5,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.14'
-  EMBEDDED_PYTHON_VERSION: '3.14.0'
+  EMBEDDED_PYTHON_VERSION: '3.14.4'
   PYTHONUNBUFFERED: '1'
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
         working-directory: tools/translator-app
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Get app version
         id: version
@@ -27,7 +27,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -35,7 +35,7 @@ jobs:
         run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }} --no-archive
 
       - name: Upload Windows distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: TranslationEditor-win-x64-embedded-python-v${{ steps.version.outputs.version }}
           path: tools/translator-app/_build-output/portable/Translation Editor/
@@ -48,7 +48,7 @@ jobs:
         working-directory: tools/translator-app
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Get app version
         id: version
@@ -58,7 +58,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -72,7 +72,7 @@ jobs:
         run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }} --no-archive
 
       - name: Upload Linux distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: TranslationEditor-linux-x64-embedded-python-v${{ steps.version.outputs.version }}
           path: tools/translator-app/_build-output/portable/Translation Editor/
@@ -85,7 +85,7 @@ jobs:
         working-directory: tools/translator-app
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Get app version
         id: version
@@ -95,7 +95,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -103,7 +103,7 @@ jobs:
         run: python setup/build_portable.py --python-version ${{ env.EMBEDDED_PYTHON_VERSION }} --no-archive
 
       - name: Upload macOS distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: TranslationEditor-mac-x64-embedded-python-v${{ steps.version.outputs.version }}
           path: tools/translator-app/_build-output/portable/Translation Editor/
