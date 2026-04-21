@@ -125,6 +125,10 @@ class PreviewGenerator:
                 )
                 if generated_file:
                     return generated_file
+
+            # No animation produced a file; clean up our temp dir if we own it
+            if owns_temp_dir and temp_dir and os.path.isdir(temp_dir):
+                shutil.rmtree(temp_dir, ignore_errors=True)
             return None
 
         except Exception as exc:

@@ -278,8 +278,8 @@ class AnimationExporter:
         """
         custom_durations = settings.get("custom_frame_durations")
         if custom_durations and len(custom_durations) == len(images):
-            # Round to 10ms for GIF compatibility
-            durations = [max(10, (d // 10) * 10) for d in custom_durations]
+            # Round to nearest 10ms for GIF compatibility (GIF delay granularity)
+            durations = [max(10, ((d + 5) // 10) * 10) for d in custom_durations]
             if period and durations:
                 total = sum(durations)
                 padding = max(0, int(round(period, -1)) - total)

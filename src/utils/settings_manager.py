@@ -48,11 +48,10 @@ class SettingsManager:
             **kwargs: Setting names and values to store.
         """
 
-        self.spritesheet_settings[spritesheet_name] = {}
-        self.spritesheet_settings[spritesheet_name].update(kwargs)
-
-        if self.spritesheet_settings[spritesheet_name] == {}:
-            del self.spritesheet_settings[spritesheet_name]
+        if kwargs:
+            self.spritesheet_settings[spritesheet_name] = dict(kwargs)
+        else:
+            self.spritesheet_settings.pop(spritesheet_name, None)
 
     def set_animation_settings(self, animation_name: str, **kwargs) -> None:
         """Set or replace settings for a specific animation.
@@ -65,11 +64,10 @@ class SettingsManager:
             **kwargs: Setting names and values to store.
         """
 
-        self.animation_settings[animation_name] = {}
-        self.animation_settings[animation_name].update(kwargs)
-
-        if self.animation_settings[animation_name] == {}:
-            del self.animation_settings[animation_name]
+        if kwargs:
+            self.animation_settings[animation_name] = dict(kwargs)
+        else:
+            self.animation_settings.pop(animation_name, None)
 
     def delete_spritesheet_settings(self, spritesheet_name: str) -> None:
         """Remove stored settings for a spritesheet if present.

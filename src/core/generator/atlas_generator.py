@@ -513,6 +513,7 @@ class AtlasGenerator:
                     if img_hash in hash_to_canonical:
                         canonical_id, _, _ = hash_to_canonical[img_hash]
                         duplicate_map[frame_id] = (canonical_id, False, False)
+                        img.close()
                     elif allow_flip:
                         found_flip_match = False
                         flip_hashes = self._compute_flip_hashes(img)
@@ -541,6 +542,8 @@ class AtlasGenerator:
                             hash_to_canonical[img_hash] = (frame_id, False, False)
                             unique_frames.append(frame_input)
                             images[frame_id] = img
+                        else:
+                            img.close()
                     else:
                         hash_to_canonical[img_hash] = (frame_id, False, False)
                         unique_frames.append(frame_input)
@@ -548,7 +551,6 @@ class AtlasGenerator:
 
                 except Exception as e:
                     load_warnings.append(f"Failed to load {path}: {e}")
-                    print(f"Warning: Failed to load {path}: {e}")
 
                 loaded_count += 1
                 if progress_callback:
