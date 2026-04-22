@@ -16,11 +16,21 @@ Languages are auto-discovered from translation files. To customize display
 names or quality levels, add entries to ``LANGUAGE_METADATA``.
 """
 
+import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from PySide6.QtCore import QTranslator, QLocale, QCoreApplication
 from PySide6.QtWidgets import QApplication
+
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+# Sidecar JSON file used to persist completeness percentages between runs
+# so we don't have to re-parse every .ts file on every startup.
+_COMPLETENESS_CACHE_FILENAME = ".completeness_cache.json"
 
 
 # Optional metadata for known languages (display names and quality).
@@ -82,7 +92,10 @@ class TranslationManager:
         self.current_locale: str | None = None
         self.translations_dir = Path(__file__).parent.parent / "translations"
         self._available_languages_cache: dict[str, dict] | None = None
-        self._completeness_cache: dict[str, int] = {}
+        # In-memory cache of percentages, populated lazily from disk on first
+        # access. Each entry: {"mtime": float, "size": int, "completeness": int}.
+        self._completeness_cache: dict[str, dict] | None = None
+        self._completeness_cache_dirty = False
 
     def _discover_translation_files(self) -> set[str]:
         """Scan the translations directory for available language codes.
@@ -162,12 +175,78 @@ class TranslationManager:
         qm_file = self.translations_dir / f"app_{lang_code}.qm"
         return ts_file.exists() or qm_file.exists()
 
+    def _completeness_cache_path(self) -> Path:
+        """Return the on-disk path of the persistent completeness cache."""
+        return self.translations_dir / _COMPLETENESS_CACHE_FILENAME
+
+    def _load_completeness_cache(self) -> dict[str, dict]:
+        """Lazily load the completeness cache from disk.
+
+        The cache is a JSON object keyed by language code, with each entry
+        recording the ``.ts`` file's ``mtime`` and ``size`` plus the
+        cached ``completeness`` percentage. Stale or malformed entries
+        are ignored and re-derived on next call to
+        :meth:`_calculate_completeness`.
+
+        Returns:
+            The cache dict (empty if the sidecar file is missing or invalid).
+        """
+        if self._completeness_cache is not None:
+            return self._completeness_cache
+
+        cache_path = self._completeness_cache_path()
+        cache: dict[str, dict] = {}
+        if cache_path.exists():
+            try:
+                with cache_path.open("r", encoding="utf-8") as fp:
+                    raw = json.load(fp)
+                if isinstance(raw, dict):
+                    for lang_code, entry in raw.items():
+                        if (
+                            isinstance(entry, dict)
+                            and isinstance(entry.get("mtime"), (int, float))
+                            and isinstance(entry.get("size"), int)
+                            and isinstance(entry.get("completeness"), int)
+                        ):
+                            cache[lang_code] = entry
+            except (OSError, json.JSONDecodeError):
+                # A corrupt cache is harmless — we just rebuild it.
+                cache = {}
+
+        self._completeness_cache = cache
+        self._completeness_cache_dirty = False
+        return cache
+
+    def _save_completeness_cache(self) -> None:
+        """Persist the completeness cache to disk if it has changed.
+
+        Silently swallows write errors so read-only install locations
+        (e.g. inside a Nuitka onefile bundle) don't crash the app — the
+        cache simply degrades to in-memory only.
+        """
+        if not self._completeness_cache_dirty or self._completeness_cache is None:
+            return
+        try:
+            self.translations_dir.mkdir(parents=True, exist_ok=True)
+            cache_path = self._completeness_cache_path()
+            with cache_path.open("w", encoding="utf-8") as fp:
+                json.dump(self._completeness_cache, fp, separators=(",", ":"))
+            self._completeness_cache_dirty = False
+        except OSError:
+            # Best-effort: read-only filesystem is fine, we keep the
+            # in-memory cache for the rest of the session.
+            pass
+
     def _calculate_completeness(self, lang_code: str) -> int:
         """Calculate translation completeness percentage for a language.
 
         Parses the ``.ts`` file and counts translated vs total messages.
         A message is considered translated if it has non-empty translation
         text and is not marked as ``type="unfinished"`` or ``type="vanished"``.
+
+        Results are memoised both in-memory and on disk (keyed by the
+        ``.ts`` file's mtime + size) so subsequent app launches skip the
+        XML parse entirely when the translation file hasn't changed.
 
         Args:
             lang_code: Language code to check.
@@ -179,13 +258,23 @@ class TranslationManager:
         if lang_code in ("en", "en_us"):
             return 100
 
-        cached = self._completeness_cache.get(lang_code)
-        if cached is not None:
-            return cached
-
         ts_file = self.translations_dir / f"app_{lang_code}.ts"
         if not ts_file.exists():
             return 0
+
+        try:
+            stat = ts_file.stat()
+        except OSError:
+            return 0
+
+        cache = self._load_completeness_cache()
+        cached = cache.get(lang_code)
+        if (
+            cached is not None
+            and cached.get("mtime") == stat.st_mtime
+            and cached.get("size") == stat.st_size
+        ):
+            return cached["completeness"]
 
         try:
             tree = ET.parse(ts_file)
@@ -218,7 +307,12 @@ class TranslationManager:
             else:
                 result = round((translated / total) * 100)
 
-            self._completeness_cache[lang_code] = result
+            cache[lang_code] = {
+                "mtime": stat.st_mtime,
+                "size": stat.st_size,
+                "completeness": result,
+            }
+            self._completeness_cache_dirty = True
             return result
 
         except (ET.ParseError, OSError):
@@ -267,11 +361,20 @@ class TranslationManager:
             available[lang_code] = lang_info
 
         self._available_languages_cache = available
+        # Flush any newly-computed completeness percentages to the sidecar
+        # cache so the next launch can skip the .ts XML parses entirely.
+        self._save_completeness_cache()
         return available
 
     def invalidate_cache(self) -> None:
-        """Clear the cached available languages (e.g., after adding new files)."""
+        """Clear the cached available languages (e.g., after adding new files).
+
+        Also drops the in-memory completeness cache so a fresh disk reload
+        happens on the next call to :meth:`_calculate_completeness`.
+        """
         self._available_languages_cache = None
+        self._completeness_cache = None
+        self._completeness_cache_dirty = False
 
     def get_system_locale(self) -> str:
         """Get the system's default locale as a language code.
@@ -346,7 +449,7 @@ class TranslationManager:
                 self.current_locale = language_code
                 return True
 
-        print(f"Warning: Could not load translation for language '{language_code}'")
+        logger.warning("Could not load translation for language '%s'", language_code)
         return False
 
     def get_current_language(self) -> str:
