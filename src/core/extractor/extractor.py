@@ -42,6 +42,9 @@ from core.extractor.spritemap import AdobeSpritemapRenderer
 from core.extractor.unknown_spritesheet_handler import UnknownSpritesheetHandler
 from utils.translation_manager import tr as translate
 from utils.utilities import Utilities
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 ProgressCallback = Callable[[int, int, str], None]
 StatisticsCallback = Callable[[int, int, int], None]
@@ -151,6 +154,7 @@ class Extractor:
         progress_callback=None,
         parent_window=None,
         spritesheet_list=None,
+        path_map=None,
     ):
         """Process a batch of spritesheets using a worker pool.
 
@@ -158,11 +162,19 @@ class Extractor:
         statistics until all work completes or cancellation is requested.
 
         Args:
-            input_dir: Root directory containing source atlas files.
+            input_dir: Root directory containing source atlas files. Used
+                to resolve relative ``spritesheet_list`` entries when
+                ``path_map`` is absent or does not cover the entry.
             output_dir: Destination directory for exported assets.
             progress_callback: Optional override for instance callback.
             parent_window: Optional parent for modal dialogs.
             spritesheet_list: Iterable of relative filenames to process.
+            path_map: Optional ``{display_name: absolute_path}`` mapping.
+                When a queued filename matches a key, the absolute path
+                is used instead of joining ``input_dir`` with the name.
+                Required when sources span multiple directories (drag
+                and drop, manual file picker), since ``input_dir`` is
+                then a UI label rather than a real directory.
 
         Raises:
             ExtractionCancelled: If the run is aborted mid-flight.
@@ -177,6 +189,7 @@ class Extractor:
 
         cpu_threads = self._resolve_cpu_threads()
         filenames = list(spritesheet_list or [])
+        self._path_map = dict(path_map) if path_map else {}
         if filenames:
             filenames = self._prioritize_spritesheets(input_dir, filenames)
         self.total_files = len(filenames)
@@ -366,8 +379,10 @@ class Extractor:
 
             elapsed = time.monotonic() - overage_start
             if not self._memory_overage_logged and elapsed > 1.5:
-                print(
-                    f"[Extractor] Waiting for memory to drop below {self._memory_limit_mb} MB (current {usage:.1f} MB)"
+                logger.warning(
+                    "[Extractor] Waiting for memory to drop below %s MB (current %.1f MB)",
+                    self._memory_limit_mb,
+                    usage,
                 )
                 self._memory_overage_logged = True
 
@@ -407,7 +422,8 @@ class Extractor:
         them reduces peak resource contention when mixed with lighter atlases.
 
         Args:
-            input_dir: Root directory containing atlas files.
+            input_dir: Root directory containing atlas files. Used as a
+                fallback when an entry is not covered by ``self._path_map``.
             filenames: Unordered sequence of relative paths.
 
         Returns:
@@ -417,14 +433,14 @@ class Extractor:
         if not filenames:
             return []
 
+        path_map = getattr(self, "_path_map", None) or {}
         regular: List[str] = []
         spritemaps: List[str] = []
         for name in filenames:
             try:
+                resolved = path_map.get(name) or str(Path(input_dir) / Path(name))
                 target = (
-                    spritemaps
-                    if self._looks_like_spritemap(input_dir, name)
-                    else regular
+                    spritemaps if self._looks_like_spritemap_path(resolved) else regular
                 )
             except Exception:
                 target = regular
@@ -448,6 +464,21 @@ class Extractor:
         """
 
         atlas_path = Path(input_dir) / Path(filename)
+        return Extractor._looks_like_spritemap_path(str(atlas_path))
+
+    @staticmethod
+    def _looks_like_spritemap_path(atlas_path_str: str) -> bool:
+        """Spritemap-project test that takes a fully resolved atlas path.
+
+        Args:
+            atlas_path_str: Absolute path to the candidate image.
+
+        Returns:
+            ``True`` when ``Animation.json`` and ``<stem>.json`` both sit
+            in the same directory as the image, ``False`` otherwise.
+        """
+
+        atlas_path = Path(atlas_path_str)
         atlas_dir = atlas_path.parent
         base_name = atlas_path.stem
         animation_json = atlas_dir / "Animation.json"
@@ -669,9 +700,7 @@ class Extractor:
             self._pause_workers()
             continue_processing = bool(self.error_prompt_callback(filename, error))
         except Exception as prompt_exc:
-            print(
-                f"[_handle_worker_error_prompt] Failed to prompt on error: {prompt_exc}"
-            )
+            logger.exception("[_handle_worker_error_prompt] Failed to prompt on error")
             continue_processing = False
         finally:
             with self._error_prompt_lock:
@@ -766,8 +795,11 @@ class Extractor:
         )
 
         if self._trace_stats:
-            print(
-                f"[_apply_stats_update] Totals: {stats_snapshot[0]} frames, {stats_snapshot[1]} anims, {stats_snapshot[2]} failed"
+            logger.debug(
+                "[_apply_stats_update] Totals: %s frames, %s anims, %s failed",
+                stats_snapshot[0],
+                stats_snapshot[1],
+                stats_snapshot[2],
             )
 
         if self.statistics_callback:
@@ -838,17 +870,19 @@ class Extractor:
         self._progress_dirty = False
         self._last_progress_emit = now
 
-    def _build_worker_status_snapshot(self, limit: int = 4) -> Dict[str, Any]:
+    def _build_worker_status_snapshot(self) -> Dict[str, Any]:
         """Capture a structured snapshot of worker state for the UI overlay.
 
-        Args:
-            limit: Maximum number of workers to include in the ``workers`` list.
+        All active workers are included so users on machines with many cores
+        still see what every worker is doing. The processing window does its
+        own scrolling/clipping if there are too many to fit on screen.
 
         Returns:
             Dictionary containing ``summary``, ``workers``, and metadata keys.
         """
         worker_rows: List[Dict[str, Any]] = []
         processing_count = 0
+        memory_paused_count = 0
 
         for idx, worker in enumerate(self.active_workers):
             label = self._worker_labels.get(worker, f"Worker {idx + 1}")
@@ -857,6 +891,8 @@ class Extractor:
             mem_paused = getattr(worker, "memory_paused", False)
             if current:
                 processing_count += 1
+            if mem_paused:
+                memory_paused_count += 1
             sub = worker.sub_progress  # (current, total) or None
             if mem_paused and not current:
                 state = "memory_paused"
@@ -875,7 +911,18 @@ class Extractor:
             )
 
         worker_count = len(self.active_workers)
-        if worker_count:
+        if (
+            worker_count
+            and memory_paused_count == worker_count
+            and processing_count == 0
+        ):
+            # Every worker is waiting on memory — make this prominent so the
+            # UI does not look frozen during budget pauses.
+            summary = (
+                f"Paused (memory pressure): {memory_paused_count} of "
+                f"{worker_count} worker{'s' if worker_count != 1 else ''} waiting"
+            )
+        elif worker_count:
             summary = self._format_worker_summary(processing_count, worker_count)
         else:
             summary = "No workers active"
@@ -893,6 +940,7 @@ class Extractor:
             "workers": worker_rows,
             "hidden_count": 0,
             "worker_count": worker_count,
+            "memory_paused_count": memory_paused_count,
             "recent_full_path": recent_full_path,
             "recent_display": recent_display,
             "queued": queued,
@@ -952,7 +1000,7 @@ class Extractor:
             filename (str): File that failed to process.
             error (BaseException | str): Failure details for logging and prompts.
         """
-        print(f"Error processing {filename}: {error}")
+        logger.error("Error processing %s: %s", filename, error)
 
         self._queue_stats_update(failed_delta=1, processed_delta=1)
         if self._handle_worker_error_prompt(filename, error):
@@ -1057,11 +1105,10 @@ class Extractor:
         except Exception as general_error:
             sprites_failed += 1
             result["sprites_failed"] = sprites_failed
-            print(
-                f"[extract_sprites] Exception for {atlas_path}: {str(general_error)}, sprites_failed = {sprites_failed}"
-            )
-            print(
-                f"[extract_sprites] Returning error result: frames_generated=0, anims_generated=0, sprites_failed={sprites_failed}"
+            logger.exception(
+                "[extract_sprites] Exception for %s (sprites_failed=%s)",
+                atlas_path,
+                sprites_failed,
             )
         finally:
             if animation_processor is not None:
@@ -1165,7 +1212,9 @@ class Extractor:
 
         except Exception as exc:
             result["sprites_failed"] = result.get("sprites_failed", 0) + 1
-            print(f"[extract_spritemap_project] Error processing {atlas_path}: {exc}")
+            logger.exception(
+                "[extract_spritemap_project] Error processing %s", atlas_path
+            )
         finally:
             if renderer is not None:
                 try:
@@ -1261,7 +1310,11 @@ class Extractor:
                 and animation_format != "None"
             ):
                 anims_generated += animation_exporter.save_animations(
-                    context.frames, spritesheet_name, animation_name, anim_settings
+                    context.frames,
+                    spritesheet_name,
+                    animation_name,
+                    anim_settings,
+                    progress_callback=sub_progress_callback,
                 )
 
             # Free this animation's frames before rendering the next one
@@ -1438,9 +1491,13 @@ class FileProcessorWorker(QThread):
                 break
 
             self.memory_paused = True
+            # Flag the snapshot as dirty so the UI sees the paused state
+            # promptly instead of waiting for the next throttled flush.
+            self.extractor._progress_dirty = True
             if not self.extractor.wait_for_memory_budget():
                 break
             self.memory_paused = False
+            self.extractor._progress_dirty = True
 
             filename = self.task_queue.get()
             if filename is None or self.extractor.cancel_event.is_set():
@@ -1477,11 +1534,24 @@ class FileProcessorWorker(QThread):
 
         try:
             relative_path = Path(filename)
-            atlas_path = Path(self.input_dir) / relative_path
+            path_map = getattr(self.extractor, "_path_map", None) or {}
+            mapped = path_map.get(filename)
+            if mapped:
+                atlas_path = Path(mapped)
+                # Output directory should still be derived from the
+                # display-name relative path so the mirrored layout under
+                # ``output_dir`` matches what the user sees in the UI list.
+                sprite_output_dir = Path(self.output_dir) / relative_path.with_suffix(
+                    ""
+                )
+            else:
+                atlas_path = Path(self.input_dir) / relative_path
+                sprite_output_dir = Path(self.output_dir) / relative_path.with_suffix(
+                    ""
+                )
             atlas_dir = atlas_path.parent
-            base_filename = relative_path.stem
+            base_filename = atlas_path.stem
             image_path = str(atlas_path)
-            sprite_output_dir = Path(self.output_dir) / relative_path.with_suffix("")
             animation_json_path = atlas_dir / "Animation.json"
             spritemap_json_path = atlas_dir / f"{base_filename}.json"
 
@@ -1560,10 +1630,7 @@ class FileProcessorWorker(QThread):
                 self.file_completed.emit(filename, result)
 
         except Exception as e:
-            print(f"[FileProcessorWorker] Error processing {filename}: {str(e)}")
-            import traceback
-
-            traceback.print_exc()
+            logger.exception("[FileProcessorWorker] Error processing %s", filename)
             self.file_failed.emit(filename, e)
         finally:
             self.extractor._after_file_processed()

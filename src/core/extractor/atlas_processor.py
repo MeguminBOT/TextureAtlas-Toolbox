@@ -11,6 +11,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from PIL import Image
 
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class AtlasProcessor:
     """Open a texture atlas and parse sprite metadata.
@@ -85,7 +89,7 @@ class AtlasProcessor:
             else:
                 atlas = Image.open(self.atlas_path)
         except Exception as e:
-            print(f"Error opening atlas: {e}")
+            logger.exception("Error opening atlas %s", self.atlas_path)
             return None, []
 
         if self._is_unknown_spritesheet():
@@ -107,28 +111,28 @@ class AtlasProcessor:
 
                 # Log any warnings
                 for warning in self.parse_result.warnings:
-                    print(
-                        f"Parser warning: {warning.message}"
-                        + (
-                            f" (sprite: {warning.sprite_name})"
-                            if warning.sprite_name
-                            else ""
-                        )
+                    sprite_suffix = (
+                        f" (sprite: {warning.sprite_name})"
+                        if warning.sprite_name
+                        else ""
+                    )
+                    logger.warning(
+                        "Parser warning: %s%s", warning.message, sprite_suffix
                     )
             else:
                 # Log errors but don't raise - allow partial results
                 for error in self.parse_result.errors:
-                    print(f"Parser error: {error.message}")
+                    logger.error("Parser error: %s", error.message)
 
         except ParserError as e:
-            print(f"Parser error for {self.metadata_path}: {e}")
+            logger.error("Parser error for %s: %s", self.metadata_path, e)
             self.parse_result = ParseResult(
                 file_path=self.metadata_path,
                 parser_name="AtlasProcessor",
             )
             self.parse_result.add_error(e.code, e.message, details=e.details)
         except Exception as e:
-            print(f"Unexpected error parsing {self.metadata_path}: {e}")
+            logger.exception("Unexpected error parsing %s", self.metadata_path)
             self.parse_result = ParseResult(
                 file_path=self.metadata_path,
                 parser_name="AtlasProcessor",
@@ -320,7 +324,7 @@ class AtlasProcessor:
             return animation_sprites
 
         except Exception as e:
-            print(f"Error parsing XML for animation {animation_name}: {e}")
+            logger.exception("Error parsing XML for animation %s", animation_name)
             return []
 
     def parse_txt_for_preview(self, animation_name: str) -> List[Dict[str, Any]]:
@@ -344,7 +348,7 @@ class AtlasProcessor:
             all_sprites = TxtParser.parse_txt_packer(self.metadata_path)
             return self._filter_sprites_for_animation(animation_name, all_sprites)
         except Exception as e:
-            print(f"Error parsing TXT for animation {animation_name}: {e}")
+            logger.exception("Error parsing TXT for animation %s", animation_name)
             return []
 
     def close(self) -> None:

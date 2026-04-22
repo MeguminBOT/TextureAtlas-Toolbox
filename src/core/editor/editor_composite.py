@@ -13,6 +13,10 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 FrameTuple = Tuple[str, Any, dict]
 """A single frame: (name, image object, metadata dict)."""
 
@@ -70,9 +74,9 @@ def build_editor_composite_frames(
             try:
                 log_warning(message)
             except Exception:
-                print(message)
+                logger.warning("%s", message)
         else:
-            print(message)
+            logger.warning("%s", message)
 
     if not isinstance(definition, dict):
         return []

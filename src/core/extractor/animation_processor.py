@@ -24,6 +24,9 @@ from core.editor.editor_composite import (
     build_editor_composite_frames,
 )
 from utils.FNF.alignment import resolve_fnf_offset
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class AnimationProcessor:
@@ -153,7 +156,11 @@ class AnimationProcessor:
                 and animation_format != "None"
             ):
                 anims_generated += self.animation_exporter.save_animations(
-                    context.frames, spritesheet_name, animation_name, settings
+                    context.frames,
+                    spritesheet_name,
+                    animation_name,
+                    settings,
+                    progress_callback=sub_progress_callback,
                 )
 
         return frames_generated, anims_generated
@@ -174,7 +181,7 @@ class AnimationProcessor:
             frames = build_editor_composite_frames(
                 definition,
                 self._source_frames,
-                log_warning=lambda message: print(message),
+                log_warning=lambda message: logger.warning("%s", message),
             )
             if not frames:
                 continue
@@ -183,8 +190,10 @@ class AnimationProcessor:
             injected += 1
 
         if injected:
-            print(
-                f"[AnimationProcessor] Injected {injected} editor composite animation(s) for {self.spritesheet_label}."
+            logger.info(
+                "[AnimationProcessor] Injected %s editor composite animation(s) for %s.",
+                injected,
+                self.spritesheet_label,
             )
 
     def _get_editor_composites(self):

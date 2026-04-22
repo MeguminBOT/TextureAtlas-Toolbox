@@ -263,11 +263,19 @@ class AtlasGenerator:
     @staticmethod
     def _compute_flip_hashes(
         img: Image.Image,
+        original_hash: Optional[str] = None,
     ) -> Dict[str, Tuple[str, bool, bool]]:
         """Compute hashes for all flipped variants of an image.
 
         Args:
             img: PIL Image to compute flip hashes for.
+            original_hash: Optional pre-computed hash of the un-flipped
+                image. When supplied, the original hash is reused instead
+                of being recomputed; the input image must already be RGBA
+                for the supplied hash to match what this method would
+                otherwise produce. Skipping the redundant hash avoids one
+                full-image SHA-256 pass plus a same-size ``tobytes()``
+                copy per frame, which is significant on large atlases.
 
         Returns:
             Dict mapping hash -> (variant_name, flip_x, flip_y) for each variant:
@@ -282,8 +290,12 @@ class AtlasGenerator:
 
         if img.mode != "RGBA":
             img = img.convert("RGBA")
+            # The supplied hash (if any) was computed against the source
+            # image's mode, which differs from the converted RGBA bytes.
+            original_hash = None
 
-        original_hash = AtlasGenerator._compute_image_hash(img)
+        if original_hash is None:
+            original_hash = AtlasGenerator._compute_image_hash(img)
         result[original_hash] = ("original", False, False)
 
         flip_x_img = ImageOps.mirror(img)
@@ -535,7 +547,13 @@ class AtlasGenerator:
                         img.close()
                     elif allow_flip:
                         found_flip_match = False
-                        flip_hashes = self._compute_flip_hashes(img)
+                        # img is already RGBA (converted on load above), so
+                        # img_hash matches what _compute_flip_hashes would
+                        # recompute internally — pass it through to skip
+                        # one full SHA-256 + tobytes() pass per frame.
+                        flip_hashes = self._compute_flip_hashes(
+                            img, original_hash=img_hash
+                        )
 
                         for flip_hash, (
                             _variant_name,

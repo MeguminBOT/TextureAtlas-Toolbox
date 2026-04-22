@@ -28,6 +28,9 @@ from core.extractor.image_utils import (
 )
 from utils.resampling import get_wand_resampling_filter
 from utils.utilities import Utilities
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def _build_exif_comment(comment: str) -> Optional[bytes]:
@@ -71,7 +74,14 @@ class AnimationExporter:
         self.current_version = current_version
         self.scale_image = scale_image_func
 
-    def save_animations(self, image_tuples, spritesheet_name, animation_name, settings):
+    def save_animations(
+        self,
+        image_tuples,
+        spritesheet_name,
+        animation_name,
+        settings,
+        progress_callback=None,
+    ):
         """Export an animation from the given frame tuples.
 
         Dispatches to the appropriate format-specific method based on
@@ -82,6 +92,9 @@ class AnimationExporter:
             spritesheet_name: Name of the source spritesheet.
             animation_name: Label for the animation.
             settings: Dict containing fps, delay, scale, format, etc.
+            progress_callback: Optional ``(current, total)`` callable invoked
+                during the (potentially slow) compression phase so the UI
+                can show per-frame feedback while encoding GIF/APNG/WebP.
 
         Returns:
             Number of animations successfully exported (0 or 1).
@@ -89,8 +102,9 @@ class AnimationExporter:
         anims_generated = 0
 
         if not image_tuples:
-            print(
-                f"No frames available for animation: {animation_name}, skipping animation export"
+            logger.info(
+                "No frames available for animation: %s, skipping animation export",
+                animation_name,
             )
             return anims_generated
 
@@ -138,12 +152,38 @@ class AnimationExporter:
         try:
             if animation_format == "GIF":
                 self.save_gif(
-                    images, filename, fps, delay, period, scale, threshold, settings
+                    images,
+                    filename,
+                    fps,
+                    delay,
+                    period,
+                    scale,
+                    threshold,
+                    settings,
+                    progress_callback=progress_callback,
                 )
             elif animation_format == "WebP":
-                self.save_webp(images, filename, fps, delay, period, scale, settings)
+                self.save_webp(
+                    images,
+                    filename,
+                    fps,
+                    delay,
+                    period,
+                    scale,
+                    settings,
+                    progress_callback=progress_callback,
+                )
             elif animation_format == "APNG":
-                self.save_apng(images, filename, fps, delay, period, scale, settings)
+                self.save_apng(
+                    images,
+                    filename,
+                    fps,
+                    delay,
+                    period,
+                    scale,
+                    settings,
+                    progress_callback=progress_callback,
+                )
         finally:
             self.output_dir = original_output_dir
 
@@ -159,6 +199,7 @@ class AnimationExporter:
         period,
         scale,
         settings,
+        progress_callback=None,
     ):
         """Save frames as a lossless animated WebP.
 
@@ -170,6 +211,11 @@ class AnimationExporter:
             period: Total loop period in ms, or ``None``.
             scale: Scale factor (negative flips horizontally).
             settings: Additional options such as ``crop_option``.
+            progress_callback: Optional ``(current, total)`` callable. Pillow
+                writes WebP in a single C call so we cannot interleave
+                per-frame updates; the callback fires with ``(0, n)`` before
+                the write and ``(n, n)`` after, signalling the compression
+                phase started/finished so the UI no longer looks frozen.
         """
         final_images = prepare_scaled_sequence(
             images,
@@ -215,8 +261,19 @@ class AnimationExporter:
         if exif_bytes:
             save_kwargs["exif"] = exif_bytes
 
+        total_frames = len(final_images)
+        if progress_callback:
+            try:
+                progress_callback(0, total_frames)
+            except Exception:
+                pass
         final_images[0].save(webp_filename, **save_kwargs)
-        print(f"Saved WEBP animation: {webp_filename}")
+        if progress_callback:
+            try:
+                progress_callback(total_frames, total_frames)
+            except Exception:
+                pass
+        logger.info("Saved WEBP animation: %s", webp_filename)
 
     def remove_dups(self, animation):
         """Remove duplicate frames from a Wand animation in place.
@@ -257,6 +314,7 @@ class AnimationExporter:
         scale,
         threshold,
         settings,
+        progress_callback=None,
     ):
         """Save frames as an animated GIF using ImageMagick via Wand.
 
@@ -275,6 +333,9 @@ class AnimationExporter:
             scale: Scale factor (negative flips horizontally).
             threshold: Alpha threshold for edge cleanup, or ``None``.
             settings: Additional options such as ``crop_option``.
+            progress_callback: Optional ``(current, total)`` callable invoked
+                as each frame is appended to the GIF sequence (the dominant
+                cost in GIF encoding).
         """
         custom_durations = settings.get("custom_frame_durations")
         if custom_durations and len(custom_durations) == len(images):
@@ -298,31 +359,26 @@ class AnimationExporter:
             return
 
         width, height = frame_dimensions(images[0])
-        frame_arrays = [ensure_rgba_array(frame) for frame in images]
         crop_option = settings.get("crop_option")
         crop_mode = (crop_option or "None").lower()
         should_crop = crop_mode != "none"
         crop_bounds = None
         if should_crop:
-            crop_bounds = compute_shared_bbox(frame_arrays)
+            # compute_shared_bbox iterates lazily over `images` and only
+            # holds one frame's RGBA view at a time internally, so this
+            # pre-pass does not contribute to peak memory.
+            crop_bounds = compute_shared_bbox(images)
             if crop_bounds is None:
                 should_crop = False
-            else:
-                frame_arrays = [
-                    crop_to_bbox(array, crop_bounds) for array in frame_arrays
-                ]
 
         apply_threshold = should_crop and threshold is not None
+        threshold_value: Optional[float] = None
         if apply_threshold:
             try:
                 threshold_value = float(threshold)
             except (TypeError, ValueError):
                 apply_threshold = False
-            else:
-                frame_arrays = [
-                    apply_alpha_threshold(array, threshold_value)
-                    for array in frame_arrays
-                ]
+                threshold_value = None
 
         merge_duplicates = settings.get("merge_duplicate_frames", True)
         dedupe_required = False
@@ -333,7 +389,17 @@ class AnimationExporter:
         with WandImg(width=width, height=height) as animation:
             animation.image_remove()
             for index, frame in enumerate(images):
-                arr = frame_arrays[index]
+                # Per-frame transform pipeline: keep at most one frame's
+                # working buffer alive at a time. Previously the crop and
+                # threshold passes were eager list-comprehensions, which
+                # transiently held 2x the full sequence in RAM during the
+                # alpha-threshold copy pass (gigabytes on 4K atlases).
+                arr = ensure_rgba_array(frame)
+                if should_crop and crop_bounds is not None:
+                    arr = crop_to_bbox(arr, crop_bounds)
+                if apply_threshold and threshold_value is not None:
+                    arr = apply_alpha_threshold(arr, threshold_value)
+
                 if signature_cache is not None and not dedupe_required:
                     signature = self._frame_signature(arr)
                     if signature is None:
@@ -353,9 +419,15 @@ class AnimationExporter:
                     wand_frame.delay = int(durations[index] / 10)
                     wand_frame.dispose = "background"
                     animation.sequence.append(wand_frame)
-                # Free numpy array once loaded into Wand to reduce peak memory
-                frame_arrays[index] = None
+                # Drop our references so the per-frame buffer can be
+                # reclaimed before we allocate the next one.
+                arr = None
                 images[index] = None
+                if progress_callback:
+                    try:
+                        progress_callback(index + 1, len(durations))
+                    except Exception:
+                        pass
             signature_cache = None
             if dedupe_required and merge_duplicates:
                 self.remove_dups(animation)
@@ -392,7 +464,7 @@ class AnimationExporter:
                 f"GIF generated by: TextureAtlas Toolbox v{self.current_version}"
             )
             animation.save(filename=gif_filename)
-            print(f"Saved GIF animation: {gif_filename}")
+            logger.info("Saved GIF animation: %s", gif_filename)
 
     @staticmethod
     def _frame_signature(frame_array: numpy.ndarray) -> Optional[int]:
@@ -449,7 +521,17 @@ class AnimationExporter:
 
         return WandImg.from_array(array)
 
-    def save_apng(self, images, filename, fps, delay, period, scale, settings):
+    def save_apng(
+        self,
+        images,
+        filename,
+        fps,
+        delay,
+        period,
+        scale,
+        settings,
+        progress_callback=None,
+    ):
         """Save frames as an animated PNG.
 
         Args:
@@ -460,6 +542,9 @@ class AnimationExporter:
             period: Total loop period in ms, or ``None``.
             scale: Scale factor (negative flips horizontally).
             settings: Additional options such as ``crop_option``.
+            progress_callback: Optional ``(current, total)`` callable. Pillow
+                writes APNG in a single call so the callback fires with
+                ``(0, n)`` and ``(n, n)`` to bracket the compression phase.
         """
         final_images = prepare_scaled_sequence(
             images,
@@ -497,6 +582,12 @@ class AnimationExporter:
             f"APNG generated by TextureAtlas Toolbox v{self.current_version}",
         )
 
+        total_frames = len(final_images)
+        if progress_callback:
+            try:
+                progress_callback(0, total_frames)
+            except Exception:
+                pass
         final_images[0].save(
             apng_filename,
             save_all=True,
@@ -507,4 +598,9 @@ class AnimationExporter:
             disposal=2,
             pnginfo=metadata,
         )
-        print(f"Saved APNG animation: {apng_filename}")
+        if progress_callback:
+            try:
+                progress_callback(total_frames, total_frames)
+            except Exception:
+                pass
+        logger.info("Saved APNG animation: %s", apng_filename)

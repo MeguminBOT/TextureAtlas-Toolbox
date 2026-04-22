@@ -11,6 +11,9 @@ from PIL.PngImagePlugin import PngInfo
 from core.extractor.animation_exporter import _build_exif_comment
 from core.extractor.image_utils import ensure_pil_image
 from utils.utilities import Utilities
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class FrameExporter:
@@ -301,7 +304,7 @@ class FrameExporter:
         try:
             image.save(filename, **save_kwargs)
         except Exception as e:
-            print(f"Error saving {filename} as {frame_format}: {e}")
+            logger.error("Error saving %s as %s: %s", filename, frame_format, e)
             try:
                 png_filename = filename.rsplit(".", 1)[0] + ".png"
                 metadata = PngInfo()
@@ -316,9 +319,9 @@ class FrameExporter:
                     compress_level=9,
                     optimize=True,
                 )
-                print(f"Fallback: Successfully saved {png_filename} as PNG")
+                logger.warning("Fallback: saved %s as PNG instead", png_filename)
             except Exception as fallback_e:
-                print(f"Critical error: Could not save image even as PNG: {fallback_e}")
+                logger.exception("Critical: could not save image even as PNG")
 
     def _apply_extra_crop_pass(self, image):
         """Remove excess transparent padding if it reduces area significantly.
