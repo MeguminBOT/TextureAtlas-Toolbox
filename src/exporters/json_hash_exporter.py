@@ -55,6 +55,16 @@ class JsonHashExportOptions:
         scale_string: Scale string for meta block (e.g., "1").
         app_name: Application name for meta.app field.
         app_version: Application version for meta.version field.
+        emit_durations: When True, copy each sprite's `duration` field
+            (milliseconds) into the per-frame entry. Aseprite and several
+            Phaser pipelines use this to drive playback timing.
+        frame_tags: Optional list of frame-tag dicts to emit as
+            `meta.frameTags`. Each entry should provide `name`, `from`,
+            `to`, and `direction` keys, matching Aseprite's schema.
+        extra_meta: Optional dict merged into the `meta` block (after the
+            built-in fields). Useful for round-tripping `related_multi_packs`,
+            `smartupdate`, or other Phaser/TexturePacker extras captured by
+            the parser.
     """
 
     include_pivot: bool = True
@@ -63,6 +73,15 @@ class JsonHashExportOptions:
     scale_string: str = "1"
     app_name: str = "TextureAtlas Toolbox"
     app_version: str = "2.0.5"
+    emit_durations: bool = True
+    frame_tags: List[Dict[str, Any]] = None  # type: ignore[assignment]
+    extra_meta: Dict[str, Any] = None  # type: ignore[assignment]
+
+    def __post_init__(self) -> None:
+        if self.frame_tags is None:
+            self.frame_tags = []
+        if self.extra_meta is None:
+            self.extra_meta = {}
 
 
 @ExporterRegistry.register
@@ -163,6 +182,13 @@ class JsonHashExporter(BaseExporter):
                     meta_block["heuristic"] = generator_metadata.heuristic
                 if generator_metadata.efficiency > 0:
                     meta_block["efficiency"] = f"{generator_metadata.efficiency:.1f}%"
+            # Aseprite-style frame tags surface here so animation pipelines
+            # (Aseprite, Phaser, custom loaders) can recover playback ranges.
+            if opts.frame_tags:
+                meta_block["frameTags"] = [dict(tag) for tag in opts.frame_tags]
+            if opts.extra_meta:
+                for key, value in opts.extra_meta.items():
+                    meta_block.setdefault(key, value)
             output["meta"] = meta_block
 
         # Serialize
@@ -226,6 +252,9 @@ class JsonHashExporter(BaseExporter):
                 "x": sprite.get("pivotX", 0.5),
                 "y": sprite.get("pivotY", 0.5),
             }
+
+        if opts.emit_durations and "duration" in sprite:
+            entry["duration"] = int(sprite["duration"])
 
         return entry
 

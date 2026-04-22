@@ -122,7 +122,14 @@ class UIKitPlistExporter(BaseExporter):
 
         Returns:
             Plist content as bytes.
+
+        Raises:
+            FormatError: When `packed_sprites` contains a rotated
+                sprite. The UIKit plist schema has no rotation field
+                and silently swapping `w`/`h` would produce metadata
+                that no longer matches the atlas image.
         """
+        self._reject_rotated_sprites(packed_sprites)
         opts = self._format_options
 
         # Build frames dict
@@ -172,9 +179,10 @@ class UIKitPlistExporter(BaseExporter):
             Frame data dict with scalar integer keys.
 
         Note:
-            The UIKit plist format doesn't have a rotation field, so if sprites
-            are rotated in the atlas, the dimensions (w, h) reflect the actual
-            atlas space occupied (swapped width/height).
+            The UIKit plist format has no rotation field. Rotated
+            sprites are rejected upstream by
+            `_reject_rotated_sprites`, so this method always emits
+            the natural (unrotated) `w`/`h`.
         """
         sprite = packed.sprite
         w = sprite["width"]
@@ -184,15 +192,11 @@ class UIKitPlistExporter(BaseExporter):
         frame_w = sprite.get("frameWidth", w)
         frame_h = sprite.get("frameHeight", h)
 
-        # Check if rotated - swap dimensions since UIKit plist has no rotation field
-        is_rotated = packed.rotated or sprite.get("rotated", False)
-        atlas_w, atlas_h = (h, w) if is_rotated else (w, h)
-
         return {
             "x": packed.atlas_x,
             "y": packed.atlas_y,
-            "w": atlas_w,
-            "h": atlas_h,
+            "w": w,
+            "h": h,
             "oX": -frame_x,
             "oY": -frame_y,
             "oW": frame_w,

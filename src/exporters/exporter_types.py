@@ -340,6 +340,38 @@ class GeneratorMetadata:
         return lines
 
 
+FORMATS_SUPPORTING_ROTATION = frozenset(
+    {
+        "starling-xml",
+        "json-hash",
+        "json-array",
+        "aseprite",
+        "texture-packer-xml",
+        "spine",
+        "phaser3",
+        "plist",
+        "paper2d",
+        "gdx",
+        "css",
+    }
+)
+"""Format keys whose schemas can losslessly represent a 90 degree rotated sprite.
+
+CSS encodes rotation via `transform: rotate(-90deg)`. The other listed
+formats carry an explicit `rotated` / `rotate` field. Formats not in
+this set (UIKit plist, Godot tpsheet, Egret2D, TXT) have no rotation
+representation; emitting a rotated sprite to one of them would
+silently swap dimensions and produce metadata that no longer matches
+the atlas image. Both the GUI (which disables the rotation checkbox)
+and the affected exporters (which raise `FormatError(UNSUPPORTED_FORMAT,
+...)` when a rotated sprite arrives) consult this set.
+"""
+
+
+FORMATS_SUPPORTING_FLIP = frozenset({"starling-xml"})
+"""Format keys whose schemas carry per-frame `flipX` / `flipY` attributes."""
+
+
 __all__ = [
     "ExporterErrorCode",
     "ExporterError",
@@ -353,4 +385,6 @@ __all__ = [
     "PackedSprite",
     "GeneratorMetadata",
     "SpriteData",
+    "FORMATS_SUPPORTING_ROTATION",
+    "FORMATS_SUPPORTING_FLIP",
 ]

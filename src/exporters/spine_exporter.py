@@ -1,39 +1,46 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Exporter for Spine .atlas text format.
+"""Exporter for libGDX TexturePacker / Spine ``.atlas`` text format.
 
-Generates the text-based atlas format used by Spine and libGDX.
-Each sprite is defined with indented key-value pairs under its name.
+Emits the same on-disk schema that libGDX's ``TextureAtlasData.load``
+parses (see
+:file:`gdx/src/com/badlogic/gdx/graphics/g2d/TextureAtlas.java`),
+which is also the format used by Spine's runtime atlas readers.
 
-Output Format:
-    ```
+Format reference:
+    http://esotericsoftware.com/spine-atlas-format
+    https://github.com/libgdx/libgdx/blob/master/gdx/src/com/badlogic/gdx/graphics/g2d/TextureAtlas.java
+
+Two output dialects are supported:
+
+* **Modern** (default, ``modern_format=True``): one ``bounds:`` and
+  one ``offsets:`` line per region. Preferred since libGDX 1.10 and
+  required for tightly packed regions where width/height differ from
+  the original.
+* **Legacy** (``modern_format=False``): the deprecated
+  ``xy``/``size``/``orig``/``offset`` quadruple. Use this for older
+  Spine runtimes (≤ 4.0) and for tooling pinned to the historical
+  layout.
+
+Output example (modern)::
+
     atlas.png
     size: 512, 512
     format: RGBA8888
     filter: Linear, Linear
     repeat: none
     sprite_01
+      bounds: 0, 0, 64, 64
+      offsets: 0, 0, 64, 64
       rotate: false
-      xy: 0, 0
-      size: 64, 64
-      orig: 64, 64
-      offset: 0, 0
       index: -1
-    sprite_02
-      rotate: false
-      xy: 66, 0
-      size: 48, 48
-      orig: 48, 48
-      offset: 0, 0
-      index: -1
-    ```
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from exporters.base_exporter import BaseExporter
 from exporters.exporter_registry import ExporterRegistry
@@ -46,14 +53,29 @@ from exporters.exporter_types import (
 
 @dataclass
 class SpineExportOptions:
-    """Spine atlas-specific export options.
+    """libGDX/Spine atlas-specific export options.
 
     Attributes:
-        format: Pixel format string (e.g., "RGBA8888", "RGB888").
-        filter_min: Minification filter (e.g., "Linear", "Nearest").
-        filter_mag: Magnification filter (e.g., "Linear", "Nearest").
-        repeat: Repeat mode ("none", "x", "y", "xy").
-        pma: Premultiplied alpha flag.
+        format: Pixel format string. Must be a libGDX ``Pixmap.Format``
+            enum name (``Alpha``, ``Intensity``, ``LuminanceAlpha``,
+            ``RGB565``, ``RGBA4444``, ``RGB888``, ``RGBA8888``).
+        filter_min: Minification filter. Must be a libGDX
+            ``Texture.TextureFilter`` enum name (``Nearest``,
+            ``Linear``, ``MipMap``, ``MipMapNearestNearest``,
+            ``MipMapLinearNearest``, ``MipMapNearestLinear``,
+            ``MipMapLinearLinear``).
+        filter_mag: Magnification filter (same enum as ``filter_min``).
+        repeat: Repeat / wrap mode. ``"none"``, ``"x"``, ``"y"``, or
+            ``"xy"``.
+        pma: Premultiplied-alpha flag.
+        modern_format: When ``True`` (default), emit the modern
+            ``bounds:``/``offsets:`` two-line layout. When ``False``,
+            emit the legacy ``xy``/``size``/``orig``/``offset``
+            quadruple for compatibility with old Spine runtimes.
+        strict_spec: When ``True``, suppress the non-spec
+            ``generator:``/``packer:``/``heuristic:``/``efficiency:``
+            comment-style lines that some downstream tools treat as
+            unknown page fields.
     """
 
     format: str = "RGBA8888"
@@ -61,54 +83,43 @@ class SpineExportOptions:
     filter_mag: str = "Linear"
     repeat: str = "none"
     pma: bool = False
+    modern_format: bool = True
+    strict_spec: bool = False
 
 
 @ExporterRegistry.register
 class SpineExporter(BaseExporter):
-    """Export sprites to Spine/libGDX .atlas text format.
+    """Export sprites to libGDX / Spine ``.atlas`` text format.
 
-    The Spine atlas format is a simple text format used by the Spine
-    animation tool and libGDX game framework. Each page (texture) is
-    listed with its properties, followed by indented region definitions.
-
-    Usage:
-        from exporters import SpineExporter, ExportOptions
-
-        exporter = SpineExporter()
-        result = exporter.export_file(sprites, images, "/path/to/atlas")
+    Each page begins with the texture filename followed by indented
+    page fields (``size``, ``format``, ``filter``, ``repeat``, ``pma``);
+    region entries follow with their own indented field lines. The
+    output is byte-compatible with what libGDX's TexturePacker writes.
     """
 
     FILE_EXTENSION = ".atlas"
     FORMAT_NAME = "spine"
 
     def __init__(self, options: Optional[ExportOptions] = None) -> None:
-        """Initialize the Spine exporter.
-
-        Args:
-            options: Export options. Format-specific options should be
-                     provided in options.custom_properties["spine"].
-        """
         super().__init__(options)
         self._format_options = self._get_format_options()
 
     def _get_format_options(self) -> SpineExportOptions:
-        """Extract format-specific options from custom_properties.
-
-        Returns:
-            SpineExportOptions instance.
-        """
+        """Extract format-specific options from :class:`ExportOptions`."""
         custom = self.options.custom_properties
         opts = custom.get("spine")
-
         if isinstance(opts, SpineExportOptions):
             return opts
-        elif isinstance(opts, dict):
+        if isinstance(opts, dict):
             try:
                 return SpineExportOptions(**opts)
             except TypeError:
                 return SpineExportOptions()
-        else:
-            return SpineExportOptions()
+        return SpineExportOptions()
+
+    # ------------------------------------------------------------------
+    # Main entry point
+    # ------------------------------------------------------------------
 
     def build_metadata(
         self,
@@ -118,22 +129,26 @@ class SpineExporter(BaseExporter):
         image_name: str,
         generator_metadata: Optional[GeneratorMetadata] = None,
     ) -> str:
-        """Generate Spine atlas text metadata.
+        """Generate libGDX/Spine atlas text metadata.
 
         Args:
             packed_sprites: Sprites with their atlas positions assigned.
             atlas_width: Final atlas width in pixels.
             atlas_height: Final atlas height in pixels.
-            image_name: Filename of the atlas image.
-            generator_metadata: Optional metadata for header info.
+            image_name: Filename of the atlas image (becomes the page
+                name).
+            generator_metadata: Optional metadata. Emitted as
+                non-standard ``generator:``/``packer:``/``heuristic:``
+                page lines unless ``strict_spec=True``.
 
         Returns:
-            Text content for the .atlas file.
+            Text content for the ``.atlas`` file (always ends with a
+            single trailing newline).
         """
         opts = self._format_options
         lines: List[str] = []
 
-        # Page header (texture file)
+        # Page header
         lines.append(image_name)
         lines.append(f"size: {atlas_width}, {atlas_height}")
         lines.append(f"format: {opts.format}")
@@ -142,9 +157,11 @@ class SpineExporter(BaseExporter):
         if opts.pma:
             lines.append("pma: true")
 
-        # Add generator metadata as comments (Spine format doesn't have official comments,
-        # but we can add them as custom properties that parsers will ignore)
-        if generator_metadata:
+        # Optional generator metadata. libGDX silently ignores unknown
+        # page fields (``// Silently ignore all header fields.``), so
+        # these are safe to include but easy to suppress when targeting
+        # strictly spec-conformant output.
+        if generator_metadata and not opts.strict_spec:
             if generator_metadata.app_version:
                 lines.append(
                     f"generator: TextureAtlas Toolbox ({generator_metadata.app_version})"
@@ -154,51 +171,112 @@ class SpineExporter(BaseExporter):
             if generator_metadata.heuristic:
                 lines.append(f"heuristic: {generator_metadata.heuristic}")
             if generator_metadata.efficiency > 0:
-                lines.append(f"efficiency: {generator_metadata.efficiency:.1f}%")
+                # Use an int so unknown-field parsers that try to coerce
+                # the value via ``Integer.parseInt`` succeed instead of
+                # silently dropping it.
+                lines.append(f"efficiency: {int(round(generator_metadata.efficiency))}")
 
-        # Regions (sprites)
         for packed in packed_sprites:
             lines.extend(self._build_region(packed))
 
         return "\n".join(lines) + "\n"
 
+    # ------------------------------------------------------------------
+    # Region emit
+    # ------------------------------------------------------------------
+
     def _build_region(self, packed: PackedSprite) -> List[str]:
-        """Build lines for a single region/sprite.
-
-        Args:
-            packed: Packed sprite with atlas position.
-
-        Returns:
-            List of lines for this region (name + indented properties).
-        """
+        """Build the lines for a single region/sprite entry."""
         sprite = packed.sprite
-        width = sprite["width"]
-        height = sprite["height"]
-        frame_w = sprite.get("frameWidth", width)
-        frame_h = sprite.get("frameHeight", height)
-        frame_x = sprite.get("frameX", 0)
-        frame_y = sprite.get("frameY", 0)
-        rotated = packed.rotated or sprite.get("rotated", False)
+        opts = self._format_options
 
-        # Atlas dimensions: swap width/height when rotated (standard TexturePacker convention)
+        width = int(sprite["width"])
+        height = int(sprite["height"])
+        frame_w = int(sprite.get("frameWidth", width))
+        frame_h = int(sprite.get("frameHeight", height))
+        frame_x = int(sprite.get("frameX", 0))
+        frame_y = int(sprite.get("frameY", 0))
+        rotated = bool(packed.rotated or sprite.get("rotated", False))
+
+        # libGDX swaps width/height in the file when ``rotate: true``;
+        # match that convention so the atlas is round-trip correct.
         atlas_w, atlas_h = (height, width) if rotated else (width, height)
 
-        # Use the animation frame index if available; -1 means not indexed
-        frame_index = sprite.get("index", -1)
-        if frame_index is None:
-            frame_index = -1
+        # Emit ``rotate: <degrees>`` when an explicit non-90/0 angle is
+        # carried on the sprite (libGDX accepts any int 0–359). Falls
+        # back to ``true``/``false`` otherwise.
+        degrees_val = sprite.get("degrees")
+        rotate_token = self._format_rotate(rotated, degrees_val)
 
-        lines = [
-            sprite["name"],
-            f"  rotate: {'true' if rotated else 'false'}",
-            f"  xy: {packed.atlas_x}, {packed.atlas_y}",
-            f"  size: {atlas_w}, {atlas_h}",
-            f"  orig: {frame_w}, {frame_h}",
-            f"  offset: {-frame_x}, {-frame_y}",
-            f"  index: {frame_index}",
-        ]
+        index_val = sprite.get("index", -1)
+        if index_val is None:
+            index_val = -1
+
+        lines: List[str] = [sprite["name"]]
+
+        if opts.modern_format:
+            # ``bounds: x, y, w, h`` and ``offsets: ox, oy, ow, oh``.
+            # libGDX stores ``offset`` as the negative of our
+            # ``frameX``/``frameY``.
+            lines.append(
+                f"  bounds: {packed.atlas_x}, {packed.atlas_y}, {atlas_w}, {atlas_h}"
+            )
+            lines.append(f"  offsets: {-frame_x}, {-frame_y}, {frame_w}, {frame_h}")
+            lines.append(f"  rotate: {rotate_token}")
+            lines.append(f"  index: {int(index_val)}")
+        else:
+            lines.append(f"  rotate: {rotate_token}")
+            lines.append(f"  xy: {packed.atlas_x}, {packed.atlas_y}")
+            lines.append(f"  size: {atlas_w}, {atlas_h}")
+            lines.append(f"  orig: {frame_w}, {frame_h}")
+            lines.append(f"  offset: {-frame_x}, {-frame_y}")
+            lines.append(f"  index: {int(index_val)}")
+
+        # Ninepatch metadata. libGDX expects exactly four ints for each
+        # of ``split`` (left, right, top, bottom) and ``pad`` (same
+        # order); silently skip malformed payloads.
+        split = sprite.get("split")
+        if isinstance(split, (list, tuple)) and len(split) == 4:
+            lines.append("  split: " + ", ".join(str(int(v)) for v in split))
+        pad = sprite.get("pad")
+        if isinstance(pad, (list, tuple)) and len(pad) == 4:
+            lines.append("  pad: " + ", ".join(str(int(v)) for v in pad))
+
+        # Arbitrary int-array custom values, mirroring libGDX's
+        # ``names[]`` / ``values[]`` extension point.
+        custom = sprite.get("custom_values")
+        if isinstance(custom, dict):
+            for key, values in custom.items():
+                if not isinstance(values, (list, tuple)) or not values:
+                    continue
+                try:
+                    formatted = ", ".join(str(int(v)) for v in values)
+                except (TypeError, ValueError):
+                    continue
+                lines.append(f"  {key}: {formatted}")
 
         return lines
+
+    @staticmethod
+    def _format_rotate(rotated: bool, degrees: Any) -> str:
+        """Render the value for the ``rotate:`` field.
+
+        ``rotate: 90`` and ``rotate: true`` are equivalent in libGDX;
+        we prefer the boolean form for the common case so existing
+        readers stay happy. Numeric degrees are emitted only when an
+        explicit non-trivial angle is provided.
+        """
+        if degrees is None:
+            return "true" if rotated else "false"
+        try:
+            deg_int = int(degrees) % 360
+        except (TypeError, ValueError):
+            return "true" if rotated else "false"
+        if deg_int == 0:
+            return "false"
+        if deg_int == 90:
+            return "true"
+        return str(deg_int)
 
 
 __all__ = ["SpineExporter", "SpineExportOptions"]

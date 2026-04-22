@@ -46,14 +46,31 @@ class TexturePackerXmlExportOptions:
     """TexturePacker XML-specific export options.
 
     Attributes:
-        include_pivot: Include pX/pY pivot attributes.
-        include_atlas_size: Include width/height on TextureAtlas element.
-        use_short_rotation: Use "y"/"n" for rotation instead of "true"/"false".
+        include_pivot: Include pX/pY pivot attributes when the sprite
+            carries a non-default pivot.
+        include_atlas_size: Include ``width`` / ``height`` on the
+            ``<TextureAtlas>`` element.
+        use_short_rotation: Use ``"y"`` / ``"n"`` for rotation instead
+            of ``"true"`` / ``"false"``. The TexturePacker generic XML
+            template uses the short form.
+        name_attribute: Which attribute carries the sprite name.
+            ``"n"`` matches TexturePacker's own template (default);
+            ``"name"`` matches the long form used by some homebrew
+            tools. Unknown values fall back to ``"n"``.
+        include_xml_declaration: Emit the leading
+            ``<?xml version="1.0" encoding="UTF-8"?>`` declaration.
+            Some downstream consumers concatenate fragments and require
+            it absent.
     """
 
     include_pivot: bool = True
     include_atlas_size: bool = True
     use_short_rotation: bool = True
+    name_attribute: str = "n"
+    include_xml_declaration: bool = True
+
+
+_VALID_NAME_ATTRIBUTES = frozenset({"n", "name"})
 
 
 @ExporterRegistry.register
@@ -93,14 +110,18 @@ class TexturePackerXmlExporter(BaseExporter):
         opts = custom.get("texturepacker_xml")
 
         if isinstance(opts, TexturePackerXmlExportOptions):
-            return opts
+            resolved = opts
         elif isinstance(opts, dict):
             try:
-                return TexturePackerXmlExportOptions(**opts)
+                resolved = TexturePackerXmlExportOptions(**opts)
             except TypeError:
-                return TexturePackerXmlExportOptions()
+                resolved = TexturePackerXmlExportOptions()
         else:
-            return TexturePackerXmlExportOptions()
+            resolved = TexturePackerXmlExportOptions()
+
+        if resolved.name_attribute not in _VALID_NAME_ATTRIBUTES:
+            resolved.name_attribute = "n"
+        return resolved
 
     def build_metadata(
         self,
@@ -165,7 +186,7 @@ class TexturePackerXmlExporter(BaseExporter):
         atlas_w, atlas_h = (sprite_h, sprite_w) if rotated else (sprite_w, sprite_h)
 
         # Required attributes (shorthand names)
-        elem.set("n", sprite["name"])
+        elem.set(opts.name_attribute, sprite["name"])
         elem.set("x", str(packed.atlas_x))
         elem.set("y", str(packed.atlas_y))
         elem.set("w", str(atlas_w))
@@ -211,8 +232,12 @@ class TexturePackerXmlExporter(BaseExporter):
             root: Root XML element to format.
 
         Returns:
-            Pretty-printed XML string with declaration.
+            Pretty-printed XML string. The leading
+            ``<?xml ... ?>`` declaration is included unless
+            :py:attr:`TexturePackerXmlExportOptions.include_xml_declaration`
+            is ``False``.
         """
+        opts = self._format_options
         rough_string = ET.tostring(root, encoding="unicode")
 
         # Build generator metadata comment
@@ -221,6 +246,12 @@ class TexturePackerXmlExporter(BaseExporter):
             comment_lines = self._generator_metadata.format_comment_lines()
             if comment_lines:
                 comment_block = "<!--\n    " + "\n    ".join(comment_lines) + "\n-->\n"
+
+        declaration = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            if opts.include_xml_declaration
+            else ""
+        )
 
         if self.options.pretty_print:
             dom = minidom.parseString(rough_string)
@@ -232,13 +263,9 @@ class TexturePackerXmlExporter(BaseExporter):
                 content = "\n".join(line for line in lines if line.strip())
             finally:
                 dom.unlink()
-            return '<?xml version="1.0" encoding="UTF-8"?>\n' + comment_block + content
+            return declaration + comment_block + content
         else:
-            return (
-                '<?xml version="1.0" encoding="UTF-8"?>\n'
-                + comment_block
-                + rough_string
-            )
+            return declaration + comment_block + rough_string
 
 
 __all__ = ["TexturePackerXmlExporter", "TexturePackerXmlExportOptions"]

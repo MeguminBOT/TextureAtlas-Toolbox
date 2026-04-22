@@ -113,7 +113,14 @@ class Egret2DExporter(BaseExporter):
 
         Returns:
             JSON string with frames hash.
+
+        Raises:
+            FormatError: When `packed_sprites` contains a rotated
+                sprite. The Egret2D schema has no rotation field and
+                silently swapping `w`/`h` would produce metadata
+                that no longer matches the atlas image.
         """
+        self._reject_rotated_sprites(packed_sprites)
         opts = self._format_options
 
         # Build frames hash
@@ -162,23 +169,20 @@ class Egret2DExporter(BaseExporter):
             Frame data dict with x, y, w, h (and optional offset/source).
 
         Note:
-            The Egret2D format doesn't have a rotation field, so if sprites
-            are rotated in the atlas, the dimensions (w, h) reflect the actual
-            atlas space occupied (swapped width/height).
+            The Egret2D format has no rotation field. Rotated
+            sprites are rejected upstream by
+            `_reject_rotated_sprites`, so this method always emits
+            the natural (unrotated) `w`/`h`.
         """
         sprite = packed.sprite
         w = sprite["width"]
         h = sprite["height"]
 
-        # Check if rotated - swap dimensions since Egret2D has no rotation field
-        is_rotated = packed.rotated or sprite.get("rotated", False)
-        atlas_w, atlas_h = (h, w) if is_rotated else (w, h)
-
         entry: Dict[str, int] = {
             "x": packed.atlas_x,
             "y": packed.atlas_y,
-            "w": atlas_w,
-            "h": atlas_h,
+            "w": w,
+            "h": h,
         }
 
         # Optional trim offset

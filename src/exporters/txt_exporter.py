@@ -106,7 +106,15 @@ class TxtExporter(BaseExporter):
 
         Returns:
             Text content with sprite definitions.
+
+        Raises:
+            FormatError: When `packed_sprites` contains a rotated
+                sprite. The plain TXT schema (`name = x y w h`) has
+                no rotation column and silently swapping `w`/`h`
+                would produce metadata that no longer matches the
+                atlas image.
         """
+        self._reject_rotated_sprites(packed_sprites)
         opts = self._format_options
         lines: List[str] = []
 
@@ -125,20 +133,16 @@ class TxtExporter(BaseExporter):
             lines.append(f"{opts.comment_prefix} Sprites: {len(packed_sprites)}")
             lines.append("")
 
-        # Sprite definitions
+        # Sprite definitions. Rotated sprites are rejected upstream,
+        # so width/height are always emitted in their natural orientation.
         for packed in packed_sprites:
             sprite = packed.sprite
             width = sprite["width"]
             height = sprite["height"]
-
-            # Check if rotated - swap dimensions since TXT format has no rotation field
-            is_rotated = packed.rotated or sprite.get("rotated", False)
-            atlas_w, atlas_h = (height, width) if is_rotated else (width, height)
-
             line = (
                 f"{sprite['name']} = "
                 f"{packed.atlas_x} {packed.atlas_y} "
-                f"{atlas_w} {atlas_h}"
+                f"{width} {height}"
             )
             lines.append(line)
 

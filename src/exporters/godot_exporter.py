@@ -116,7 +116,14 @@ class GodotExporter(BaseExporter):
 
         Returns:
             JSON string with textures array containing sprites.
+
+        Raises:
+            FormatError: When `packed_sprites` contains a rotated
+                sprite. The Godot tpsheet schema has no rotation
+                field and silently swapping `w`/`h` would produce
+                metadata that no longer matches the atlas image.
         """
+        self._reject_rotated_sprites(packed_sprites)
         opts = self._format_options
 
         # Build sprites list
@@ -166,25 +173,22 @@ class GodotExporter(BaseExporter):
             Sprite data dict with filename and region.
 
         Note:
-            The Godot format doesn't have a rotation field, so if sprites
-            are rotated in the atlas, the dimensions in the region reflect
-            the actual atlas space occupied (swapped width/height).
+            The Godot tpsheet format has no rotation field. Rotated
+            sprites are rejected upstream by
+            `_reject_rotated_sprites`, so this method always emits
+            the natural (unrotated) `w`/`h`.
         """
         sprite = packed.sprite
         width = sprite["width"]
         height = sprite["height"]
-
-        # Check if rotated - swap dimensions since Godot format has no rotation field
-        is_rotated = packed.rotated or sprite.get("rotated", False)
-        atlas_w, atlas_h = (height, width) if is_rotated else (width, height)
 
         return {
             "filename": packed.name,
             "region": {
                 "x": packed.atlas_x,
                 "y": packed.atlas_y,
-                "w": atlas_w,
-                "h": atlas_h,
+                "w": width,
+                "h": height,
             },
         }
 

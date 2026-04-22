@@ -49,13 +49,27 @@ class Paper2DExportOptions:
     """Paper2D-specific export options.
 
     Attributes:
-        include_pivot: Include pivot point data.
+        include_pivot: Legacy boolean. When ``pivot_mode`` is ``None``
+            this controls emission directly: ``True`` writes ``pivot``
+            on every frame, ``False`` omits it. Retained for backwards
+            compatibility with existing callers.
+        pivot_mode: Optional explicit override.
+            ``"always"`` writes ``pivot`` on every frame (filling in
+            the spec default ``(0.5, 0.5)`` when the source sprite did
+            not declare one), ``"never"`` always omits it, and
+            ``"auto"`` only writes ``pivot`` for frames whose source
+            sprite carries an explicit ``pivotX`` / ``pivotY`` field.
+            Use ``"auto"`` to round-trip a Paper2D atlas faithfully
+            when the source file mixed pivoted and non-pivoted frames.
+            When ``None`` (default), the exporter falls back to
+            ``include_pivot`` for backwards compatibility.
         include_meta: Include meta block with image/size info.
         format_string: Pixel format string for meta block.
         scale_string: Scale string for meta block.
     """
 
     include_pivot: bool = True
+    pivot_mode: Optional[str] = None
     include_meta: bool = True
     format_string: str = "RGBA8888"
     scale_string: str = "1"
@@ -163,6 +177,26 @@ class Paper2DExporter(BaseExporter):
         indent = 4 if self.options.pretty_print else None
         return json.dumps(output, indent=indent, ensure_ascii=False)
 
+    @staticmethod
+    def _resolve_pivot_mode(opts: Paper2DExportOptions) -> Optional[str]:
+        """Return the lower-cased pivot mode, or ``None`` for legacy.
+
+        Args:
+            opts: Format-specific export options.
+
+        Returns:
+            The validated lower-cased mode (``"always"`` / ``"never"``
+            / ``"auto"``), or ``None`` when the caller has not opted
+            into the new mode and the legacy ``include_pivot`` boolean
+            should be honoured instead.
+        """
+        if not opts.pivot_mode:
+            return None
+        mode = opts.pivot_mode.lower()
+        if mode in ("always", "never", "auto"):
+            return mode
+        return None
+
     def _build_frame_entry(
         self,
         packed: PackedSprite,
@@ -175,7 +209,17 @@ class Paper2DExporter(BaseExporter):
             opts: Format-specific options.
 
         Returns:
-            Frame data dict in Paper2D format.
+            Frame data dict in Paper2D format. The ``pivot`` field is
+            included when:
+
+            - ``pivot_mode == "always"``;
+            - ``pivot_mode == "auto"`` and the source sprite carries an
+              explicit ``pivotX`` / ``pivotY``; or
+            - ``pivot_mode`` is unset and the legacy ``include_pivot``
+              flag is ``True``.
+
+            ``pivot_mode == "never"`` always suppresses the field, even
+            when the source sprite carried an explicit pivot.
         """
         sprite = packed.sprite
         w = sprite["width"]
@@ -214,10 +258,23 @@ class Paper2DExporter(BaseExporter):
             },
         }
 
-        if opts.include_pivot:
+        sprite_has_pivot = "pivotX" in sprite or "pivotY" in sprite
+        mode = self._resolve_pivot_mode(opts)
+        if mode == "never":
+            emit_pivot = False
+        elif mode == "always":
+            emit_pivot = True
+        elif mode == "auto":
+            emit_pivot = sprite_has_pivot
+        else:
+            # Legacy backwards-compat path: `include_pivot` is the single
+            # gate that applies to every frame, regardless of whether the
+            # source sprite carried an explicit pivot.
+            emit_pivot = bool(opts.include_pivot)
+        if emit_pivot:
             entry["pivot"] = {
-                "x": sprite.get("pivotX", 0.5),
-                "y": sprite.get("pivotY", 0.5),
+                "x": float(sprite.get("pivotX", 0.5)),
+                "y": float(sprite.get("pivotY", 0.5)),
             }
 
         return entry

@@ -41,6 +41,7 @@ from exporters.exporter_types import (
     GeneratorMetadata,
     PackedSprite,
 )
+from utils.utilities import Utilities
 
 
 @dataclass
@@ -54,8 +55,18 @@ class StarlingExportOptions:
             on SubTextures (non-standard, used by HaxeFlixel).
         include_frame_data: If True, include frameX/Y/Width/Height attributes
             even when they match the sprite bounds (no trimming).
+        always_include_frame_data: If True, always emit frameX/Y/Width/Height
+            on every SubTexture even when there is no trimming offset.
+            Some Starling consumers expect every region to declare the
+            untrimmed frame box explicitly. Requires include_frame_data.
         include_pivot: If True, include pivotX/pivotY if present in sprite data.
             Ignored when sparrow_compatible is True.
+        propagate_pivot_to_sequence: If True, the first sprite in each
+            animation sequence (sprites sharing a trailing-digit-stripped
+            base name) that declares a pivot has its pivot copied to
+            subsequent frames in the same sequence that lack one. Mirrors
+            the convention used by Starling MovieClips, where pivot is
+            expected to be consistent across an animation strip.
         legacy_format_attribute: If set, include format="value" on TextureAtlas.
             Only relevant for Sparrow v1 compatibility (e.g., "RGBA8888").
         scale: Atlas scale factor for high-DPI (e.g., 2.0 for @2x).
@@ -67,7 +78,9 @@ class StarlingExportOptions:
     sparrow_compatible: bool = False
     include_flip_attributes: bool = False
     include_frame_data: bool = True
+    always_include_frame_data: bool = False
     include_pivot: bool = True
+    propagate_pivot_to_sequence: bool = False
     legacy_format_attribute: Optional[str] = None
     scale: Optional[float] = None
     flip_data: Dict[str, Dict[str, bool]] = field(default_factory=dict)
@@ -172,6 +185,16 @@ class StarlingXmlExporter(BaseExporter):
         if opts.scale is not None and not opts.sparrow_compatible:
             root.set("scale", str(opts.scale))
 
+        # Optionally back-fill pivots across animation sequence frames
+        # before emission so callers can hand us a strip with pivot only
+        # on the first frame and still get a fully-pivoted output.
+        if (
+            opts.propagate_pivot_to_sequence
+            and opts.include_pivot
+            and not opts.sparrow_compatible
+        ):
+            self._propagate_pivots(packed_sprites)
+
         # Add SubTexture elements for each sprite
         for packed in packed_sprites:
             self._add_subtexture(root, packed, opts)
@@ -218,7 +241,8 @@ class StarlingXmlExporter(BaseExporter):
             frame_w = sprite.get("frameWidth", sprite["width"])
             frame_h = sprite.get("frameHeight", sprite["height"])
 
-            # Only include if there's actual trimming or always include is set
+            # Only include if there's actual trimming, unless the caller
+            # explicitly opts in to always-emit-frame-data.
             has_trimming = (
                 frame_x != 0
                 or frame_y != 0
@@ -226,7 +250,7 @@ class StarlingXmlExporter(BaseExporter):
                 or frame_h != sprite["height"]
             )
 
-            if has_trimming:
+            if has_trimming or opts.always_include_frame_data:
                 sub.set("frameX", str(frame_x))
                 sub.set("frameY", str(frame_y))
                 sub.set("frameWidth", str(frame_w))
@@ -254,6 +278,43 @@ class StarlingXmlExporter(BaseExporter):
                 sub.set("flipX", "true")
             if sprite_flip_y:
                 sub.set("flipY", "true")
+
+    def _propagate_pivots(self, packed_sprites: List[PackedSprite]) -> None:
+        """Carry the first declared pivot in each animation strip forward.
+
+        Starling's `MovieClip` consumer expects every frame in an animation
+        strip to declare the same pivot. Exports built from sources that
+        only set the pivot on the first frame would otherwise lose the
+        offset on every subsequent frame. This helper groups sprites by
+        their trailing-digit-stripped name and copies the first seen
+        ``pivotX`` / ``pivotY`` onto later frames in the same group that
+        do not already carry one.
+
+        Args:
+            packed_sprites: Packed sprites whose underlying sprite dicts
+                may be mutated in place to add ``pivotX`` / ``pivotY``.
+        """
+        first_pivots: Dict[str, Dict[str, float]] = {}
+        for packed in packed_sprites:
+            sprite = packed.sprite
+            name = sprite.get("name") or ""
+            if not name:
+                continue
+            base = Utilities.strip_trailing_digits(name)
+            existing = first_pivots.get(base)
+            if existing is None:
+                pivot: Dict[str, float] = {}
+                if "pivotX" in sprite:
+                    pivot["pivotX"] = sprite["pivotX"]
+                if "pivotY" in sprite:
+                    pivot["pivotY"] = sprite["pivotY"]
+                if pivot:
+                    first_pivots[base] = pivot
+                continue
+            if "pivotX" in existing and "pivotX" not in sprite:
+                sprite["pivotX"] = existing["pivotX"]
+            if "pivotY" in existing and "pivotY" not in sprite:
+                sprite["pivotY"] = existing["pivotY"]
 
     def _format_xml(self, root: ET.Element) -> str:
         """Format XML with proper declaration and indentation.

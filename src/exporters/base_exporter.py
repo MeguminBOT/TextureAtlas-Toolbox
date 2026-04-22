@@ -25,6 +25,8 @@ from exporters.exporter_types import (
     ExportOptions,
     ExportResult,
     FileWriteError,
+    FormatError,
+    FORMATS_SUPPORTING_ROTATION,
     GeneratorMetadata,
     ImageError,
     PackedSprite,
@@ -59,6 +61,57 @@ class BaseExporter(ABC):
                      Uses defaults if not provided.
         """
         self.options = options or ExportOptions()
+
+    @classmethod
+    def supports_rotation(cls) -> bool:
+        """Return whether this format can represent rotated sprites.
+
+        Formats whose schemas have no rotation field (UIKit plist,
+        Godot tpsheet, Egret2D, TXT, CSS) return False; the GUI
+        disables the rotation option for them and the exporter
+        raises `FormatError(UNSUPPORTED_FORMAT, ...)` if a rotated
+        sprite is passed in anyway.
+
+        Returns:
+            True when rotation can round-trip via this format.
+        """
+        return cls.FORMAT_NAME in FORMATS_SUPPORTING_ROTATION
+
+    def _reject_rotated_sprites(self, packed_sprites: List[PackedSprite]) -> None:
+        """Raise when a rotation-incapable format receives rotated input.
+
+        Affected exporters (UIKit plist, Godot tpsheet, Egret2D, TXT,
+        CSS) call this from `build_metadata` so the silent
+        dimension-swap data-loss bug becomes a clear, recoverable
+        error instead.
+
+        Args:
+            packed_sprites: Packed sprites about to be serialized.
+
+        Raises:
+            FormatError: When any sprite is marked rotated.
+        """
+        offenders = [
+            p.name
+            for p in packed_sprites
+            if p.rotated or p.sprite.get("rotated", False)
+        ]
+        if offenders:
+            sample = ", ".join(offenders[:3])
+            extra = "" if len(offenders) <= 3 else f" (+{len(offenders) - 3} more)"
+            raise FormatError(
+                ExporterErrorCode.UNSUPPORTED_FORMAT,
+                (
+                    f"Format '{self.FORMAT_NAME}' has no rotation field; "
+                    f"refusing to silently swap dimensions for rotated sprites. "
+                    f"Disable rotation in the packer or pick a rotation-capable "
+                    f"format. Offending sprites: {sample}{extra}."
+                ),
+                details={
+                    "format": self.FORMAT_NAME,
+                    "rotated_sprite_count": len(offenders),
+                },
+            )
 
     @abstractmethod
     def build_metadata(

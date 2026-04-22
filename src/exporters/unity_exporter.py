@@ -37,12 +37,27 @@ class UnityExportOptions:
     """Unity format-specific export options.
 
     Attributes:
-        format_version: Format version number (default 40300).
-        include_pivot: Include pivot point values (last two columns).
+        format_version: Format version number written to the `:format`
+            header. Defaults to 40300, matching the version emitted by
+            modern TexturePacker releases.
+        include_pivot: Legacy boolean. When `pivot_mode` is None this
+            controls emission directly: True writes the trailing
+            pivotX/pivotY columns (seven columns total), False writes
+            five columns. Retained for backwards compatibility with
+            existing callers.
+        pivot_mode: Optional explicit override for the column count.
+            `"always"` writes seven columns for every sprite, `"never"`
+            writes five columns, and `"auto"` inspects the input and
+            emits seven columns only when at least one sprite carries
+            an explicit pivot. Use `"auto"` to round-trip a tpsheet
+            faithfully when the source file did not declare pivots.
+            When None (default), the exporter falls back to
+            `include_pivot` for backwards compatibility.
     """
 
     format_version: int = 40300
     include_pivot: bool = True
+    pivot_mode: Optional[str] = None
 
 
 @ExporterRegistry.register
@@ -114,6 +129,11 @@ class UnityExporter(BaseExporter):
         opts = self._format_options
         lines: List[str] = []
 
+        # Decide once whether this file emits pivot columns. TexturePacker
+        # tpsheet files use one consistent column count for the whole
+        # file, so the decision is made up-front rather than per row.
+        emit_pivot = self._resolve_emit_pivot(opts, packed_sprites)
+
         # Add generator metadata as comments (lines starting with #)
         if generator_metadata:
             comment_lines = generator_metadata.format_comment_lines()
@@ -129,20 +149,51 @@ class UnityExporter(BaseExporter):
 
         # Sprite lines
         for packed in packed_sprites:
-            lines.append(self._build_sprite_line(packed, opts))
+            lines.append(self._build_sprite_line(packed, emit_pivot))
 
         return "\n".join(lines) + "\n"
+
+    @staticmethod
+    def _resolve_emit_pivot(
+        opts: UnityExportOptions,
+        packed_sprites: List[PackedSprite],
+    ) -> bool:
+        """Resolve whether the output should include pivot columns.
+
+        Args:
+            opts: Format-specific export options.
+            packed_sprites: Sprites whose source dicts may carry pivots.
+
+        Returns:
+            True when every emitted row should include pivot columns.
+        """
+        if opts.pivot_mode is None:
+            # Backwards compatible default: the legacy boolean wins.
+            return bool(opts.include_pivot)
+        mode = opts.pivot_mode.lower()
+        if mode == "always":
+            return True
+        if mode == "never":
+            return False
+        if mode == "auto":
+            for packed in packed_sprites:
+                sprite = packed.sprite
+                if "pivotX" in sprite or "pivotY" in sprite:
+                    return True
+            return False
+        # Unknown mode -> fall back to legacy include_pivot toggle.
+        return bool(opts.include_pivot)
 
     def _build_sprite_line(
         self,
         packed: PackedSprite,
-        opts: UnityExportOptions,
+        emit_pivot: bool,
     ) -> str:
         """Build a sprite definition line.
 
         Args:
             packed: Packed sprite with atlas position.
-            opts: Format-specific options.
+            emit_pivot: Whether to append pivotX/pivotY columns.
 
         Returns:
             Semicolon-delimited sprite line.
@@ -168,7 +219,7 @@ class UnityExporter(BaseExporter):
             str(atlas_h),
         ]
 
-        if opts.include_pivot:
+        if emit_pivot:
             pivot_x = sprite.get("pivotX", 0.5)
             pivot_y = sprite.get("pivotY", 0.5)
             parts.append(str(pivot_x))
