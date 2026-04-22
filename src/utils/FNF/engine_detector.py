@@ -44,6 +44,12 @@ def _detect_from_json(file_path: str) -> EngineDetectionResult:
 
     if _is_psych_engine(data):
         return "Psych Engine", data
+    # V-Slice must be checked before Kade because both use per-animation
+    # `prefix` / `offsets` / `looped` / `frameIndices`. They are disambiguated
+    # by top-level keys: V-Slice uses `assetPath` + `version`, Kade uses
+    # `asset` + `startingAnim`.
+    if _is_vslice_engine(data):
+        return "V-Slice Engine", data
     if _is_kade_engine(data):
         return "Kade Engine", data
     return "Unknown", None
@@ -93,6 +99,54 @@ def _is_psych_engine(data: Any) -> bool:
 
     required_top_level = {"image", "scale", "flip_x", "no_antialiasing"}
     return required_top_level.issubset(data.keys())
+
+
+def _is_vslice_engine(data: Any) -> bool:
+    """Check if the parsed JSON matches the official V-Slice Funkin' format.
+
+    V-Slice (the official rewrite by Funkin' Crew) uses character JSON with a
+    top-level ``version``, ``assetPath``, and an ``animations`` array whose
+    entries carry a per-animation ``frameRate``. This is distinct from Kade
+    (which has top-level ``asset`` + ``startingAnim`` and a single global
+    ``frameRate``) and from Psych (which uses ``image`` + ``flip_x`` and
+    per-animation ``fps`` / ``anim`` / ``indices``).
+
+    Args:
+        data: Parsed JSON data.
+
+    Returns:
+        True if the structure matches the V-Slice character data format.
+    """
+    if not isinstance(data, Mapping):
+        return False
+
+    # Required top-level keys that uniquely identify V-Slice.
+    if not {"version", "name", "assetPath", "animations"}.issubset(data.keys()):
+        return False
+
+    if not isinstance(data.get("assetPath"), str):
+        return False
+
+    animations = data["animations"]
+    if not isinstance(animations, list) or not animations:
+        return False
+
+    for anim in animations:
+        if not isinstance(anim, Mapping):
+            return False
+        if not {"name", "prefix"}.issubset(anim.keys()):
+            return False
+        offsets = anim.get("offsets")
+        if offsets is not None and (not isinstance(offsets, list) or len(offsets) != 2):
+            return False
+        frame_indices = anim.get("frameIndices")
+        if frame_indices is not None and not isinstance(frame_indices, list):
+            return False
+        for bool_field in ("looped", "flipX", "flipY"):
+            value = anim.get(bool_field)
+            if value is not None and not isinstance(value, bool):
+                return False
+    return True
 
 
 def _is_kade_engine(data: Any) -> bool:

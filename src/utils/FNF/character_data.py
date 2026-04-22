@@ -8,6 +8,9 @@ from utils.FNF.engine_detector import detect_engine
 from utils.FNF.alignment import build_alignment_overrides
 from utils.FNF.anim_utils import parse_indices_attribute, parse_xml_offsets
 from utils.utilities import Utilities
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class CharacterData:
@@ -75,7 +78,7 @@ class CharacterData:
             self.fnf_load_char_data_settings(
                 settings_manager, data_dict, listbox_png_callback, listbox_data_callback
             )
-            print("Animation settings updated in SettingsManager.")
+            logger.info("Animation settings updated in SettingsManager.")
 
     def import_character_settings(self, file_path, settings_manager):
         """Import a single character file and store its animation settings.
@@ -116,7 +119,7 @@ class CharacterData:
 
         engine_type, parsed_data = detect_engine(file_path)
         filename = os.path.basename(file_path)
-        print(f"Found {engine_type} data for {filename}.")
+        logger.info("Found %s data for %s.", engine_type, filename)
 
         if engine_type == "Psych Engine" and parsed_data:
             png_filename = self._register_spritesheet_entry(
@@ -203,8 +206,49 @@ class CharacterData:
                 )
             return True
 
-        print(
-            f"Skipping {filename}: Not a FNF character data file or unsupported engine type."
+        if engine_type == "V-Slice Engine" and parsed_data:
+            # The V-Slice ``assetPath`` is typically a path like
+            # ``"characters/BOYFRIEND"``; ``_register_spritesheet_entry``
+            # already strips the directory and extension.
+            png_filename = self._register_spritesheet_entry(
+                parsed_data.get("assetPath", ""),
+                file_path,
+                data_dict,
+                listbox_png_callback,
+                listbox_data_callback,
+            )
+            scale_value = parsed_data.get("scale", 1)
+            character_flip_x = bool(parsed_data.get("flipX", False))
+            for anim in parsed_data.get("animations", []):
+                anim_name = Utilities.strip_trailing_digits(anim.get("name", ""))
+                # V-Slice stores frame rate per animation; default 24 mirrors
+                # the engine's ``DEFAULT_FRAMERATE``.
+                fps = anim.get("frameRate", 24)
+                indices = anim.get("frameIndices") or None
+                loop = bool(anim.get("looped", False))
+                offsets = anim.get("offsets")
+                # Per-animation ``flipX`` overrides the character-level value
+                # when present, otherwise inherit it.
+                anim_flip_x = anim.get("flipX")
+                flip_x = (
+                    bool(anim_flip_x) if anim_flip_x is not None else character_flip_x
+                )
+                self._update_animation_settings(
+                    settings_manager,
+                    png_filename,
+                    anim_name,
+                    fps,
+                    indices=indices,
+                    loop=loop,
+                    scale=scale_value,
+                    offsets=offsets,
+                    flip_x=flip_x,
+                )
+            return True
+
+        logger.info(
+            "Skipping %s: Not a FNF character data file or unsupported engine type.",
+            filename,
         )
         return False
 
