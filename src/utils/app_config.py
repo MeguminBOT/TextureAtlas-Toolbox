@@ -3,6 +3,10 @@
 import os
 import json
 
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class AppConfig:
     """Manage persistent application settings stored in a JSON file.
@@ -218,12 +222,13 @@ class AppConfig:
         self.settings = dict(self.DEFAULTS)
 
         if not os.path.isfile(self.config_path):
-            print(
-                f"[Config] No config file found. Creating defaults at '{self.config_path}'."
+            logger.info(
+                "[Config] No config file found. Creating defaults at '%s'.",
+                self.config_path,
             )
             self.save()
         else:
-            print(f"[Config] Loading settings from '{self.config_path}'.")
+            logger.info("[Config] Loading settings from '%s'.", self.config_path)
 
         self.load()
         self.migrate()
@@ -287,7 +292,7 @@ class AppConfig:
                 with open(self.config_path, "r", encoding="utf-8") as f:
                     self.settings.update(json.load(f))
             except Exception as e:
-                print(f"[Config] Failed to load configuration: {e}")
+                logger.exception("[Config] Failed to load configuration")
                 pass
 
     def save(self):
@@ -297,7 +302,7 @@ class AppConfig:
             with open(self.config_path, "w", encoding="utf-8") as f:
                 json.dump(self.settings, f, indent=4)
         except Exception as e:
-            print(f"[Config] Failed to save configuration: {e}")
+            logger.exception("[Config] Failed to save configuration")
             pass
 
     def migrate(self):
@@ -313,8 +318,10 @@ class AppConfig:
             duration_ms = max(1, round(1000 / fps_value)) if fps_value > 0 else 42
             extraction["duration"] = duration_ms
             needs_migration = True
-            print(
-                f"[Config] Migrated 'fps: {fps_value}' to 'duration: {duration_ms}' (milliseconds)"
+            logger.info(
+                "[Config] Migrated 'fps: %s' to 'duration: %s' (milliseconds)",
+                fps_value,
+                duration_ms,
             )
 
         def merge_defaults(current, defaults):
@@ -323,8 +330,10 @@ class AppConfig:
                 if key not in current:
                     current[key] = default_value
                     needs_migration = True
-                    print(
-                        f"[Config] Added new setting '{key}' with default value: {default_value}"
+                    logger.info(
+                        "[Config] Added new setting '%s' with default value: %s",
+                        key,
+                        default_value,
                     )
                 elif isinstance(default_value, dict) and isinstance(current[key], dict):
                     merge_defaults(current[key], default_value)
@@ -342,20 +351,22 @@ class AppConfig:
                     for nested_key in nested_obsolete:
                         del current[key][nested_key]
                         needs_migration = True
-                        print(f"[Config] Removed obsolete setting '{key}.{nested_key}'")
+                        logger.info(
+                            "[Config] Removed obsolete setting '%s.%s'", key, nested_key
+                        )
 
             for key in obsolete_keys:
                 del current[key]
                 needs_migration = True
-                print(f"[Config] Removed obsolete setting '{key}'")
+                logger.info("[Config] Removed obsolete setting '%s'", key)
 
         merge_defaults(self.settings, self.DEFAULTS)
 
         if needs_migration:
             self.save()
-            print("[Config] Migration completed — settings updated.")
+            logger.info("[Config] Migration completed \u2014 settings updated.")
         else:
-            print("[Config] Settings are up to date.")
+            logger.info("[Config] Settings are up to date.")
 
     def get(self, key, default=None):
         """Retrieve a setting value by key.

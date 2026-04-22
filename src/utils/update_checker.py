@@ -29,6 +29,9 @@ from utils.version import (
     GITHUB_TAGS_URL,
     version_to_tuple,
 )
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class UpdateCheckWorker(QThread):
@@ -257,17 +260,19 @@ class UpdateChecker:
             tuple: (update_available, latest_version, metadata | None)
         """
         try:
-            print(f"Checking for updates... Current version: {self.current_version}")
+            logger.info(
+                "Checking for updates... Current version: %s", self.current_version
+            )
 
             tags = self._fetch_tags()
             selected_tag = self._find_newer_tag(tags)
             if not selected_tag:
-                print("You are using the latest version.")
+                logger.info("You are using the latest version.")
                 return False, self.current_version, None
 
             tag_name = selected_tag["name"]
             latest_version = tag_name.lstrip("vV")
-            print(f"Update available: {latest_version}")
+            logger.info("Update available: %s", latest_version)
 
             release_data = self._fetch_release_for_tag(tag_name)
             changelog = (
@@ -306,7 +311,7 @@ class UpdateChecker:
             return False, latest_version, None
 
         except requests.RequestException as e:
-            print(f"Network error during update check: {e}")
+            logger.error("Network error during update check: %s", e)
             QMessageBox.critical(
                 parent_window,
                 "Update Check Failed",
@@ -314,7 +319,7 @@ class UpdateChecker:
             )
             return False, None, None
         except Exception as e:
-            print(f"Error during update check: {e}")
+            logger.exception("Error during update check")
             QMessageBox.critical(
                 parent_window,
                 "Update Error",
@@ -337,7 +342,9 @@ class UpdateChecker:
             on_no_update: Callback() when already on latest version.
             on_error: Callback(error_message) on failure.
         """
-        print(f"Checking for updates asynchronously... Current: {self.current_version}")
+        logger.info(
+            "Checking for updates asynchronously... Current: %s", self.current_version
+        )
 
         self._worker = UpdateCheckWorker(self, parent_window)
 
@@ -363,7 +370,7 @@ class UpdateChecker:
                     on_no_update()
 
         def handle_error(error_msg):
-            print(f"Update check error: {error_msg}")
+            logger.error("Update check error: %s", error_msg)
             if on_error:
                 on_error(error_msg)
 
@@ -426,7 +433,9 @@ class UpdateChecker:
             )
 
             update_mode = UpdateUtilities.detect_update_mode()
-            print(f"Launching external updater (update_mode={update_mode.name})...")
+            logger.info(
+                "Launching external updater (update_mode=%s)...", update_mode.name
+            )
 
             # Embedded mode needs more time for file handles to be released
             wait_seconds = 5 if update_mode == UpdateMode.EMBEDDED else 3
@@ -439,23 +448,20 @@ class UpdateChecker:
             )
 
             if success:
-                print("External updater launched successfully")
+                logger.info("External updater launched successfully")
                 return True
             else:
                 raise RuntimeError("launch_external_updater returned False")
 
         except ImportError as e:
-            print(f"Import error: {e}")
+            logger.error("Import error: %s", e)
             QMessageBox.critical(
                 parent_window,
                 "Update Error",
                 "Update installer not available. Please download the update manually.",
             )
         except Exception as e:
-            print(f"Failed to launch updater: {e}")
-            import traceback
-
-            traceback.print_exc()
+            logger.exception("Failed to launch updater")
             QMessageBox.critical(
                 parent_window, "Update Error", f"Failed to start updater:\n{str(e)}"
             )

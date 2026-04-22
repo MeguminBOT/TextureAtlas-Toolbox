@@ -29,6 +29,10 @@ import sys
 import importlib.util
 from pathlib import Path
 
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 def _find_pyside6_dir() -> Path | None:
     """Locate the PySide6 package directory without importing it.
@@ -67,43 +71,49 @@ def configure_qt_environment() -> None:
        on Windows.
     """
     if os.environ.get("TA_TOOLBOX_ENV_CONFIGURED"):
-        print("[Qt Environment] Already configured, skipping.")
+        logger.debug("[Qt Environment] Already configured, skipping.")
         return
 
-    print("[Qt Environment] Configuring Qt environment...")
+    logger.info("[Qt Environment] Configuring Qt environment...")
 
     pyside6_dir = _find_pyside6_dir()
     if pyside6_dir is None:
-        print("[Qt Environment] PySide6 not found — skipping configuration.")
+        logger.warning(
+            "[Qt Environment] PySide6 not found \u2014 skipping configuration."
+        )
         return
 
     pyside6_str = str(pyside6_dir)
-    print(f"[Qt Environment] PySide6 found at: {pyside6_str}")
+    logger.info("[Qt Environment] PySide6 found at: %s", pyside6_str)
 
     plugins_dir = pyside6_dir / "plugins"
     if plugins_dir.is_dir():
         os.environ.setdefault("QT_PLUGIN_PATH", str(plugins_dir))
-        print(f"[Qt Environment] QT_PLUGIN_PATH set to: {plugins_dir}")
+        logger.info("[Qt Environment] QT_PLUGIN_PATH set to: %s", plugins_dir)
     else:
-        print(f"[Qt Environment] WARNING: plugins directory not found at {plugins_dir}")
+        logger.warning(
+            "[Qt Environment] plugins directory not found at %s", plugins_dir
+        )
 
     current_path = os.environ.get("PATH", "")
     if pyside6_str not in current_path:
         os.environ["PATH"] = pyside6_str + os.pathsep + current_path
-        print("[Qt Environment] Added PySide6 directory to PATH.")
+        logger.debug("[Qt Environment] Added PySide6 directory to PATH.")
 
     if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
         try:
             os.add_dll_directory(pyside6_str)
-            print("[Qt Environment] Registered DLL directory (PySide6).")
+            logger.debug("[Qt Environment] Registered DLL directory (PySide6).")
         except OSError:
-            print("[Qt Environment] Could not register PySide6 DLL directory.")
+            logger.warning("[Qt Environment] Could not register PySide6 DLL directory.")
         if plugins_dir.is_dir():
             try:
                 os.add_dll_directory(str(plugins_dir))
-                print("[Qt Environment] Registered DLL directory (plugins).")
+                logger.debug("[Qt Environment] Registered DLL directory (plugins).")
             except OSError:
-                print("[Qt Environment] Could not register plugins DLL directory.")
+                logger.warning(
+                    "[Qt Environment] Could not register plugins DLL directory."
+                )
 
     os.environ["TA_TOOLBOX_ENV_CONFIGURED"] = "1"
-    print("[Qt Environment] Configuration complete.")
+    logger.info("[Qt Environment] Configuration complete.")
