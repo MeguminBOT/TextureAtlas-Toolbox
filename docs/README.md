@@ -9,7 +9,7 @@ documentation that mirrors the current UI and APIs.
 | Document | Description |
 |----------|-------------|
 | [Installation Guide](installation-guide.md) | Platform-specific setup for Windows, macOS, and Linux |
-| [User Manual](user-manual.md) | Walkthrough of the Extract, Generate, and Editor tabs |
+| [User Manual](user-manual.md) | Walkthrough of the Extract, Generate, Editor, and Optimize tabs |
 | [Format Reference](format-reference.md) | In-depth technical specs for all supported atlas formats |
 | [FAQ](faq.md) | Quick answers and troubleshooting steps |
 | [Friday Night Funkin' Guide](fnf-guide.md) | Engine-specific workflows and FlxSprite offset tips |
@@ -45,4 +45,4 @@ docs synced with the codebase.
 
 ---
 
-*Last updated: April 2026 — TextureAtlas Toolbox v3.0.0* 
+*Last updated: April 22, 2026 — TextureAtlas Toolbox v3.0.0*

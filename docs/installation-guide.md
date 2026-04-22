@@ -7,14 +7,14 @@ macOS and Linux users or developers can refer to the detailed manual installatio
 <!-- TODO: Add screenshot of the main application window here -->
 <!-- ![TextureAtlas Toolbox main window](images/main-window.png) -->
 
-## 📑 Table of Contents
+## Table of Contents
 
-- [📝 System Requirements](#system-requirements)
+- [System Requirements](#system-requirements)
   - [Minimum Requirements](#minimum-requirements)
   - [Recommended Requirements](#recommended-requirements)
   - [Performance Notes](#performance-notes)
-- [🚀 Normal Install (Windows only)](#normal-install-windows-only)
-- [🚀 Manual Installation](#manual-installation)
+- [Normal Install (Windows only)](#normal-install-windows-only)
+- [Manual Installation](#manual-installation)
   - [Python Installation](#python-installation)
     - [Windows](#windows)
     - [macOS](#macos)
@@ -29,7 +29,7 @@ macOS and Linux users or developers can refer to the detailed manual installatio
     - [Linux (Manual)](#linux-manual)
   - [Clone Repository (For Developers)](#clone-repository-for-developers)
   - [Compiling from Source (Windows)](#compiling-from-source-windows)
-- [🔧 Troubleshooting Installation & Common Errors](#troubleshooting-installation--common-errors)
+- [Troubleshooting Installation & Common Errors](#troubleshooting-installation--common-errors)
   - [Python Not Recognized](#python-not-recognized)
   - [Missing Packages](#missing-packages)
   - [ImageMagick Errors](#imagemagick-errors)
@@ -61,7 +61,7 @@ macOS and Linux users or developers can refer to the detailed manual installatio
   will suffice for smaller workloads)
 - **Internet Access**: Required for downloading dependencies and updates
 
-> **⚠️ Important Notices:**
+> **Important Notices:**
 > - 32-bit operating systems are **not officially supported** and will **not receive
 >   troubleshooting help**.
 > - Operating systems below macOS 11, Windows 10, and older Linux distributions are **not
@@ -70,7 +70,7 @@ macOS and Linux users or developers can refer to the detailed manual installatio
 >   troubleshooting help**.
 
 ### Performance Notes
-> ⚠️ **Adobe Animate Spritemap Extraction**  
+> **Adobe Animate Spritemap Extraction**  
 > Extracting Adobe Animate spritemaps (the `Animation.json` + `sheet.json` pairs) is
 > significantly more memory-intensive than other formats. Each spritemap typically requires
 > decompressing high-resolution frames and rebuilding matrix transformations. **Expect
@@ -81,7 +81,7 @@ macOS and Linux users or developers can refer to the detailed manual installatio
 
 ## Normal Install (Windows only)
 
-> ⚠️ **Antivirus False Positives**  
+> **Antivirus False Positives**  
 > The Windows executable releases are **very likely to be flagged as malware** by antivirus
 > software. This is a common false positive for Python applications compiled with tools like
 > Nuitka or PyInstaller. The application is open-source and safe—you can verify the code
@@ -227,7 +227,7 @@ Need the bleeding-edge dependency set? Replace `requirements.txt` with
 
 If you prefer, you can install packages individually:
 ```bash
-pip install certifi charset-normalizer colorama idna numpy pillow psutil requests tqdm urllib3 Wand pyside6 py7zr etcpak
+pip install certifi charset-normalizer colorama idna numpy pillow psutil requests tqdm urllib3 Wand pyside6 py7zr etcpak texture2ddecoder qt-material qtawesome
 ```
 
 #### Package Details
@@ -237,16 +237,19 @@ pip install certifi charset-normalizer colorama idna numpy pillow psutil request
 | **certifi** | 2024.8.30 | Root certificates for SSL validation |
 | **charset-normalizer** | 3.4.0 | Encoding detection for text files and web content |
 | **colorama** | 0.4.6 | Cross-platform colored terminal text |
+| **etcpak** | 0.9.11 | GPU texture compression (BC1/BC3/BC7, ETC1/ETC2) |
 | **idna** | 3.10 | Internationalized Domain Names support |
+| **texture2ddecoder** | 1.0.6 | Adobe Animate spritemap texture decoding |
 | **numpy** | 2.2.0 | Numerical operations |
 | **pillow** | 11.3.0 | Image processing and manipulation |
 | **psutil** | 6.1.0 | System and process utilities (resource monitoring) |
 | **py7zr** | 1.0.0 | 7-Zip archive support |
 | **pyside6** | 6.9.2 | Qt 6 bindings for the GUI framework |
+| **qt-material** | 2.14 | Material Design theme styles for the Qt UI |
+| **qtawesome** | 1.4.0 | Icon font integration (Font Awesome / Material) for the UI |
 | **requests** | 2.32.3 | HTTP library for update checking |
 | **tqdm** | 4.67.1 | Progress bar for loops and CLI operations |
 | **urllib3** | 2.2.3 | HTTP client (dependency of requests) |
-| **etcpak** | latest | GPU texture compression (BC1/BC3/BC7, ETC1/ETC2) |
 | **Wand** | 0.6.13 | Python binding for ImageMagick |
 
 ### Optional GPU Texture Compression Tools
@@ -327,7 +330,9 @@ magick --version
 If you prefer to compile your own Windows executable,
 use the provided Nuitka build script:
 
-1. Ensure you have Python 3.14+ installed (Visual Studio build tools are required).
+1. Ensure you have Python **3.14 or later** installed. The build script always installs/
+   upgrades to the latest Nuitka, which compiles 3.14 cleanly. Python 3.13 requires
+   Visual Studio (MSVC) — MinGW64 is not supported on 3.13.
 2. *(Optional)* Install Visual Studio with the following components for MSVC builds:
    - Windows 10 SDK (10.0.19041.0 or later)
    - MSVC v143 – VS 2022 C++ x64/x86 build tools
@@ -340,7 +345,7 @@ use the provided Nuitka build script:
    - Automatically install or upgrade Nuitka via pip.
    - Detect whether to use MSVC or MinGW64 (prompts you if both are available).
    - Ask for a version number to embed in the executable.
-   - Compile the application to `_build-output\Main.dist\`.
+   - Compile the application to `_build-output\dist\` as `TextureAtlasToolbox.exe`.
 
 > **Note:** This build script is provided as-is; the maintainer does not offer support for
 > build-related issues.
@@ -398,4 +403,4 @@ common issues. These solutions apply to both source and (where relevant) .exe ve
 
 ---
 
-*Last updated: December 6, 2025 — TextureAtlas Toolbox v2.0.0* 
+*Last updated: April 22, 2026 — TextureAtlas Toolbox v3.0.0*

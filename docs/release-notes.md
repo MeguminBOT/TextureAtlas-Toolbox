@@ -36,9 +36,8 @@ Release date: **TBD**
 
 ##### Highlights
 - **UI overhaul**: 
-    - App now works on 1280x720 screens.
-    - Polished UI layout
-    - Themes added (Clean, Material, Fluent, Windows 95, Windows XP) each with Light, Dark, and AMOLED variants
+    - **Screen-adaptive sizing**: Initial window dimensions scale to the user's display resolution down to 1280x720 as minimum.
+    - **Themes added:** (Clean, Material, Fluent, Windows 95, Windows XP) each with Light, Dark, and AMOLED variants
     - **Accent colour presets**: Eight accent colour options (Default, Blue, Purple, Green, Red, Orange, Pink, Teal) applied across all theme families
     - **Step-based setup wizard**: Three-step first-launch wizard (Language → What's New → Theme) with a live preview panel showing sample widgets that restyle in real-time
 
@@ -56,9 +55,13 @@ Release date: **TBD**
 - Feature: **EXIF metadata in WebP/AVIF**: Extracted WebP and AVIF frames now include EXIF metadata
 - Feature: **Hierarchical sprite name paths**: Support hierarchical sprite names (e.g. `folder/sprite`) in export paths, preserving directory structure
 - Feature: **Job progress window**: Dedicated batch-job progress tracking dialog
+- Feature: **Logger**: Added logging to text files for most things in the app for easier bug reporting.
+- Feature: **Drag-and-drop import**: Both Generator and Extractor tabs accept dropped files and folders. The Generator detects atlas + metadata pairs (auto-discovers sibling metadata in the source folder) and routes them through the existing-atlas import flow; folders are imported via the same scanner used by the "Add Folder" action; loose images prompt for a new spritesheet job vs. appending to the current one. The Extractor appends dropped items to the existing list (no clearing) and references files in place, skipping duplicates by display name. A translucent overlay with a centered hint label appears on drag-enter as a visual cue.
+- Feature: **Multi-select batch operations**:
+    - Generator's spritesheet/animation/frame tree gained `ExtendedSelection` with bulk delete via context menu and the Delete/Backspace key. A single confirmation prompt covers the whole selection; mixed selections of jobs/animations/frames are deduplicated so child items aren't deleted twice when their parent is also selected.
+    - Extractor's spritesheet and animation lists no longer collapse the multi-selection on right-click. Override-settings dialogs now apply the chosen settings to every selected spritesheet (or animation) in one step.
 
 ##### Enhancements
-- Enhancement: **Screen-adaptive sizing**: Initial window dimensions scale to the user's display resolution
 - Enhancement: **Extract tab tree overhaul**: Frame counts and stats displayed per-animation in the tree view
 - Enhancement: **Dialog consistency overhaul**: All dialog windows restyled for visual consistency across theme families
 - Enhancement: **Directory → Folder standardisation**: All user-facing strings changed from "directory" to "folder" for consistency
@@ -68,7 +71,9 @@ Release date: **TBD**
 - Enhancement: **JSON parser improvements**: JSON parsers now handle rotated dimensions, `frameTags`, and per-frame duration fields
 - Enhancement: **Path sanitization utilities**: New `sanitize_path_name` and `basename_from_sprite_name` helpers
 - Enhancement: **Frame signature accuracy**: Increase frame signature prefix from 512 to 2048 bytes for better deduplication
-
+- Enhancement: **Unified progress windows**: Generator atlas generation, atlas import, and folder import now stream their summary, warnings, and final status into a single `JobProgressWindow` instead of opening separate `QMessageBox` popups when complete. Folder import previously had no progress window at all; it now matches the atlas-import flow.
+- Enhancement: **More informative generator progress**: "Loading image N/M" messages are throttled (~20 updates total). When packing in automatic mode, the progress log surfaces every algorithm and heuristic the packer tries, the running best score, and the algorithm/heuristic ultimately selected.
+- Enhancement: **Rotation-impossible formats (UIKit plist, Godot, Egret2D, TXT)** now raise UNSUPPORTED_FORMAT instead of silently swapping width/height; capability set centralised so GUI/packer/exporters share one source of truth
 
 ##### Bugfixes
 - Bugfix: **Exporter spec compliance**: Spec-compliance fixes for Plist, Spine, and Aseprite exporters
@@ -94,6 +99,21 @@ Release date: **TBD**
 ##### Tweaks / Removals
 - Tweak: **CPU detection**: Grab CPU and thread count directly from registry as primary method, fallback to wmic
 - Removed: **In-app User Manual**: Remove in-app manual and link to GitHub docs.
+
+##### Atlas improvements
+- **Aseprite**: parser/exporter rewritten to spec; full round-trip of frameTags, layers, slices, and per-sprite duration; new strict-aseprite and json-array modes; rotation direction (90° CW) now documented in code
+- **Spine / libGDX .atlas**: rewritten to spec, both formats share one codepath; round-trips page metadata, modern and legacy region layouts, ninepatch data, custom name/value pairs, and multi-page atlases
+- **Adobe Animate spritemaps**: now reads every sibling spritemap*.json page (stock + BTA overflow); BTA extension auto-detected; ASI references cross-linked with unresolved names recorded as warnings
+- **Starling / Sparrow XML**: parser reads every documented SubTexture attribute including HaxeFlixel flipX/flipY; exporter gains pivot-propagation across animation strips for the Starling MovieClip convention
+- **JSON Hash / JSON Array**: new parse_file captures full meta block and frameTags; exporters can emit per-frame durations, frame tags, and arbitrary extra meta (related_multi_packs, smartupdate, etc.)
+- **Unity .tpsheet**: parser reads optional pivot columns and surfaces format/texture/size headers; exporter gains pivot_mode (always/never/auto) so a five-column source round-trips back to five columns
+- **CSS exporter**: trim now encoded via background-position (SpriteSmith/sprity/Glue convention); rotation uses transform-origin: 0 0 + translateY to stay in layout slot; legacy modes still selectable; round-trip comment read back by CSS parser
+- **TexturePacker XML**: parser captures root metadata and per-file attribute style; conflicting n/name pairs and unrecognised r= values now warn instead of disappearing; exporter chooses between short and long attribute names
+- **Paper2D**: pivot is now conditional via pivot_mode (always/never/auto); a no-pivot atlas round-trips back to no-pivot; parser only attaches per-sprite pivots when the source frame declared one
+- **TXT parser**: malformed lines now surface as warnings with line number and content instead of being dropped silently; legacy silent-skip helper preserved for compat
+- **CSS parser**: reads transform: rotate markers and SpriteSmith/Glue/sprity margin trim offsets; long-form background-image + background-position accepted alongside the shorthand
+- **Phaser 3**: rewritten to spec; all three schema variants (multi-atlas, JSONArray, JSONHash) are first-class with auto-detection, per-page tagging, and pivot/anchor decoding
+- **TexturePacker plist (Cocos2d-x)**: rewritten to spec; auto-detects all four format versions; aliases and polygon-mesh data round-trip losslessly; page metadata captured; name.png.png doubling bug fixed
 
 ##### Dependencies
 - Added: **etcpak** pip package for BC1/BC3/BC7/ETC1/ETC2 compression

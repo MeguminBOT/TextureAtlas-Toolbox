@@ -14,6 +14,7 @@ Complete guide for using TextureAtlas Toolbox to extract, generate, and edit tex
     -   [Extract Tab](#extract-tab)
     -   [Generate Tab](#generate-tab)
     -   [Editor Tab](#editor-tab)
+    -   [Optimize Tab](#optimize-tab)
 -   [Loading Texture Atlases](#loading-texture-atlases)
 -   [Basic Animation Export](#basic-animation-export)
 -   [Generating New Atlases](#generating-new-atlases)
@@ -31,6 +32,8 @@ Complete guide for using TextureAtlas Toolbox to extract, generate, and edit tex
       individual frames.
     - **Generate tab**: Build new atlases from loose frame images.
     - **Editor tab**: Manually align sprites and apply offset fixes.
+    - **Optimize tab**: Batch-compress / optimize PNG (and other image) files via presets or
+      custom quantization, dithering, and palette settings.
 4. Configure your settings and enjoy!
 
 ## First Launch Wizard
@@ -49,8 +52,8 @@ detected from your operating system colour scheme.
 
 ## Themes and Appearance
 
-TextureAtlas Toolbox ships with six theme families, each available in Light, Dark, and AMOLED
-variants (18 combinations):
+TextureAtlas Toolbox ships with five theme families, each available in Light, Dark, and AMOLED
+variants (15 combinations):
 
 | Family       | Description                                          |
 | ------------ | ---------------------------------------------------- |
@@ -143,6 +146,17 @@ The Generate tab creates new texture atlases from individual frame images or fro
 | Add Animation      | Create an empty animation group for manual frame assignment            |
 | Add Existing Atlas | Import frames from an existing atlas (image + XML/JSON/TXT data)       |
 | Clear Frames       | Remove all loaded frames                                               |
+
+> **Tip:** You can also drag-and-drop folders, atlas image + metadata pairs,
+> or loose images directly onto the Generate tab. Folders behave like
+> **Add Folder**, atlas+metadata pairs behave like **Add Existing Atlas**
+> (auto-discovering a sibling metadata file when only the image is dropped),
+> and loose images prompt whether to create a new spritesheet job or append
+> to the current one.
+>
+> **Multi-select:** the animation tree supports `Ctrl`/`Shift` selection
+> across jobs, animations, and frames. Right-click the selection or press
+> `Delete` to remove every selected item in one confirmation step.
 
 #### Packing Algorithms
 
@@ -249,6 +263,61 @@ The Editor tab provides an interactive alignment workspace for manual sprite adj
 -   **Save Overrides**: Store alignment data for use in the Extract tab.
 -   **Export Composite**: Create combined animations from multiple sources.
 
+### Optimize Tab
+
+The Optimize tab provides a batch image optimizer for compressing PNG / JPEG / BMP / TIFF /
+WebP files (`.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff`, `.tif`, `.webp`). It can also produce
+GPU-compressed textures (DDS / KTX2) alongside the optimized image.
+
+#### Main Components
+
+-   **File List** (left panel): Add individual files (**Add Files**), entire folders
+    (**Add Folder**), or **Clear** the queue. Each row shows the file, original size, and a
+    per-file status column (saved %, skipped, or error).
+-   **Preset Selector** (right panel): Pick a profile or fall back to **Custom**. Changing any
+    individual option automatically switches the preset to **Custom**.
+-   **Compression Group**: PNG deflate level (0–9), Pillow's optimize pass, strip metadata,
+    skip-if-larger, and target colour mode (Keep / RGBA / RGB / Grayscale + Alpha / Grayscale).
+-   **Quantization (Lossy) Group**: Optional palette reduction with selectable algorithm,
+    `max_colors` (2–256), and dithering method.
+-   **Output Group**: Toggle **Overwrite Originals** or pick an output folder.
+-   **GPU Texture Compression Group**: Optionally produce a BC1/BC3/BC7, ETC1/ETC2, ASTC, or
+    PVRTC texture in a DDS or KTX2 container, with optional mipmap generation.
+
+#### Presets
+
+| Preset                       | Behaviour                                                     |
+| ---------------------------- | ------------------------------------------------------------- |
+| Lossless (recompress only)   | Maximum deflate, no quantization, strip metadata              |
+| All Around                   | Quantize to 256 colours via Median Cut + Floyd–Steinberg      |
+| Pixel Art                    | Quantize via Fast Octree with **no** dithering                |
+| Heavy Transparency           | pngquant + Floyd–Steinberg, 256 colours                       |
+| Aggressive                   | pngquant + Floyd–Steinberg, **64** colours                    |
+| Custom                       | Manual control of every option                                |
+
+#### Quantization Methods
+
+`Median Cut`, `Max Coverage`, `Fast Octree` (all built into Pillow), `libimagequant`,
+`pngquant` (external CLI), and `ImageMagick` (requires Wand/ImageMagick).
+
+#### Dithering Methods
+
+`None`, `Floyd–Steinberg`, `Ordered (Bayer)`, `Blue Noise`, `Atkinson`, `Riemersma`.
+
+#### GPU Texture Formats
+
+| Format                   | Notes                                                |
+| ------------------------ | ---------------------------------------------------- |
+| BC1 / BC3 / BC7          | Provided by `etcpak` (bundled in `requirements.txt`) |
+| ETC1 / ETC2 (RGB / RGBA) | Provided by `etcpak`                                 |
+| ASTC 4×4 / 6×6 / 8×8     | Requires the external `astcenc` CLI tool             |
+| PVRTC 4bpp / 2bpp        | Requires the external `PVRTexToolCLI`                |
+
+GPU output containers: **DDS** (DirectDraw Surface) and **KTX2** (Khronos Texture 2).
+
+> **Note:** Optimized originals and any GPU-compressed textures are written next to each other
+> in the chosen output folder (or alongside the source when **Overwrite Originals** is on).
+
 ## Loading Texture Atlases
 
 ### Supported Input Formats
@@ -290,7 +359,7 @@ For texture atlass without metadata files, the application can extract sprites u
 -   **Color keying**: Remove solid background colors automatically
 -   **Grid-based slicing**: Divide image into equal-sized cells
 
-> ⚠️ **Adobe Animate Spritemaps**: These are significantly more memory-intensive than other
+> **Adobe Animate Spritemaps**: These are significantly more memory-intensive than other
 > formats. Expect higher RAM and CPU usage. See [Performance Notes](installation-guide.md#performance-notes)
 > for recommendations.
 
@@ -434,6 +503,13 @@ Apply custom settings to specific texture atlass or animations:
 
 -   **Override texture atlas Settings**: Right-click a texture atlas or use the button.
 -   **Override Animation Settings**: Right-click an animation for per-animation overrides.
+
+Both lists support `Ctrl`/`Shift` multi-select. Right-clicking a multi-selection
+keeps the whole selection intact, and choosing **Override Settings** applies
+the values you set to every selected texture atlas (or animation) in one step.
+Delete also operates on the entire selection. Folders and individual files can
+be dropped onto the Extract tab to append them to the existing list (existing
+entries are preserved; duplicates are skipped).
 
 Overrides persist across sessions and take precedence over global settings.
 
@@ -658,4 +734,4 @@ specialized workflows._
 
 ---
 
-_Last updated: December 6, 2025 — TextureAtlas Toolbox v2.0.0_
+_Last updated: April 22, 2026 — TextureAtlas Toolbox v3.0.0_

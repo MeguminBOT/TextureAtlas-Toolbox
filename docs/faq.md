@@ -4,21 +4,21 @@ Welcome to the TextureAtlas Toolbox FAQ! This guide helps you solve common issue
 our tool to extract and generate texture atlases, convert sprite sheets into animated GIFs, and
 export individual frames.
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Installation Issues](#-installation-issues)
-- [File Format Questions](#-file-format-questions)
-- [Export Problems](#-export-problems)
-- [Performance Issues](#-performance-issues)
-- [Friday Night Funkin' Questions](#-friday-night-funkin-questions)
-- [General Usage](#️-general-usage)
-- [Troubleshooting](#-troubleshooting)
-- [Getting More Help](#-getting-more-help)
+- [Installation Issues](#installation-issues)
+- [File Format Questions](#file-format-questions)
+- [Export Problems](#export-problems)
+- [Performance Issues](#performance-issues)
+- [Friday Night Funkin' Questions](#friday-night-funkin-questions)
+- [General Usage](#general-usage)
+- [Troubleshooting](#troubleshooting)
+- [Getting More Help](#getting-more-help)
 
 
-## 🔧 Installation Issues
+## Installation Issues
 *(Not applicable for .exe files)*
-If you encounter installation problems (such as Python not being recognized, missing packages, ImageMagick errors, or the application not starting), please see the [Installation Guide](installation-guide.md#-troubleshooting-installation) for detailed troubleshooting steps and solutions to common errors.
+If you encounter installation problems (such as Python not being recognized, missing packages, ImageMagick errors, or the application not starting), please see the [Installation Guide](installation-guide.md#troubleshooting-installation--common-errors) for detailed troubleshooting steps and solutions to common errors.
 
 This helps keep instructions up to date and avoids duplication. The installation guide covers:
 - Python not recognized or not found
@@ -30,7 +30,7 @@ This helps keep instructions up to date and avoids duplication. The installation
 If you still have trouble after following the installation guide, please open an issue on GitHub or see the rest of this FAQ for additional help.
 
 
-## 📄 File Format Questions
+## File Format Questions
 
 ### Q: What file types can I use with this tool?
 **A:** The tool supports both extraction and generation workflows:
@@ -62,7 +62,7 @@ If you still have trouble after following the installation guide, please open an
   Aseprite JSON, Spine Atlas, Phaser 3, CSS Spritesheet, TXT, Plist (Cocos2d), UIKit Plist,
   Godot (`.tpsheet`, `.tpset`), Egret2D, Paper2D, TexturePacker Unity (`.tpsheet`)
 
-## 📤 Export Problems
+## Export Problems
 
 ### Q: My GIFs are too large (file size)
 **A:** Try these tips to reduce file size:
@@ -94,7 +94,7 @@ If you still have trouble after following the installation guide, please open an
 - GIFs/WebP files are saved as `[animation_name].gif` or `[animation_name].webp`.
 - Check the output directory you selected in the program.
 
-## ⚡ Performance Issues
+## Performance Issues
 
 ### Q: Adobe Animate spritemap extraction is very slow or crashes
 **A:** Adobe Animate spritemaps (`Animation.json` + `sheet.json` pairs) require significantly
@@ -125,7 +125,7 @@ more memory and CPU than other formats. Try these solutions:
 - **Use your local drive**: Don't save to network or cloud drives.
 - **Increase or decrease CPU Threads**: Sometimes fewer threads work better, especially when you're memory-limited.
 
-## 🎵 Friday Night Funkin' Questions
+## Friday Night Funkin' Questions
 
 ### Q: My FNF character data isn't loading
 **A:** Check these things:
@@ -133,7 +133,7 @@ more memory and CPU than other formats. Try these solutions:
 - The image path in your file should match your actual sprite sheet file.
 - Your file must match the format for your engine (Kade/Psych/Codename).
 
-## 🛠️ General Usage
+## General Usage
 
 ### Q: What is GPU texture compression and when should I use it?
 **A:** GPU texture compression stores image data in a format that GPUs can decompress directly
@@ -177,6 +177,20 @@ this. A one-time informational dialog explains this on first use.
 4. Configure options like padding, power-of-two sizing, and deduplication.
 5. Click the generate button to create your atlas.
 
+### Q: How can I batch-optimize a folder of PNG files?
+**A:** Use the **Optimize** tab:
+1. Switch to the **Optimize** tab.
+2. Click **Add Files** or **Add Folder** to queue up `.png`, `.jpg`, `.jpeg`, `.bmp`,
+   `.tiff`, `.tif`, or `.webp` images.
+3. Pick a preset (e.g. **Lossless**, **All Around**, **Pixel Art**) or fine-tune the
+   compression, quantization, and dithering options manually (this switches the preset to
+   **Custom** automatically).
+4. Choose **Overwrite Originals** or pick an output folder.
+5. Optionally enable **GPU Texture Compression** to also export a DDS or KTX2 GPU texture
+   alongside each optimized image.
+6. Click **Optimize Images**. Progress and per-file savings are reported in the dedicated
+   progress window and in the file list status column.
+
 ### Q: How can I process multiple spritesheets not located in the same folder?
 **A:** See the answer to the previous question:
 - Anything you add with "Select files" will be added to the processing list.
@@ -201,7 +215,7 @@ this. A one-time informational dialog explains this on first use.
 - You can add new export options.
 - Share your improvements on GitHub.
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Q: The program freezes during export
 **A:** Try these solutions:
@@ -236,7 +250,7 @@ this. A one-time informational dialog explains this on first use.
 - Download the latest version manually from GitHub.
 - Replace all files with the manually downloaded update from GitHub.
 
-## 📞 Getting More Help
+## Getting More Help
 
 ### Still having problems?
 
@@ -265,4 +279,4 @@ this. A one-time informational dialog explains this on first use.
 
 ---
 
-*Last updated: December 6, 2025 — TextureAtlas Toolbox v2.0.0*
+*Last updated: April 22, 2026 — TextureAtlas Toolbox v3.0.0*
