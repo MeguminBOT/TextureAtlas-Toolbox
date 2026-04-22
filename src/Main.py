@@ -14,6 +14,11 @@ from typing import Optional
 # Fixes "DLL load failed" and "no qt platform plugin" errors on Windows,
 # especially in embedded-Python / portable builds.
 from utils.qt_environment import configure_qt_environment
+from utils.logger import setup_logging, get_logger
+
+# Initialize logging as early as possible so subsequent imports use it.
+setup_logging()
+logger = get_logger(__name__)
 
 configure_qt_environment()
 
@@ -87,6 +92,23 @@ from gui.first_start_dialog import (  # noqa: E402
 )
 
 
+def _format_status(status) -> str:
+    """Reduce a progress status (str or status dict) to a one-line summary.
+
+    The extractor emits rich status dicts containing per-worker state which
+    blow up DEBUG logs into hundreds of characters per tick. This helper
+    pulls just the human-readable summary so logs stay scannable.
+    """
+    if isinstance(status, dict):
+        return str(
+            status.get("summary")
+            or status.get("recent_display")
+            or status.get("fallback")
+            or f"<status keys={sorted(status)}>"
+        )
+    return str(status)
+
+
 class ExtractorWorker(QThread):
     """Worker thread for extraction process."""
 
@@ -110,31 +132,74 @@ class ExtractorWorker(QThread):
 
     def run(self):
         try:
-            print(
-                f"[ExtractorWorker] Starting extraction of {len(self.spritesheet_list)} files"
+            logger.info(
+                "[ExtractorWorker] Starting extraction of %d files",
+                len(self.spritesheet_list),
             )
             completion_message = self.app_instance.run_extractor_core(
                 self.spritesheet_list, self.emit_progress
             )
-            print(f"[ExtractorWorker] Extraction completed: {completion_message}")
+            logger.info(
+                "[ExtractorWorker] Extraction completed: %s", completion_message
+            )
             self.extraction_completed.emit(completion_message)
         except Exception as e:
-            print(f"[ExtractorWorker] Extraction failed: {str(e)}")
+            logger.exception("[ExtractorWorker] Extraction failed: %s", e)
             self.extraction_failed.emit(str(e))
 
     def emit_progress(self, current, total, status=""):
         """Thread-safe progress emission."""
-        print(f"[ExtractorWorker] Progress: {current}/{total} - {status}")
+        logger.debug(
+            "[ExtractorWorker] Progress: %s/%s - %s",
+            current,
+            total,
+            _format_status(status),
+        )
         self.progress_updated.emit(current, total, status)
 
     def emit_statistics(self, frames_generated, animations_generated, sprites_failed):
         """Thread-safe statistics emission."""
-        print(
-            f"[ExtractorWorker] Stats: F:{frames_generated}, A:{animations_generated}, S:{sprites_failed}"
+        logger.debug(
+            "[ExtractorWorker] Stats: F:%s, A:%s, S:%s",
+            frames_generated,
+            animations_generated,
+            sprites_failed,
         )
         self.statistics_updated.emit(
             frames_generated, animations_generated, sprites_failed
         )
+
+
+class BackgroundDetectionWorker(QThread):
+    """Worker thread for detecting background colors of unknown spritesheets.
+
+    Runs the I/O-heavy filesystem scans and PIL image analysis off the main
+    thread so the UI stays responsive while unknown spritesheets are scanned.
+
+    Signals:
+        detection_complete: Emitted with the list of detection-result dicts
+            when all images have been analysed.
+        detection_error: Emitted with an error string if detection fails.
+    """
+
+    detection_complete = Signal(list)  # list of detection result dicts
+    detection_error = Signal(str)
+
+    def __init__(self, handler, input_dir: str, spritesheet_list, path_map=None):
+        super().__init__()
+        self._handler = handler
+        self._input_dir = input_dir
+        self._spritesheet_list = spritesheet_list
+        self._path_map = path_map
+
+    def run(self):
+        try:
+            results = self._handler.collect_and_detect(
+                self._input_dir, self._spritesheet_list, self._path_map
+            )
+            self.detection_complete.emit(results)
+        except Exception as exc:
+            self.detection_error.emit(str(exc))
 
 
 class TextureAtlasToolboxApp(QMainWindow):
@@ -349,7 +414,7 @@ class TextureAtlasToolboxApp(QMainWindow):
         # Create the generate tab widget and pass the UI reference
         self.generate_tab_widget = GenerateTabWidget(self.ui, self)
 
-        print("[Startup] Generate tab initialized.")
+        logger.info("[Startup] Generate tab initialized.")
 
     def setup_editor_tab(self):
         """Add the editor tab for manual alignment workflows."""
@@ -373,7 +438,7 @@ class TextureAtlasToolboxApp(QMainWindow):
                 self.editor_tab_widget, self.tr("Editor")
             )
 
-        print("[Startup] Editor tab initialized.")
+        logger.info("[Startup] Editor tab initialized.")
 
     def setup_optimize_tab(self):
         """Add the Optimize tab for batch PNG compression / optimization."""
@@ -384,7 +449,7 @@ class TextureAtlasToolboxApp(QMainWindow):
             self.optimize_tab_widget, self.tr("Optimize")
         )
 
-        print("[Startup] Optimize tab initialized.")
+        logger.info("[Startup] Optimize tab initialized.")
 
     def update_dynamic_tab_labels(self):
         """Refresh translated titles for tabs that are added at runtime."""
@@ -469,7 +534,7 @@ class TextureAtlasToolboxApp(QMainWindow):
             self.extract_tab_widget.resampling_method_combobox
         )
 
-        print("[Startup] Extract tab initialized.")
+        logger.info("[Startup] Extract tab initialized.")
 
     def setup_gui(self):
         """Sets up the GUI components of the application."""
@@ -915,10 +980,10 @@ class TextureAtlasToolboxApp(QMainWindow):
                         self._prepare_for_update_shutdown(latest_version)
 
                 def on_no_update():
-                    print("No updates available.")
+                    logger.info("No updates available.")
 
                 def on_error(error_msg):
-                    print(f"Update check failed: {error_msg}")
+                    logger.error("Update check failed: %s", error_msg)
 
                 update_checker.check_for_updates_async(
                     parent_window=self,
@@ -928,7 +993,7 @@ class TextureAtlasToolboxApp(QMainWindow):
                 )
 
         except Exception as e:
-            print(f"Update check exception: {e}")
+            logger.exception("Update check exception: %s", e)
             if force:
                 QMessageBox.warning(
                     self,
@@ -959,7 +1024,7 @@ class TextureAtlasToolboxApp(QMainWindow):
         This is especially important for embedded Python builds where
         DLLs and .pyd files must be unlocked for the updater to replace them.
         """
-        print("Releasing resources for update...")
+        logger.info("Releasing resources for update...")
 
         # Clean up temp directories
         try:
@@ -971,14 +1036,14 @@ class TextureAtlasToolboxApp(QMainWindow):
             ):
                 shutil.rmtree(self.manual_selection_temp_dir, ignore_errors=True)
         except Exception as e:
-            print(f"Warning: Could not clean temp dirs: {e}")
+            logger.warning("Could not clean temp dirs: %s", e)
 
         # Save settings
         try:
             if hasattr(self, "app_config"):
                 self.app_config.save_settings()
         except Exception as e:
-            print(f"Warning: Could not save settings: {e}")
+            logger.warning("Could not save settings: %s", e)
 
         # Clear references to help garbage collection
         try:
@@ -989,18 +1054,18 @@ class TextureAtlasToolboxApp(QMainWindow):
             if hasattr(self, "fnf_character_data"):
                 self.fnf_character_data = None
         except Exception as e:
-            print(f"Warning: Could not clear references: {e}")
+            logger.warning("Could not clear references: %s", e)
 
         # Force garbage collection to release file handles
         gc.collect()
 
-        print("Resource cleanup complete.")
+        logger.info("Resource cleanup complete.")
 
     def _shutdown_for_update(self):
         """Forcefully close the application to allow the updater to run."""
         import time
 
-        print("Shutting down for update...")
+        logger.info("Shutting down for update...")
 
         # Clean up resources first
         self._cleanup_for_update()
@@ -1023,7 +1088,7 @@ class TextureAtlasToolboxApp(QMainWindow):
         # Final cleanup and exit
         gc.collect()
         time.sleep(0.5)
-        print("Force exiting application...")
+        logger.info("Force exiting application...")
         os._exit(0)
 
     def update_ui_state(self, *args):
@@ -1089,12 +1154,60 @@ class TextureAtlasToolboxApp(QMainWindow):
             settings_manager=self.settings_manager,
         )
         input_dir = self.extract_tab_widget.get_input_directory()
-        if temp_extractor._handle_unknown_spritesheets_background_detection(
-            input_dir, spritesheet_list, self
-        ):
-            # User cancelled background detection
+
+        # Reset batch state on the main thread before kicking off detection.
+        from gui.extractor.background_handler_window import BackgroundHandlerWindow
+
+        BackgroundHandlerWindow.reset_batch_state()
+
+        # Store state needed by the async completion handler.
+        self._pending_spritesheet_list = spritesheet_list
+        self._pending_unknown_handler = temp_extractor.unknown_handler
+
+        # Show a wait cursor so the user knows something is happening.
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+
+        # Run the heavy filesystem/PIL work on a background thread.
+        self._detection_worker = BackgroundDetectionWorker(
+            temp_extractor.unknown_handler,
+            input_dir,
+            spritesheet_list,
+            self.extract_tab_widget.get_spritesheet_path_map(),
+        )
+        self._detection_worker.detection_complete.connect(self._on_detection_complete)
+        self._detection_worker.detection_error.connect(self._on_detection_error)
+        self._detection_worker.start()
+
+    def _on_detection_complete(self, detection_results: list):
+        """Handle detection results on the main thread, then launch extraction."""
+        QApplication.restoreOverrideCursor()
+
+        spritesheet_list = getattr(self, "_pending_spritesheet_list", [])
+        unknown_handler = getattr(self, "_pending_unknown_handler", None)
+        if not spritesheet_list:
             return
 
+        # Show the background-options dialog if any images need it (main thread).
+        if unknown_handler is not None:
+            cancelled = unknown_handler.apply_detection_results(detection_results, self)
+            if cancelled:
+                return
+
+        self._launch_extraction(spritesheet_list)
+
+    def _on_detection_error(self, error_message: str):
+        """Handle a detection worker error; proceed with extraction anyway."""
+        QApplication.restoreOverrideCursor()
+        logger.warning(
+            "[BackgroundDetection] Detection error (proceeding anyway): %s",
+            error_message,
+        )
+        spritesheet_list = getattr(self, "_pending_spritesheet_list", [])
+        if spritesheet_list:
+            self._launch_extraction(spritesheet_list)
+
+    def _launch_extraction(self, spritesheet_list: list):
+        """Create the processing window and start the extraction worker."""
         # Create and show processing window
         self.processing_window = ProcessingWindow(self)
         self.processing_window.start_processing(len(spritesheet_list))
@@ -1119,35 +1232,48 @@ class TextureAtlasToolboxApp(QMainWindow):
     def run_extractor_core(self, spritesheet_list, progress_signal):
         """Core extraction logic (runs in worker thread)."""
         try:
-            print(f"[run_extractor_core] Starting with {len(spritesheet_list)} files")
+            logger.info(
+                "[run_extractor_core] Starting with %d files", len(spritesheet_list)
+            )
 
             # Create progress callback that emits signals to update UI
             def progress_callback(current, total, status=""):
-                print(f"[progress_callback] {current}/{total} - {status}")
+                logger.debug(
+                    "[progress_callback] %s/%s - %s",
+                    current,
+                    total,
+                    _format_status(status),
+                )
                 progress_signal(current, total, status)
 
             # Create statistics callback to track generation statistics
             def statistics_callback(
                 frames_generated, animations_generated, sprites_failed
             ):
-                print(
-                    f"[statistics_callback] F:{frames_generated}, A:{animations_generated}, S:{sprites_failed}"
+                logger.debug(
+                    "[statistics_callback] F:%s, A:%s, S:%s",
+                    frames_generated,
+                    animations_generated,
+                    sprites_failed,
                 )
                 if hasattr(self, "worker") and self.worker:
-                    print(
-                        f"[statistics_callback] Emitting to worker: F:{frames_generated}, A:{animations_generated}, S:{sprites_failed}"
+                    logger.debug(
+                        "[statistics_callback] Emitting to worker: F:%s, A:%s, S:%s",
+                        frames_generated,
+                        animations_generated,
+                        sprites_failed,
                     )
                     self.worker.emit_statistics(
                         frames_generated, animations_generated, sprites_failed
                     )
                 else:
-                    print(
+                    logger.debug(
                         "[statistics_callback] No worker available to emit statistics"
                     )
 
             # Create debug callback to send processing log updates
             def debug_callback(message):
-                print(f"[debug_callback] {message}")
+                logger.debug("[debug_callback] %s", message)
                 # Emit debug message through a new signal
                 if hasattr(self.worker, "debug_message"):
                     self.worker.debug_message.emit(message)
@@ -1169,24 +1295,29 @@ class TextureAtlasToolboxApp(QMainWindow):
             input_dir = self.extract_tab_widget.get_input_directory()
             output_dir = self.ui.output_dir_label.text()
 
-            print(f"[run_extractor_core] Input: {input_dir}, Output: {output_dir}")
+            logger.info(
+                "[run_extractor_core] Input: %s, Output: %s", input_dir, output_dir
+            )
+
+            path_map = self.extract_tab_widget.get_spritesheet_path_map()
 
             extractor.process_directory(
                 input_dir,
                 output_dir,
                 parent_window=self,
                 spritesheet_list=spritesheet_list,
+                path_map=path_map,
             )
 
             return "Extraction completed successfully!"
 
         except Exception as e:
-            print(f"[run_extractor_core] Error: {str(e)}")
+            logger.exception("[run_extractor_core] Error: %s", e)
             raise e
 
     def on_extraction_completed(self, completion_message):
         """Called when extraction completes successfully."""
-        print(f"[on_extraction_completed] {completion_message}")
+        logger.info("[on_extraction_completed] %s", completion_message)
         self.extract_tab_widget.set_processing_state(False)
 
         if hasattr(self, "processing_window"):
@@ -1194,40 +1325,48 @@ class TextureAtlasToolboxApp(QMainWindow):
 
     def on_extraction_failed(self, error_message):
         """Called when extraction fails."""
-        print(f"[on_extraction_failed] {error_message}")
+        logger.error("[on_extraction_failed] %s", error_message)
         self.extract_tab_widget.set_processing_state(False)
         if hasattr(self, "processing_window"):
             self.processing_window.processing_completed(False, error_message)
 
     def on_progress_updated(self, current, total, status):
         """Updates the processing window with progress information."""
-        print(f"[on_progress_updated] {current}/{total} - {status}")
+        logger.debug(
+            "[on_progress_updated] %s/%s - %s",
+            current,
+            total,
+            _format_status(status),
+        )
         if hasattr(self, "processing_window") and self.processing_window:
             self.processing_window.update_progress(current, total, status)
         else:
-            print("[on_progress_updated] No processing window available")
+            logger.debug("[on_progress_updated] No processing window available")
 
     def on_statistics_updated(
         self, frames_generated, animations_generated, sprites_failed
     ):
         """Updates the processing window with statistics information."""
-        print(
-            f"[on_statistics_updated] F:{frames_generated}, A:{animations_generated}, S:{sprites_failed}"
+        logger.debug(
+            "[on_statistics_updated] F:%s, A:%s, S:%s",
+            frames_generated,
+            animations_generated,
+            sprites_failed,
         )
         if hasattr(self, "processing_window") and self.processing_window:
             self.processing_window.update_statistics(
                 frames_generated, animations_generated, sprites_failed
             )
         else:
-            print("[on_statistics_updated] No processing window available")
+            logger.debug("[on_statistics_updated] No processing window available")
 
     def on_debug_message(self, message):
         """Handle debug messages from worker thread."""
-        print(f"[on_debug_message] {message}")
+        logger.debug("[on_debug_message] %s", message)
         if hasattr(self, "processing_window") and self.processing_window:
             self.processing_window.add_debug_message(message)
         else:
-            print("[on_debug_message] No processing window available")
+            logger.debug("[on_debug_message] No processing window available")
 
     def on_worker_error(self, title, message):
         """Handle error messages from worker thread."""
@@ -1553,12 +1692,12 @@ def run_updater(
     try:
         from utils.update_installer import QtUpdateDialog
     except ImportError:
-        print("Error: Qt components not available for updater dialog")
+        logger.error("Qt components not available for updater dialog")
         return
 
-    print("Starting update process...")
+    logger.info("Starting update process...")
     if wait_seconds > 0:
-        print(f"Waiting {wait_seconds} seconds for main app to close...")
+        logger.info("Waiting %d seconds for main app to close...", wait_seconds)
         time.sleep(wait_seconds)
 
     # Resolve update mode
@@ -1576,7 +1715,7 @@ def run_updater(
         UpdateMode.EMBEDDED: "embedded Python",
     }
     mode_label = mode_labels.get(update_mode, "unknown")
-    print(f"Update mode: {mode_label}")
+    logger.info("Update mode: %s", mode_label)
 
     # Check for metadata file passed via environment
     release_metadata = {}
@@ -1585,11 +1724,11 @@ def run_updater(
         try:
             with open(metadata_path, "r", encoding="utf-8") as f:
                 release_metadata = json.load(f)
-            print(f"Loaded release metadata from {metadata_path}")
+            logger.info("Loaded release metadata from %s", metadata_path)
             # Clean up after reading
             os.remove(metadata_path)
         except Exception as e:
-            print(f"Warning: Could not load metadata file: {e}")
+            logger.warning("Could not load metadata file: %s", e)
 
     # Create Qt application for the updater dialog
     app = QApplication.instance() or QApplication(sys.argv)
@@ -1615,19 +1754,16 @@ def run_updater(
 
     def _run_update():
         try:
-            print(f"[Worker Thread] Starting {mode_label} update...")
+            logger.info("[Worker Thread] Starting %s update...", mode_label)
             if update_mode == UpdateMode.EXECUTABLE:
                 updater.update_exe()
             elif update_mode == UpdateMode.EMBEDDED:
                 updater.update_embedded()
             else:
                 updater.update_source()
-            print("[Worker Thread] Update completed successfully")
+            logger.info("[Worker Thread] Update completed successfully")
         except Exception as err:
-            print(f"[Worker Thread] Error: {err}")
-            import traceback
-
-            traceback.print_exc()
+            logger.exception("[Worker Thread] Error: %s", err)
             dialog.log(f"Update process encountered an error: {err}", "error")
             dialog.allow_close()
         else:
@@ -1639,7 +1775,7 @@ def run_updater(
 
     # Show dialog and block until closed
     dialog.exec()
-    print("[Main Thread] Updater dialog closed")
+    logger.info("[Main Thread] Updater dialog closed")
 
 
 if __name__ == "__main__":
@@ -1685,12 +1821,9 @@ if __name__ == "__main__":
             )
         else:
             # Normal mode: run the main application
-            print("[Startup] Starting main application...")
+            logger.info("[Startup] Starting main application...")
             main()
 
     except Exception as e:
-        print(f"Fatal error during startup: {e}")
-        import traceback
-
-        traceback.print_exc()
+        logger.exception("Fatal error during startup: %s", e)
         sys.exit(1)
