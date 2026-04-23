@@ -482,13 +482,15 @@ class AnimationTreeWidget(QTreeWidget):
 
     @staticmethod
     def _format_frame_suffix(export_format: str, idx: int) -> str:
-        """Build the frame suffix using the numbering convention for *export_format*."""
+        """Build the frame suffix using the numbering convention for *export_format*.
+
+        Mirrors ``AtlasGenerator._format_sprite_name``; see that method for
+        the per-format rationale.
+        """
         if export_format == "starling-xml":
             return f"{idx:04d}"
-        if export_format in ("json-hash", "json-array"):
-            return f"_{idx + 1:02d}"
-        if export_format == "gdx":
-            return f"_{idx}"
+        if export_format == "aseprite":
+            return f" {idx}"
         return f"_{idx:04d}"
 
     def update_frame_numbering(self, group_item):

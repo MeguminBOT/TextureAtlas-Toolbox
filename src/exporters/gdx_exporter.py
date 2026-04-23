@@ -42,6 +42,10 @@ class GdxExportOptions:
             quadruple when ``False``.
         strict_spec: Suppress non-spec generator/packer/heuristic page
             lines.
+        strip_index_suffix: Strip the trailing ``_<digits>`` suffix
+            from region names whose ``index`` field matches, so an
+            animation strip shares a single base name (libGDX's
+            ``findRegions(name)`` convention). Defaults to True.
     """
 
     format: str = "RGBA8888"
@@ -51,6 +55,7 @@ class GdxExportOptions:
     pma: bool = False
     modern_format: bool = True
     strict_spec: bool = False
+    strip_index_suffix: bool = True
 
 
 @ExporterRegistry.register
@@ -84,6 +89,7 @@ class GdxExporter(SpineExporter):
                 pma=opts.pma,
                 modern_format=opts.modern_format,
                 strict_spec=opts.strict_spec,
+                strip_index_suffix=opts.strip_index_suffix,
             )
         if isinstance(opts, SpineExportOptions):
             return opts

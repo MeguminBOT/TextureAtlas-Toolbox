@@ -177,16 +177,28 @@ class AtlasGenerator:
     def _format_sprite_name(export_format: str, anim_name: str, idx: int) -> str:
         """Build a sprite name using the numbering convention for *export_format*.
 
-        Starling/Sparrow XML uses zero-padded 4-digit, no separator (walk0000).
-        TexturePacker JSON formats use underscore + 2-digit 1-based (walk_01).
-        All other formats fall back to underscore + 4-digit 0-based (walk_0000).
+        Conventions follow each format's reference exporter / parser:
+
+        * ``starling-xml`` — Starling/Sparrow strip animations: 4-digit
+          zero-padded with no separator (``walk0000``). Starling's
+          ``getTextures(prefix)`` strips trailing digits to group strips.
+        * ``aseprite`` — Aseprite CLI default ``--filename-format
+          '{title} {frame}'``: space + bare integer (``walk 0``).
+        * ``gdx`` / ``spine`` — libGDX/Spine atlas readers group regions
+          by their bare base name and rely on the per-region ``index:``
+          line for ordering. Internally we still need unique ids, so we
+          emit ``{name}_{idx:04d}`` and the exporter strips the suffix
+          on emit.
+        * Everything else (TexturePacker JSON hash/array, Phaser 3,
+          Cocos2D plist, UIKit plist, Godot, Unity, Egret2D, Paper2D,
+          TexturePacker XML, plain TXT, CSS) — TexturePacker's universal
+          default: underscore + 4-digit zero-padded, 0-based
+          (``walk_0000``).
         """
         if export_format == "starling-xml":
             return f"{anim_name}{idx:04d}"
-        if export_format in ("json-hash", "json-array"):
-            return f"{anim_name}_{idx + 1:02d}"
-        if export_format == "gdx":
-            return f"{anim_name}_{idx}"
+        if export_format == "aseprite":
+            return f"{anim_name} {idx}"
         return f"{anim_name}_{idx:04d}"
 
     @staticmethod

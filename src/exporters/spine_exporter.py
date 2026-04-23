@@ -241,15 +241,10 @@ class SpineExporter(BaseExporter):
                 f"  bounds: {packed.atlas_x}, {packed.atlas_y}, {atlas_w}, {atlas_h}"
             )
             is_trimmed = (
-                frame_x != 0
-                or frame_y != 0
-                or frame_w != width
-                or frame_h != height
+                frame_x != 0 or frame_y != 0 or frame_w != width or frame_h != height
             )
             if is_trimmed:
-                lines.append(
-                    f"  offsets: {-frame_x}, {-frame_y}, {frame_w}, {frame_h}"
-                )
+                lines.append(f"  offsets: {-frame_x}, {-frame_y}, {frame_w}, {frame_h}")
             if rotate_token != "false":
                 lines.append(f"  rotate: {rotate_token}")
             if int(index_val) >= 0:
