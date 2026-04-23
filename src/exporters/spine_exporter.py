@@ -39,6 +39,7 @@ Output example (modern)::
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -76,6 +77,15 @@ class SpineExportOptions:
             ``generator:``/``packer:``/``heuristic:``/``efficiency:``
             comment-style lines that some downstream tools treat as
             unknown page fields.
+        strip_index_suffix: When ``True`` (default), strip a trailing
+            ``_<digits>`` suffix from each region name before emit when
+            the sprite carries a non-negative ``index`` field. libGDX's
+            ``TextureAtlas.findRegions(name)`` groups regions by their
+            bare base name and uses the per-region ``index:`` line for
+            ordering, so an animation strip should share one base name
+            (``walk``) with index 0..N rather than padded names
+            (``walk_0000`` ... ``walk_000N``). Set to ``False`` to keep
+            unique-per-frame names instead.
     """
 
     format: str = "RGBA8888"
@@ -85,6 +95,10 @@ class SpineExportOptions:
     pma: bool = False
     modern_format: bool = True
     strict_spec: bool = False
+    strip_index_suffix: bool = True
+
+
+_INDEX_SUFFIX_RE = re.compile(r"_(\d+)$")
 
 
 @ExporterRegistry.register
@@ -212,18 +226,34 @@ class SpineExporter(BaseExporter):
         if index_val is None:
             index_val = -1
 
-        lines: List[str] = [sprite["name"]]
+        region_name = self._region_name(sprite["name"], int(index_val), opts)
+        lines: List[str] = [region_name]
 
         if opts.modern_format:
             # ``bounds: x, y, w, h`` and ``offsets: ox, oy, ow, oh``.
             # libGDX stores ``offset`` as the negative of our
-            # ``frameX``/``frameY``.
+            # ``frameX``/``frameY``. Per Spine 4.2 reference the
+            # ``offsets``/``rotate``/``index`` lines are omitted when
+            # they would carry their default (untrimmed / unrotated /
+            # ungrouped) values; this matches official Spine output
+            # and keeps atlases byte-identical to runtime exports.
             lines.append(
                 f"  bounds: {packed.atlas_x}, {packed.atlas_y}, {atlas_w}, {atlas_h}"
             )
-            lines.append(f"  offsets: {-frame_x}, {-frame_y}, {frame_w}, {frame_h}")
-            lines.append(f"  rotate: {rotate_token}")
-            lines.append(f"  index: {int(index_val)}")
+            is_trimmed = (
+                frame_x != 0
+                or frame_y != 0
+                or frame_w != width
+                or frame_h != height
+            )
+            if is_trimmed:
+                lines.append(
+                    f"  offsets: {-frame_x}, {-frame_y}, {frame_w}, {frame_h}"
+                )
+            if rotate_token != "false":
+                lines.append(f"  rotate: {rotate_token}")
+            if int(index_val) >= 0:
+                lines.append(f"  index: {int(index_val)}")
         else:
             lines.append(f"  rotate: {rotate_token}")
             lines.append(f"  xy: {packed.atlas_x}, {packed.atlas_y}")
@@ -256,6 +286,40 @@ class SpineExporter(BaseExporter):
                 lines.append(f"  {key}: {formatted}")
 
         return lines
+
+    @staticmethod
+    def _region_name(name: str, index: int, opts: SpineExportOptions) -> str:
+        """Return the region name to emit for a sprite.
+
+        libGDX's ``TextureAtlas.findRegions(name)`` groups regions by
+        their bare base name and orders them by the per-region
+        ``index:`` line. When the upstream pipeline has assigned a
+        unique-per-frame name (``walk_0000``) plus a non-negative
+        ``index`` field, we strip the trailing ``_<digits>`` so the
+        emitted atlas matches libGDX's grouping convention.
+
+        Args:
+            name: The sprite name as it arrives from the packer.
+            index: The per-region index (``-1`` means "no index").
+            opts: Format options carrying the strip toggle.
+
+        Returns:
+            The region name to write to the atlas file.
+        """
+        if not opts.strip_index_suffix or index < 0:
+            return name
+        match = _INDEX_SUFFIX_RE.search(name)
+        if match is None:
+            return name
+        # Only strip when the trailing digits match the index value;
+        # this protects sprite names that legitimately end in digits
+        # unrelated to the libGDX grouping (e.g. ``UI_404``).
+        try:
+            if int(match.group(1)) != index:
+                return name
+        except ValueError:
+            return name
+        return name[: match.start()] or name
 
     @staticmethod
     def _format_rotate(rotated: bool, degrees: Any) -> str:
