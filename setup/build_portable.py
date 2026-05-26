@@ -39,7 +39,7 @@ from pathlib import Path
 from typing import Optional
 
 # Configuration
-DEFAULT_PYTHON_VERSION = "3.14.0"
+DEFAULT_PYTHON_VERSION = "3.14.5"
 PYTHON_EMBED_URL_TEMPLATE = (
     "https://www.python.org/ftp/python/{version}/python-{version}-embed-amd64.zip"
 )
