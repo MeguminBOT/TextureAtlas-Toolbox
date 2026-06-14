@@ -6,9 +6,10 @@ on:
 env:
   PYTHON_VERSION: '3.14'
   EMBEDDED_PYTHON_VERSION: '3.14.6'
-  # python-build-standalone release tag for the bundled Unix runtimes.
-  # Leave empty to always pull the latest release; pin for reproducible builds.
-  PBS_TAG: '20260610'
+  # python-build-standalone release tag for the bundled Unix runtimes. Inherited
+  # by every job's run steps as a real env var, which build_portable.py reads.
+  # Leave empty ('') to always pull the latest release; pin for reproducible builds.
+  PBS_RELEASE_TAG: '20260610'
   PYTHONUNBUFFERED: '1'
 
 jobs:
@@ -51,10 +52,10 @@ jobs:
             arch: arm64
     runs-on: ${{ matrix.runner }}
     env:
-      # Used by build_portable.py to avoid GitHub API rate limits when resolving
-      # the latest python-build-standalone release, and to pin the runtime tag.
+      # Avoids GitHub API rate limits when resolving the latest
+      # python-build-standalone release. (PBS_RELEASE_TAG is inherited from the
+      # workflow-level env above.)
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      PBS_RELEASE_TAG: ${{ env.PBS_TAG }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.2
@@ -120,7 +121,6 @@ jobs:
     runs-on: ${{ matrix.runner }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      PBS_RELEASE_TAG: ${{ env.PBS_TAG }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.2
