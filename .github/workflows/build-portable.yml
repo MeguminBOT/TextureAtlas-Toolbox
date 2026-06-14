@@ -5,7 +5,10 @@ on:
 
 env:
   PYTHON_VERSION: '3.14'
-  EMBEDDED_PYTHON_VERSION: '3.14.5'
+  EMBEDDED_PYTHON_VERSION: '3.14.6'
+  # python-build-standalone release tag for the bundled Unix runtimes.
+  # Leave empty to always pull the latest release; pin for reproducible builds.
+  PBS_TAG: '20260610'
   PYTHONUNBUFFERED: '1'
 
 jobs:
@@ -38,7 +41,20 @@ jobs:
           if-no-files-found: error
 
   build-linux:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: x64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    env:
+      # Used by build_portable.py to avoid GitHub API rate limits when resolving
+      # the latest python-build-standalone release, and to pin the runtime tag.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PBS_RELEASE_TAG: ${{ env.PBS_TAG }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.2
@@ -70,15 +86,41 @@ jobs:
           bash -n "$DIST/setup.sh"
           echo "setup.sh OK"
 
+      - name: Verify bundled Python is self-contained
+        run: |
+          set -e
+          DIST="_build-output/portable/TextureAtlas Toolbox"
+          PY="$DIST/python/bin/python3"
+          test -x "$PY" || { echo "bundled python missing"; exit 1; }
+          # Must run and import compiled, libpython-linked deps from its final path.
+          QT_QPA_PLATFORM=offscreen "$PY" - <<'PYCODE'
+          import sys
+          print("bundled python:", sys.version.split()[0], "prefix:", sys.prefix)
+          import PySide6.QtCore, numpy, PIL.Image  # compiled extensions
+          print("PySide6:", PySide6.__version__, "numpy:", numpy.__version__)
+          print("self-contained runtime OK")
+          PYCODE
+
       - name: Upload Linux distribution
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: TextureAtlasToolbox-linux-x64-embedded-python-v${{ steps.version.outputs.version }}
+          name: TextureAtlasToolbox-linux-${{ matrix.arch }}-embedded-python-v${{ steps.version.outputs.version }}
           path: _build-output/portable/TextureAtlas Toolbox/
           if-no-files-found: error
 
   build-macos:
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14   # Apple Silicon (arm64)
+            arch: arm64
+          - runner: macos-13   # Intel (x86_64)
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PBS_RELEASE_TAG: ${{ env.PBS_TAG }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.2
@@ -105,9 +147,26 @@ jobs:
           bash -n "$DIST/setup.sh"
           echo "setup.sh OK"
 
+      - name: Verify bundled Python is self-contained
+        run: |
+          set -e
+          DIST="_build-output/portable/TextureAtlas Toolbox"
+          PY="$DIST/python/bin/python3"
+          test -x "$PY" || { echo "bundled python missing"; exit 1; }
+          # Clear the Gatekeeper quarantine bit the same way end users must, then
+          # confirm the interpreter runs and loads compiled deps from its path.
+          xattr -dr com.apple.quarantine "$DIST" || true
+          QT_QPA_PLATFORM=offscreen "$PY" - <<'PYCODE'
+          import sys
+          print("bundled python:", sys.version.split()[0], "prefix:", sys.prefix)
+          import PySide6.QtCore, numpy, PIL.Image  # compiled extensions
+          print("PySide6:", PySide6.__version__, "numpy:", numpy.__version__)
+          print("self-contained runtime OK")
+          PYCODE
+
       - name: Upload macOS distribution
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: TextureAtlasToolbox-mac-x64-embedded-python-v${{ steps.version.outputs.version }}
+          name: TextureAtlasToolbox-mac-${{ matrix.arch }}-embedded-python-v${{ steps.version.outputs.version }}
           path: _build-output/portable/TextureAtlas Toolbox/
           if-no-files-found: error

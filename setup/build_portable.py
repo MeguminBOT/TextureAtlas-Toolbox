@@ -26,11 +26,14 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import time
 import urllib.request
@@ -39,11 +42,31 @@ from pathlib import Path
 from typing import Optional
 
 # Configuration
-DEFAULT_PYTHON_VERSION = "3.14.5"
+DEFAULT_PYTHON_VERSION = "3.14.0"
 PYTHON_EMBED_URL_TEMPLATE = (
     "https://www.python.org/ftp/python/{version}/python-{version}-embed-amd64.zip"
 )
 GET_PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
+
+# python.org only ships a self-contained "embeddable" build for Windows. For
+# macOS/Linux the standard equivalent is python-build-standalone (the same
+# relocatable CPython builds used by uv and Rye). A plain `venv.create()` is NOT
+# portable on Unix: its pyvenv.cfg hardcodes the build machine's interpreter
+# path, so the bundled python only runs on a machine that already has that exact
+# Python installed.
+PBS_REPO = "astral-sh/python-build-standalone"
+PBS_LATEST_API = f"https://api.github.com/repos/{PBS_REPO}/releases/latest"
+PBS_ASSET_TEMPLATE = (
+    f"https://github.com/{PBS_REPO}/releases/download/"
+    "{tag}/cpython-{version}+{tag}-{triple}-install_only.tar.gz"
+)
+# (os_id, arch_id) -> python-build-standalone target triple
+PBS_TRIPLES = {
+    ("mac", "arm64"): "aarch64-apple-darwin",
+    ("mac", "x64"): "x86_64-apple-darwin",
+    ("linux", "arm64"): "aarch64-unknown-linux-gnu",
+    ("linux", "x64"): "x86_64-unknown-linux-gnu",
+}
 
 # Files and folders to include in the distribution
 INCLUDE_FOLDERS = ["src", "assets", "docs", "ImageMagick"]
@@ -103,12 +126,16 @@ class PortableBuilder:
         python_version: str = DEFAULT_PYTHON_VERSION,
         verbose: bool = True,
         no_archive: bool = False,
+        pbs_tag: Optional[str] = None,
     ):
         self.project_root = project_root
         self.output_dir = output_dir
         self.python_version = python_version
         self.verbose = verbose
         self.no_archive = no_archive
+        # Optional pin for the python-build-standalone release tag (Unix builds).
+        # When None, the latest release is resolved at build time.
+        self.pbs_tag = pbs_tag or os.environ.get("PBS_RELEASE_TAG")
 
         # Get app version and build asset name
         self.app_version = get_app_version(project_root)
@@ -923,14 +950,14 @@ pause
 
         dist_path.mkdir(parents=True, exist_ok=True)
 
-        # Step 1: Create virtual environment with system Python
-        self.log_step(1, total_steps, "Creating Python virtual environment")
-        venv_path = dist_path / "python"
-        self._create_venv(venv_path)
+        # Step 1: Download self-contained, relocatable CPython runtime
+        self.log_step(1, total_steps, "Downloading standalone Python runtime")
+        python_dir = dist_path / "python"
+        self._download_standalone_python(python_dir)
 
-        # Step 2: Install requirements
+        # Step 2: Install requirements into the bundled runtime
         self.log_step(2, total_steps, "Installing required packages")
-        self._install_requirements_unix(venv_path)
+        self._install_requirements_unix(python_dir)
 
         # Step 3: Copy application files
         self.log_step(3, total_steps, "Copying application files")
@@ -969,27 +996,107 @@ pause
 
             return dist_path
 
-    def _create_venv(self, venv_path: Path) -> None:
-        """Create a virtual environment."""
-        import venv
+    def _github_latest_release(self) -> dict:
+        """Fetch the latest python-build-standalone release metadata."""
+        req = urllib.request.Request(
+            PBS_LATEST_API, headers={"Accept": "application/vnd.github+json"}
+        )
+        token = os.environ.get("GITHUB_TOKEN")
+        if token:
+            req.add_header("Authorization", f"Bearer {token}")
+        with urllib.request.urlopen(req) as resp:
+            return json.load(resp)
 
-        self.log(f"Creating venv at: {venv_path}")
-        self.log("This may take a moment...")
-        try:
-            venv.create(venv_path, with_pip=True, clear=True)
-            self.log("Virtual environment created successfully")
-        except Exception as e:
-            self.log(f"venv.create failed: {e}")
-            raise
+    def _resolve_pbs_url(self, triple: str) -> str:
+        """Resolve the download URL for a relocatable CPython matching this build.
+
+        If a tag is pinned (--pbs-tag / PBS_RELEASE_TAG), build the URL directly
+        from python_version + tag. Otherwise query the latest release and pick the
+        highest patch release matching the requested X.Y series and target triple.
+        """
+        if self.pbs_tag:
+            return PBS_ASSET_TEMPLATE.format(
+                tag=self.pbs_tag, version=self.python_version, triple=triple
+            )
+
+        series = ".".join(self.python_version.split(".")[:2])  # e.g. "3.14"
+        self.log("Resolving latest python-build-standalone release...")
+        data = self._github_latest_release()
+        pattern = re.compile(
+            rf"^cpython-{re.escape(series)}\.(\d+)\+\d+-{re.escape(triple)}"
+            r"-install_only\.tar\.gz$"
+        )
+        matches = [
+            (int(m.group(1)), a["browser_download_url"])
+            for a in data.get("assets", [])
+            for m in [pattern.match(a["name"])]
+            if m
+        ]
+        if not matches:
+            raise RuntimeError(
+                f"No python-build-standalone asset for {series}.x / {triple} "
+                f"in release {data.get('tag_name')}"
+            )
+        best_url = max(matches, key=lambda t: t[0])[1]
+        self.log(f"Selected runtime: {best_url.rsplit('/', 1)[-1]}")
+        return best_url
+
+    def _download_standalone_python(self, python_dir: Path) -> None:
+        """Download and unpack a self-contained, relocatable CPython.
+
+        Replaces the old venv.create() approach. python-build-standalone
+        'install_only' tarballs ship their own libpython + stdlib and extract to
+        a top-level 'python/' prefix, so <python_dir>/bin/python3 runs on any
+        machine of the matching OS/arch without a system Python present.
+        """
+        triple = PBS_TRIPLES.get((self.os_id, self.arch_id))
+        if triple is None:
+            raise RuntimeError(
+                f"No standalone Python target for {self.os_id}-{self.arch_id}"
+            )
+
+        url = self._resolve_pbs_url(triple)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            tarball = tmp_path / "python-standalone.tar.gz"
+            self.download_file(url, tarball)
+
+            self.log("Extracting standalone Python...")
+            extract_root = tmp_path / "extracted"
+            extract_root.mkdir()
+            with tarfile.open(tarball, "r:gz") as tf:
+                tf.extractall(extract_root)
+
+            src_prefix = extract_root / "python"
+            if not (src_prefix / "bin" / "python3").exists():
+                raise RuntimeError("Unexpected python-build-standalone layout")
+
+            if python_dir.exists():
+                shutil.rmtree(python_dir)
+            shutil.move(str(src_prefix), str(python_dir))
+
+        # Relocation sanity check: the interpreter must run from its new path.
+        py = python_dir / "bin" / "python3"
+        py.chmod(0o755)
+        result = subprocess.run(
+            [str(py), "-c", "import sys; print(sys.version.split()[0])"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            print(f"STDERR: {result.stderr}", flush=True)
+            raise RuntimeError("Bundled standalone Python failed to run")
+        self.log(f"Standalone Python ready: {result.stdout.strip()}")
 
     def _install_requirements_unix(self, venv_path: Path) -> None:
-        """Install requirements in Unix virtual environment."""
+        """Install requirements into the bundled (standalone) Python runtime."""
         if platform.system() == "Windows":
-            pip_exe = venv_path / "Scripts" / "pip.exe"
+            python_exe = venv_path / "Scripts" / "python.exe"
             site_packages = venv_path / "Lib" / "site-packages"
         else:
-            pip_exe = venv_path / "bin" / "pip"
-            # Find site-packages in Unix venv (e.g., lib/python3.14/site-packages)
+            python_exe = venv_path / "bin" / "python3"
+            # Find site-packages in the runtime (e.g. lib/python3.14/site-packages)
             lib_dir = venv_path / "lib"
             site_packages = None
             if lib_dir.exists():
@@ -1003,7 +1110,15 @@ pause
         self.log(f"Installing packages from: {requirements_path}")
 
         result = subprocess.run(
-            [str(pip_exe), "install", "-r", str(requirements_path)],
+            [
+                str(python_exe),
+                "-m",
+                "pip",
+                "install",
+                "--no-warn-script-location",
+                "-r",
+                str(requirements_path),
+            ],
             capture_output=True,
             text=True,
         )
@@ -1780,6 +1895,13 @@ def main():
         action="store_true",
         help="Skip creating ZIP/7z/tar.gz archives (useful for CI where artifacts are uploaded directly)",
     )
+    parser.add_argument(
+        "--pbs-tag",
+        default=None,
+        help="Pin the python-build-standalone release tag for Unix builds "
+        "(e.g. 20260610). Defaults to the latest release. Can also be set via "
+        "the PBS_RELEASE_TAG env var.",
+    )
 
     args = parser.parse_args()
 
@@ -1817,6 +1939,7 @@ def main():
         python_version=args.python_version,
         verbose=not args.quiet,
         no_archive=args.no_archive,
+        pbs_tag=args.pbs_tag,
     )
 
     print(f"  Archive name: {builder.archive_name}", flush=True)
