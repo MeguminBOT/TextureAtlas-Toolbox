@@ -13,6 +13,18 @@ Modules:
 
 Exports:
     AdobeSpritemapRenderer: Main entry point for rendering spritemap animations.
+    discover_spritemap_pages: List every ``spritemap*.json`` page in a folder.
+    is_secondary_spritemap_page: Identify follow-on pages of a multi-page set.
 """
 
-from .renderer import AdobeSpritemapRenderer
+from .renderer import (
+    AdobeSpritemapRenderer,
+    discover_spritemap_pages,
+    is_secondary_spritemap_page,
+)
+
+__all__ = [
+    "AdobeSpritemapRenderer",
+    "discover_spritemap_pages",
+    "is_secondary_spritemap_page",
+]

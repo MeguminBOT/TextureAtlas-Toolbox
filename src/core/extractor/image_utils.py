@@ -11,7 +11,8 @@ Type Aliases:
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple, Union
+from collections.abc import Sequence as _SequenceABC
+from typing import List, NamedTuple, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from PIL import Image
@@ -76,17 +77,308 @@ def scale_image_nearest(image: Image.Image, size: float) -> Image.Image:
     return scale_image(image, size, resampling_method="Nearest")
 
 
-def pad_frames_to_canvas(images: Sequence[FrameSource]) -> List[np.ndarray]:
+#: Where a tight frame sits on the shared canvas:
+#: ``(offset_x, offset_y, canvas_width, canvas_height)``.
+Placement = Tuple[int, int, int, int]
+
+
+class FramePlacement(NamedTuple):
+    """Frame metadata marking a tight crop's spot on a shared canvas.
+
+    Emitted as a frame tuple's third element by the spritemap renderer.
+    It is a distinct type rather than a plain tuple on purpose: atlas-based
+    frames put ``(x, y, width, height, frameX, frameY)`` in that same slot,
+    where ``(x, y)`` is a position *in the source atlas*. Reading one as the
+    other would silently mis-place every frame, so consumers must test
+    ``isinstance(metadata, FramePlacement)`` rather than sniff the shape.
+
+    The six fields keep it interchangeable with the legacy bounds tuple for
+    code that only cares about the frame's width and height.
+    """
+
+    offset_x: int
+    offset_y: int
+    canvas_width: int
+    canvas_height: int
+    pad_x: int = 0
+    pad_y: int = 0
+
+    def placement(self) -> Placement:
+        """Return the ``(offset_x, offset_y, canvas_w, canvas_h)`` tuple."""
+        return (
+            self.offset_x,
+            self.offset_y,
+            self.canvas_width,
+            self.canvas_height,
+        )
+
+
+def place_on_canvas(array: np.ndarray, placement: Placement) -> np.ndarray:
+    """Blit a tight frame onto a transparent canvas at its recorded offset.
+
+    Args:
+        array: Tight RGBA frame.
+        placement: ``(offset_x, offset_y, canvas_width, canvas_height)``.
+
+    Returns:
+        RGBA array of canvas size with *array* composited at its offset.
+    """
+    offset_x, offset_y, canvas_width, canvas_height = placement
+    channels = array.shape[2] if array.ndim >= 3 else 1
+    canvas_width = max(1, int(canvas_width))
+    canvas_height = max(1, int(canvas_height))
+
+    if (
+        int(offset_x) == 0
+        and int(offset_y) == 0
+        and array.shape[1] == canvas_width
+        and array.shape[0] == canvas_height
+    ):
+        return array
+
+    canvas = np.zeros((canvas_height, canvas_width, channels), dtype=np.uint8)
+
+    src_left = max(0, -int(offset_x))
+    src_top = max(0, -int(offset_y))
+    dst_left = max(0, int(offset_x))
+    dst_top = max(0, int(offset_y))
+    width = min(array.shape[1] - src_left, canvas_width - dst_left)
+    height = min(array.shape[0] - src_top, canvas_height - dst_top)
+    if width > 0 and height > 0:
+        canvas[dst_top : dst_top + height, dst_left : dst_left + width] = array[
+            src_top : src_top + height, src_left : src_left + width
+        ]
+    return canvas
+
+
+#: A frame must exceed this multiple of the p90 frame area to count as an
+#: oversized outlier rather than ordinary animation content.
+OUTLIER_AREA_RATIO = 4.0
+
+#: Outlier exclusion needs enough frames for the percentile to mean anything.
+OUTLIER_MIN_FRAMES = 8
+
+#: Refuse to treat outliers as such once they stop being a rare exception.
+OUTLIER_MAX_FRACTION = 0.1
+
+
+def union_excluding_outliers(
+    boxes: Sequence[Tuple[int, int, int, int]],
+) -> Optional[Tuple[int, int, int, int]]:
+    """Union *boxes*, ignoring the rare frame that dwarfs all the others.
+
+    Adobe/BTA exports often end on a packing frame that parks every symbol
+    on the stage at once purely so the exporter includes them in the atlas.
+    That single frame is 10x the size of real content, and letting it into
+    the union forces every other frame onto an enormous shared canvas.
+
+    Only frames that are *individually* oversized are dropped. An animation
+    whose content travels across the stage has a large union but no outlier
+    frame, so it correctly keeps its full canvas — otherwise its frames
+    would no longer line up.
+
+    Args:
+        boxes: ``(left, top, right, bottom)`` for each non-empty frame.
+
+    Returns:
+        The union box, or ``None`` when *boxes* is empty.
+    """
+    if not boxes:
+        return None
+
+    def union_of(selection: Sequence[Tuple[int, int, int, int]]):
+        return (
+            min(box[0] for box in selection),
+            min(box[1] for box in selection),
+            max(box[2] for box in selection),
+            max(box[3] for box in selection),
+        )
+
+    if len(boxes) < OUTLIER_MIN_FRAMES:
+        return union_of(boxes)
+
+    areas = sorted((box[2] - box[0]) * (box[3] - box[1]) for box in boxes)
+    reference = areas[int(0.9 * (len(areas) - 1))]
+    if reference <= 0:
+        return union_of(boxes)
+
+    limit = reference * OUTLIER_AREA_RATIO
+    kept = [box for box in boxes if (box[2] - box[0]) * (box[3] - box[1]) <= limit]
+
+    dropped = len(boxes) - len(kept)
+    if not kept or dropped > len(boxes) * OUTLIER_MAX_FRACTION:
+        return union_of(boxes)
+    return union_of(kept)
+
+
+def resolve_frame_placements(frames: List[Tuple[str, FrameSource, object]]) -> bool:
+    """Give an animation's frames a canvas sized to their real content.
+
+    The spritemap renderer emits each frame trimmed to the pixels that
+    actually drew, tagged with its absolute canvas-space origin and an
+    unresolved (zero-sized) canvas. Only once every frame exists is the true
+    extent known — so this walks the finished list, takes the union of the
+    trimmed boxes, and rewrites each placement relative to it.
+
+    Sizing from drawn pixels rather than from the geometric bounds means
+    sprites that are referenced but never visible (placed off-canvas, fully
+    masked, alpha'd to nothing) no longer inflate the output.
+
+    Args:
+        frames: List of ``(name, image, metadata)`` tuples, modified in
+            place. Entries whose metadata is not an unresolved
+            ``FramePlacement`` are left alone.
+
+    Returns:
+        ``True`` if any frame contained visible pixels. ``False`` means the
+        animation rendered empty and should be skipped rather than exported
+        as a run of blank frames.
+    """
+    indices = [
+        index
+        for index, frame in enumerate(frames)
+        if isinstance(frame[2], FramePlacement) and frame[2].canvas_width == 0
+    ]
+    if not indices:
+        return True
+
+    boxes: List[Tuple[int, int, int, int]] = []
+    for index in indices:
+        _, image, placement = frames[index]
+        width, height = frame_dimensions(image)
+        # Frames that never drew are 1x1 placeholders at the origin; they
+        # must not drag the canvas towards (0, 0).
+        if width <= 1 and height <= 1:
+            continue
+        left, top = placement.offset_x, placement.offset_y
+        boxes.append((left, top, left + width, top + height))
+
+    extent = union_excluding_outliers(boxes)
+    if extent is None:
+        return False
+
+    min_x, min_y, max_x, max_y = extent
+    canvas_width = max(1, int(max_x - min_x))
+    canvas_height = max(1, int(max_y - min_y))
+
+    for index in indices:
+        name, image, placement = frames[index]
+        width, height = frame_dimensions(image)
+        if width <= 1 and height <= 1:
+            resolved = FramePlacement(0, 0, canvas_width, canvas_height)
+        else:
+            resolved = FramePlacement(
+                int(placement.offset_x - min_x),
+                int(placement.offset_y - min_y),
+                canvas_width,
+                canvas_height,
+            )
+        frames[index] = (name, image, resolved)
+
+    return True
+
+
+def materialize_frame(frame: FrameSource, metadata) -> np.ndarray:
+    """Return a frame at its full canvas size, expanding a tight crop.
+
+    Spritemap frames are stored cropped to their own content. Anything that
+    needs frames in a shared coordinate space — cross-frame bounding boxes,
+    uniform file output — must expand them first. Frames without a
+    ``FramePlacement`` are returned unchanged.
+
+    Args:
+        frame: PIL Image or NumPy array.
+        metadata: The frame tuple's third element.
+
+    Returns:
+        RGBA NumPy array at canvas size when a placement applies.
+    """
+    array = ensure_rgba_array(frame)
+    if not isinstance(metadata, FramePlacement):
+        return array
+    if metadata.canvas_width <= 0 or metadata.canvas_height <= 0:
+        return array
+    return place_on_canvas(array, metadata.placement())
+
+
+class LazyPaddedFrames(_SequenceABC):
+    """Sequence of tight frames that expands to full canvas size on access.
+
+    Rendered spritemap frames are stored cropped to their own content, which
+    is typically a small fraction of the animation's union canvas. Exporters
+    need uniformly sized frames, but they consume them one at a time — so the
+    full-size array is built on ``__getitem__`` and dropped as soon as the
+    caller releases it. Peak memory becomes ``sum(tight frames) + 1 canvas``
+    instead of ``count * canvas``.
+
+    Assigning ``None`` to an index releases that frame's stored pixels, which
+    is how the animation exporter frees as it encodes.
+    """
+
+    __slots__ = ("_frames", "_placements")
+
+    def __init__(
+        self,
+        frames: Sequence[FrameSource],
+        placements: Sequence[Optional[Placement]],
+    ) -> None:
+        self._frames: List[Optional[FrameSource]] = list(frames)
+        self._placements: List[Optional[Placement]] = list(placements)
+        while len(self._placements) < len(self._frames):
+            self._placements.append(None)
+
+    def __len__(self) -> int:
+        return len(self._frames)
+
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return [self[i] for i in range(*index.indices(len(self._frames)))]
+        frame = self._frames[index]
+        if frame is None:
+            return None
+        placement = self._placements[index]
+        array = ensure_rgba_array(frame)
+        if placement is None:
+            return array
+        return place_on_canvas(array, placement)
+
+    def __setitem__(self, index, value) -> None:
+        self._frames[index] = value
+        if value is None:
+            self._placements[index] = None
+
+    def tight_frame(self, index: int) -> Optional[FrameSource]:
+        """Return the stored frame without expanding it to canvas size."""
+        return self._frames[index]
+
+    def placement(self, index: int) -> Optional[Placement]:
+        """Return the canvas placement recorded for *index*."""
+        return self._placements[index]
+
+
+def pad_frames_to_canvas(
+    images: Sequence[FrameSource],
+    placements: Optional[Sequence[Optional[Placement]]] = None,
+) -> Sequence[np.ndarray]:
     """Pad frames so they share a common canvas size.
 
     Args:
         images: Sequence of PIL Images or NumPy arrays.
+        placements: Optional per-frame ``(offset_x, offset_y, canvas_w,
+            canvas_h)``. When supplied, frames are treated as tight crops
+            and expanded lazily, so the full sequence is never resident at
+            once.
 
     Returns:
-        List of RGBA NumPy arrays with identical dimensions.
+        Sequence of RGBA NumPy arrays with identical dimensions.
     """
     if not images:
         return []
+
+    if placements is not None and any(
+        placement is not None for placement in placements
+    ):
+        return LazyPaddedFrames(images, placements)
 
     arrays = [ensure_rgba_array(frame) for frame in images]
     heights = [array.shape[0] for array in arrays]

@@ -18,6 +18,11 @@ from .transform_matrix import TransformMatrix
 from .color_effect import ColorEffect
 from .metadata import compute_layers_length, extract_label_ranges_from_layers
 
+#: Absolute ceiling on a single rendered frame, in pixels (~1 GB as RGBA).
+#: Viewports are already clipped to the canvas, so this only trips on a
+#: genuinely degenerate transform — it is a crash guard, not a size policy.
+MAX_RENDER_PIXELS = 256 * 1024 * 1024
+
 IDENTITY_M3D = [
     1,
     0,
@@ -106,9 +111,13 @@ class Symbols:
         self.center_in_canvas = TransformMatrix(
             c=canvas_size[0] // 2, f=canvas_size[1] // 2
         )
+        self._length_cache: Dict[Optional[str], int] = {}
 
     def length(self, symbol_name):
         """Return the total frame count for the specified symbol.
+
+        Memoized: ``_resolve_instance_frame`` asks for this once per element
+        per frame, and recomputing it walks every layer of the timeline.
 
         Args:
             symbol_name: Symbol name, or ``None`` for the root timeline.
@@ -116,7 +125,12 @@ class Symbols:
         Returns:
             Number of frames, or 0 if the symbol does not exist.
         """
-        return compute_layers_length(self.timelines.get(symbol_name))
+        cached = self._length_cache.get(symbol_name, -1)
+        if cached >= 0:
+            return cached
+        value = compute_layers_length(self.timelines.get(symbol_name))
+        self._length_cache[symbol_name] = value
+        return value
 
     def render_symbol(self, name, frame_index):
         """Render a single frame of a symbol into a new RGBA image.
@@ -183,12 +197,57 @@ class Symbols:
         if union is None:
             return None
 
-        return (
-            max(0, union[0] - padding),
-            max(0, union[1] - padding),
-            union[2] + padding,
-            union[3] + padding,
-        )
+        return self._clip_to_canvas(union, padding)
+
+    def _clip_to_canvas(
+        self,
+        bounds: Tuple[int, int, int, int],
+        padding: int,
+    ) -> Tuple[int, int, int, int]:
+        """Pad *bounds* then clip them to the canvas rectangle.
+
+        Sprites are already dropped by ``SpriteAtlas.get_sprite`` once they
+        fall outside the canvas, so clipping here loses nothing that could
+        have been drawn. It does stop an extreme transform from producing a
+        viewport far larger than any renderable area.
+        """
+        min_x = max(0, bounds[0] - padding)
+        min_y = max(0, bounds[1] - padding)
+        max_x = min(self.canvas_size[0], bounds[2] + padding)
+        max_y = min(self.canvas_size[1], bounds[3] + padding)
+        return (min_x, min_y, max(min_x + 1, max_x), max(min_y + 1, max_y))
+
+    def iter_frame_bounds(
+        self,
+        name: Optional[str],
+        start_frame: int,
+        end_frame: int,
+        padding: int = 2,
+    ) -> List[Optional[Tuple[int, int, int, int]]]:
+        """Return per-frame bounds for a range, in one traversal.
+
+        ``compute_union_bounds`` discards the individual frame boxes it
+        computes.  Callers that render each frame at its own tight size need
+        them, and recomputing would double the (recursive) bounds work.
+
+        Args:
+            name: Symbol name, or ``None`` for the root timeline.
+            start_frame: First frame index (inclusive).
+            end_frame: Last frame index (exclusive).
+            padding: Extra pixels around each box for anti-alias safety.
+
+        Returns:
+            List aligned with ``range(start_frame, end_frame)``; entries are
+            ``None`` where the frame has no visible content.
+        """
+        per_frame: List[Optional[Tuple[int, int, int, int]]] = []
+        for frame_index in range(start_frame, end_frame):
+            bounds = self._compute_bounds(name, frame_index, self.center_in_canvas)
+            if bounds is None:
+                per_frame.append(None)
+                continue
+            per_frame.append(self._clip_to_canvas(bounds, padding))
+        return per_frame
 
     def render_symbol_compact(
         self,
@@ -216,35 +275,37 @@ class Symbols:
         compact_w = max(1, vp_x2 - vp_x)
         compact_h = max(1, vp_y2 - vp_y)
 
-        # Save original state
-        orig_canvas_size = self.canvas_size
-        orig_atlas_w = self.sprite_atlas.canvas_width
-        orig_atlas_h = self.sprite_atlas.canvas_height
+        # Hard allocation guard. A degenerate transform can produce a
+        # viewport of essentially unbounded size; without this the render
+        # below turns into a multi-gigabyte request that takes the process
+        # down instead of producing a (clipped) frame.
+        if compact_w * compact_h > MAX_RENDER_PIXELS:
+            warnings.warn(
+                f"Symbol `{name}` frame {frame_index} wants a "
+                f"{compact_w}x{compact_h} canvas; clipping to fit "
+                f"{MAX_RENDER_PIXELS} pixels"
+            )
+            ratio = math.sqrt(MAX_RENDER_PIXELS / float(compact_w * compact_h))
+            compact_w = max(1, int(compact_w * ratio))
+            compact_h = max(1, int(compact_h * ratio))
 
-        # Switch to compact viewport
-        self.canvas_size = (compact_w, compact_h)
-        self.sprite_atlas.canvas_width = compact_w
-        self.sprite_atlas.canvas_height = compact_h
+        # The compact size travels down the call chain as an argument rather
+        # than being written onto self/sprite_atlas. Mutate-and-restore
+        # worked only while one frame rendered at a time; passing it makes
+        # concurrent frame renders independent.
+        clip = (compact_w, compact_h)
 
         # Shift the center transform so full-canvas coords map to compact coords
         compact_center = TransformMatrix(
-            c=orig_canvas_size[0] // 2 - vp_x,
-            f=orig_canvas_size[1] // 2 - vp_y,
+            c=self.canvas_size[0] // 2 - vp_x,
+            f=self.canvas_size[1] // 2 - vp_y,
         )
 
-        try:
-            canvas = Image.new(
-                "RGBA", (compact_w, compact_h), color=self.background_color
-            )
-            self._render_symbol(
-                canvas, name, frame_index, compact_center, ColorEffect()
-            )
-            return canvas
-        finally:
-            # Restore original state
-            self.canvas_size = orig_canvas_size
-            self.sprite_atlas.canvas_width = orig_atlas_w
-            self.sprite_atlas.canvas_height = orig_atlas_h
+        canvas = Image.new("RGBA", clip, color=self.background_color)
+        self._render_symbol(
+            canvas, name, frame_index, compact_center, ColorEffect(), clip
+        )
+        return canvas
 
     def _compute_bounds(
         self,
@@ -347,7 +408,7 @@ class Symbols:
             math.ceil(float(max(corners[1]))),
         )
 
-    def _render_symbol(self, canvas, name, frame_index, matrix, color):
+    def _render_symbol(self, canvas, name, frame_index, matrix, color, clip=None):
         """Recursively composite symbol layers onto an existing canvas.
 
         Handles nested symbol instances and clipping mask layers.
@@ -358,7 +419,13 @@ class Symbols:
             frame_index: Frame index within the symbol's timeline.
             matrix: Accumulated affine transform.
             color: Accumulated colour effect.
+            clip: ``(width, height)`` of the target canvas. Threaded through
+                the recursion instead of read from shared state so parallel
+                frame renders cannot clobber each other; defaults to the
+                symbol-wide canvas size.
         """
+        if clip is None:
+            clip = self.canvas_size
 
         canvas_stack = []
         for layer in reversed(self.timelines.get(name, [])):
@@ -380,7 +447,7 @@ class Symbols:
 
             if (layer.get("Clpb") and not canvas_stack) or layer.get("LT") == "Clp":
                 canvas_stack.append(canvas)
-                canvas = Image.new("RGBA", self.canvas_size, color=(0, 0, 0, 0))
+                canvas = Image.new("RGBA", clip, color=(0, 0, 0, 0))
 
             for element in frame.get("E", []):
                 if "SI" in element:
@@ -406,6 +473,7 @@ class Symbols:
                         instance_frame,
                         matrix @ transform,
                         element_color,
+                        clip,
                     )
                 else:
                     atlas_instance = element.get("ASI", {})
@@ -414,7 +482,7 @@ class Symbols:
                         atlas_instance.get("M3D", IDENTITY_M3D)
                     )
                     sprite, dest = self.sprite_atlas.get_sprite(
-                        sprite_name, matrix @ transform, color
+                        sprite_name, matrix @ transform, color, clip
                     )
                     if sprite is not None:
                         canvas.alpha_composite(sprite, dest=dest)

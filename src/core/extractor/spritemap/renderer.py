@@ -20,16 +20,150 @@ from __future__ import annotations
 
 import json
 import math
-from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple
+import os
+import re
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 from PIL import Image
 
+from core.extractor.image_utils import FramePlacement, union_excluding_outliers
 from utils.utilities import Utilities
 from .sprite_atlas import SpriteAtlas
 from .symbols import Symbols
 from .metadata import collect_direct_child_symbols, collect_referenced_symbols
 from .normalizer import normalize_animation_document
 from .transform_matrix import TransformMatrix
+
+#: Matches ``spritemap.json`` / ``spritemap1.json`` ... ``spritemapN.json``.
+_PAGE_FILE_RE = re.compile(r"^spritemap(\d*)\.json$", re.IGNORECASE)
+
+#: Image extensions a spritemap page may point at, in preference order.
+_PAGE_IMAGE_EXTENSIONS = (".png", ".webp", ".dds", ".ktx2", ".jpg", ".jpeg", ".bmp")
+
+#: Hard ceiling on any single render canvas, in pixels. A malformed or
+#: extreme transform can otherwise ask for a multi-gigabyte allocation.
+MAX_CANVAS_PIXELS = 64 * 1024 * 1024
+
+#: Frame bytes allowed in flight across render threads at once. Caps what
+#: parallelism costs in memory, so speed cannot undo the memory savings.
+INFLIGHT_FRAME_BUDGET = 512 * 1024 * 1024
+
+
+def default_render_workers() -> int:
+    """Return a sensible default thread count for frame rendering."""
+    return max(1, min(8, (os.cpu_count() or 1)))
+
+
+def discover_spritemap_pages(
+    directory: Union[str, Path],
+) -> List[Tuple[Path, Optional[Path]]]:
+    """Find every ``spritemap*.json`` page in *directory* with its image.
+
+    Stock Adobe Animate writes a single ``spritemap.json``; Better Texture
+    Atlas splits overflow across ``spritemap1.json`` ... ``spritemapN.json``.
+    All of them belong to one animation and must be rendered together.
+
+    Args:
+        directory: Folder holding ``Animation.json`` and its pages.
+
+    Returns:
+        List of ``(json_path, image_path_or_None)`` sorted by page index.
+    """
+    directory = Path(directory)
+    if not directory.is_dir():
+        return []
+
+    found: List[Tuple[int, Path]] = []
+    for entry in directory.iterdir():
+        if not entry.is_file():
+            continue
+        match = _PAGE_FILE_RE.match(entry.name)
+        if match:
+            digits = match.group(1)
+            found.append((int(digits) if digits else 1, entry))
+    found.sort(key=lambda item: item[0])
+
+    pages: List[Tuple[Path, Optional[Path]]] = []
+    for _, json_path in found:
+        pages.append((json_path, _resolve_page_image(json_path)))
+    return pages
+
+
+def is_secondary_spritemap_page(image_path: Union[str, Path]) -> bool:
+    """Return ``True`` when *image_path* is a follow-on page of a set.
+
+    A multi-page export (``spritemap1.png`` ... ``spritemapN.png``) is one
+    animation, not N of them. Rendering starts from the first page and pulls
+    in the rest, so every later page must be filtered out of file listings —
+    otherwise the same animation is extracted once per sheet, multiplying
+    both runtime and peak memory by the page count.
+
+    Args:
+        image_path: Candidate spritesheet image.
+
+    Returns:
+        ``True`` if this page is covered by an earlier page in the same
+        directory and should not be listed on its own.
+    """
+    path = Path(image_path)
+    directory = path.parent
+    if not (directory / "Animation.json").is_file():
+        return False
+    if not _PAGE_FILE_RE.match(f"{path.stem}.json"):
+        return False
+
+    pages = discover_spritemap_pages(directory)
+    if len(pages) <= 1:
+        return False
+
+    for _, page_image in pages:
+        if page_image is None:
+            continue
+        try:
+            same = page_image.resolve() == path.resolve()
+        except OSError:
+            same = page_image.name == path.name
+        # The first page in index order represents the whole set.
+        return not same
+    return False
+
+
+def _resolve_page_image(json_path: Path) -> Optional[Path]:
+    """Locate the bitmap belonging to a spritemap page.
+
+    Prefers the ``meta.image`` filename declared inside the page, falling
+    back to a sibling sharing the JSON's stem.
+    """
+    try:
+        with open(json_path, "rb") as handle:
+            page = json.loads(handle.read().decode("utf-8-sig"))
+        declared = (page.get("meta") or {}).get("image")
+    except Exception:
+        declared = None
+
+    if isinstance(declared, str) and declared:
+        candidate = json_path.parent / declared
+        if candidate.is_file():
+            return candidate
+
+    for extension in _PAGE_IMAGE_EXTENSIONS:
+        candidate = json_path.with_suffix(extension)
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 class AdobeSpritemapRenderer:
@@ -62,6 +196,7 @@ class AdobeSpritemapRenderer:
         filter_single_frame: bool = True,
         filter_unused_symbols: bool = False,
         root_animation_only: bool = False,
+        max_render_workers: Optional[int] = None,
     ):
         """Load animation metadata, spritemap JSON, and the atlas image.
 
@@ -81,33 +216,45 @@ class AdobeSpritemapRenderer:
         """
 
         self.animation_path = animation_path
-        self.spritemap_json_path = spritemap_json_path
-        self.atlas_image_path = atlas_image_path
+        self.max_render_workers = (
+            default_render_workers()
+            if max_render_workers is None
+            else max(1, int(max_render_workers))
+        )
 
         with open(animation_path, "r", encoding="utf-8") as animation_file:
             self.animation_json = normalize_animation_document(
                 json.load(animation_file)
             )
 
-        with open(spritemap_json_path, "rb") as spritemap_file:
-            spritemap_json = json.loads(spritemap_file.read().decode("utf-8-sig"))
-
-        atlas_ext = (
-            atlas_image_path.rsplit(".", 1)[-1].lower()
-            if "." in atlas_image_path
-            else ""
+        json_paths, image_paths = self._resolve_pages(
+            animation_path, spritemap_json_path, atlas_image_path
         )
-        if atlas_ext in ("dds", "ktx2"):
-            from core.optimizer.texture_compress import load_gpu_texture
+        # Kept as scalars for callers that still read these attributes.
+        self.spritemap_json_path = str(json_paths[0]) if json_paths else None
+        self.atlas_image_path = str(image_paths[0]) if image_paths else None
+        self.spritemap_json_paths = [str(path) for path in json_paths]
+        self.atlas_image_paths = [str(path) if path else None for path in image_paths]
 
-            atlas_image = load_gpu_texture(atlas_image_path)
-        else:
-            atlas_image = Image.open(atlas_image_path)
+        page_jsons: List[Dict[str, Any]] = []
+        page_images: List[Optional[str]] = []
+        for json_path, image_path in zip(json_paths, image_paths):
+            if image_path is None:
+                continue
+            try:
+                with open(json_path, "rb") as spritemap_file:
+                    page_jsons.append(
+                        json.loads(spritemap_file.read().decode("utf-8-sig"))
+                    )
+            except (OSError, ValueError):
+                continue
+            page_images.append(str(image_path))
+
         if canvas_size is None:
             canvas_size = _infer_canvas_size(
                 self.animation_json,
-                spritemap_json,
-                atlas_image.size,
+                page_jsons,
+                _largest_page_size(page_images),
             )
         self.frame_rate = self.animation_json.get("MD", {}).get("FRT", 24)
         self.filter_single_frame = filter_single_frame
@@ -122,9 +269,74 @@ class AdobeSpritemapRenderer:
         else:
             self._referenced_symbols = None
         self.sprite_atlas = SpriteAtlas(
-            spritemap_json, atlas_image, canvas_size, resample
+            page_jsons, page_images, canvas_size, resample
         )
         self.symbols = Symbols(self.animation_json, self.sprite_atlas, canvas_size)
+
+    @staticmethod
+    def _resolve_pages(
+        animation_path: str,
+        spritemap_json_path: Union[str, Sequence[str], None],
+        atlas_image_path: Union[str, Sequence[str], None],
+    ) -> Tuple[List[Path], List[Optional[Path]]]:
+        """Work out which spritemap pages this render should cover.
+
+        An explicit sequence is honoured as-is.  A single page path is
+        expanded to every sibling ``spritemap*.json`` so multi-sheet exports
+        render as one animation instead of once per sheet with most sprites
+        missing.  Passing nothing discovers pages beside ``Animation.json``.
+        """
+
+        def _listify(value: Any) -> List[Any]:
+            if value is None:
+                return []
+            if isinstance(value, (str, Path)):
+                return [value]
+            if isinstance(value, Sequence):
+                return list(value)
+            return [value]
+
+        json_values = _listify(spritemap_json_path)
+        image_values = _listify(atlas_image_path)
+
+        if len(json_values) > 1 or (json_values and len(image_values) > 1):
+            paths = [Path(value) for value in json_values]
+            images: List[Optional[Path]] = [
+                Path(value) if value is not None else None for value in image_values
+            ]
+            while len(images) < len(paths):
+                images.append(_resolve_page_image(paths[len(images)]))
+            return paths, images[: len(paths)]
+
+        directory = (
+            Path(json_values[0]).parent
+            if json_values
+            else Path(animation_path).parent
+        )
+        discovered = discover_spritemap_pages(directory)
+
+        if discovered:
+            paths = [json_path for json_path, _ in discovered]
+            images = [image_path for _, image_path in discovered]
+            # Honour an explicitly supplied image for its own page, so a
+            # caller pointing at a renamed/relocated sheet still wins.
+            if json_values and image_values and image_values[0] is not None:
+                target = Path(json_values[0]).resolve()
+                for index, json_path in enumerate(paths):
+                    if json_path.resolve() == target:
+                        images[index] = Path(image_values[0])
+                        break
+            return paths, images
+
+        if json_values:
+            single = Path(json_values[0])
+            image = (
+                Path(image_values[0])
+                if image_values and image_values[0] is not None
+                else _resolve_page_image(single)
+            )
+            return [single], [image]
+        return [], []
 
     def get_root_animation_name(self) -> Optional[str]:
         """Return the display name of the root animation, if available.
@@ -328,49 +540,72 @@ class AdobeSpritemapRenderer:
         if start_frame >= end_frame:
             return []
 
-        union_bounds = self.symbols.compute_union_bounds(
-            symbol_name, start_frame, end_frame
-        )
-        if union_bounds is None:
-            return []
+        # Phase 1 renders each frame at its own bounds rather than at the
+        # animation-wide union, so the intermediate buffer costs the sum of
+        # the frames' real content instead of frame_count * union_area.
+        per_frame = self.symbols.iter_frame_bounds(symbol_name, start_frame, end_frame)
 
-        frames_with_index: List[Tuple[int, Image.Image]] = []
-        for frame_index in range(start_frame, end_frame):
+        # Empty frames are kept (as ``None`` content): they still occupy a
+        # slot in the timeline, and dropping them would shorten the
+        # animation and shift every later frame's timing.
+        tight: List[Tuple[int, Optional[Image.Image], Tuple[int, int]]] = []
+        boxes: List[Tuple[int, int, int, int]] = []
+
+        for offset, frame_index in enumerate(range(start_frame, end_frame)):
+            bounds = per_frame[offset]
+            if bounds is None:
+                tight.append((offset, None, (0, 0)))
+                continue
             frame_image = self.symbols.render_symbol_compact(
-                symbol_name, frame_index, union_bounds
+                symbol_name, frame_index, bounds
             )
-            if frame_image is not None:
-                frames_with_index.append((frame_index - start_frame, frame_image))
+            if frame_image is None:
+                continue
+            bbox = frame_image.getbbox()
+            if bbox is None:
+                frame_image.close()
+                tight.append((offset, None, (0, 0)))
+                continue
+            # Trim to actual pixels straight away, then track the union in
+            # canvas coordinates so every frame can share a final crop.
+            content = frame_image.crop(bbox)
+            frame_image.close()
+            origin = (bounds[0] + bbox[0], bounds[1] + bbox[1])
+            tight.append((offset, content, origin))
+            boxes.append(
+                (
+                    origin[0],
+                    origin[1],
+                    origin[0] + content.width,
+                    origin[1] + content.height,
+                )
+            )
 
-        if not frames_with_index:
+        extent = union_excluding_outliers(boxes)
+        if not tight or extent is None:
             return []
 
-        min_x, min_y, max_x, max_y = float("inf"), float("inf"), 0, 0
-        for _, frame in frames_with_index:
-            bbox = frame.getbbox()
-            if bbox:
-                min_x = min(min_x, bbox[0])
-                min_y = min(min_y, bbox[1])
-                max_x = max(max_x, bbox[2])
-                max_y = max(max_y, bbox[3])
-
-        if min_x > max_x:
-            return []
-
+        min_x, min_y, max_x, max_y = extent
+        final_width = max(1, int(max_x - min_x))
+        final_height = max(1, int(max_y - min_y))
         prefix = frame_name_prefix or (symbol_name if symbol_name else "timeline")
 
         rendered_frames: List[
             Tuple[str, Image.Image, Tuple[int, int, int, int, int, int]]
         ] = []
-        for frame_index, frame in frames_with_index:
-            cropped_frame = frame.crop((min_x, min_y, max_x, max_y))
-            frame.close()
-            frame_name = f"{prefix}_{frame_index:04d}"
+        for offset, content, origin in tight:
+            canvas = Image.new("RGBA", (final_width, final_height), (0, 0, 0, 0))
+            if content is not None:
+                canvas.paste(
+                    content,
+                    (int(origin[0] - min_x), int(origin[1] - min_y)),
+                )
+                content.close()
             rendered_frames.append(
                 (
-                    frame_name,
-                    cropped_frame,
-                    (0, 0, cropped_frame.width, cropped_frame.height, 0, 0),
+                    f"{prefix}_{offset:04d}",
+                    canvas,
+                    (0, 0, final_width, final_height, 0, 0),
                 )
             )
 
@@ -415,26 +650,104 @@ class AdobeSpritemapRenderer:
         if start_frame >= end_frame:
             return
 
-        viewport = self.symbols.compute_union_bounds(
-            symbol_name, start_frame, end_frame
-        )
-        if viewport is None:
-            return
-
+        # The bounds pass is geometric: it covers every sprite the timeline
+        # *references*, including ones that never draw (placed off-canvas,
+        # fully masked, or alpha'd out). Sizing the shared canvas from that
+        # lets a single stray sprite inflate an entire animation — on real
+        # exports by 10x or more. So each frame is rendered at its geometric
+        # box, then immediately trimmed to the pixels that actually landed,
+        # and only those trimmed boxes decide the canvas.
+        #
+        # The true canvas is therefore not known until every frame has been
+        # rendered. Frames are yielded with their absolute canvas-space
+        # origin and an unresolved placement; ``resolve_frame_placements``
+        # rewrites them once the real union is known.
+        per_frame = self.symbols.iter_frame_bounds(symbol_name, start_frame, end_frame)
         prefix = frame_name_prefix or (symbol_name if symbol_name else "timeline")
 
-        for frame_index in range(start_frame, end_frame):
+        def render_one(offset: int):
+            """Render frame *offset*, trimmed to the pixels that drew."""
+            bounds = per_frame[offset]
+            frame_name = f"{prefix}_{offset:04d}"
+            if bounds is None:
+                # An empty frame still occupies a slot in the timeline;
+                # dropping it would shorten the animation and shift timing.
+                return (
+                    frame_name,
+                    Image.new("RGBA", (1, 1), (0, 0, 0, 0)),
+                    FramePlacement(0, 0, 0, 0),
+                )
             frame_image = self.symbols.render_symbol_compact(
-                symbol_name, frame_index, viewport
+                symbol_name, start_frame + offset, bounds
             )
             if frame_image is None:
-                continue
-            frame_name = f"{prefix}_{frame_index - start_frame:04d}"
-            yield (
+                return None
+            bbox = frame_image.getbbox()
+            if bbox is None:
+                frame_image.close()
+                return (
+                    frame_name,
+                    Image.new("RGBA", (1, 1), (0, 0, 0, 0)),
+                    FramePlacement(0, 0, 0, 0),
+                )
+            content = frame_image.crop(bbox)
+            frame_image.close()
+            return (
                 frame_name,
-                frame_image,
-                (0, 0, frame_image.width, frame_image.height, 0, 0),
+                content,
+                FramePlacement(bounds[0] + bbox[0], bounds[1] + bbox[1], 0, 0),
             )
+
+        total = end_frame - start_frame
+        workers = self._render_workers(per_frame)
+
+        if workers <= 1:
+            for offset in range(total):
+                result = render_one(offset)
+                if result is not None:
+                    yield result
+            return
+
+        # Bounded look-ahead: never more than `workers` frames in flight, so
+        # concurrency costs a handful of canvases rather than the whole
+        # animation, and results still come out in timeline order.
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            pending: "deque" = deque()
+            next_offset = 0
+            while next_offset < total and len(pending) < workers:
+                pending.append(pool.submit(render_one, next_offset))
+                next_offset += 1
+            while pending:
+                result = pending.popleft().result()
+                if next_offset < total:
+                    pending.append(pool.submit(render_one, next_offset))
+                    next_offset += 1
+                if result is not None:
+                    yield result
+
+    def _render_workers(self, per_frame: Sequence[Optional[Tuple]]) -> int:
+        """Choose a thread count for rendering *per_frame*.
+
+        PIL releases the GIL inside its C imaging routines, so threads give
+        real parallelism here. The count is capped by how much frame data may
+        be in flight at once — concurrency must not undo the memory work by
+        keeping many large canvases alive simultaneously.
+        """
+        if self.max_render_workers == 1:
+            return 1
+
+        sizes = [
+            (bounds[2] - bounds[0]) * (bounds[3] - bounds[1])
+            for bounds in per_frame
+            if bounds is not None
+        ]
+        if len(sizes) < 2:
+            return 1
+
+        sizes.sort()
+        typical = sizes[int(0.9 * (len(sizes) - 1))] * 4  # bytes as RGBA
+        affordable = max(1, int(INFLIGHT_FRAME_BUDGET // max(1, typical)))
+        return max(1, min(self.max_render_workers, affordable, len(sizes)))
 
     def ensure_animation_defaults(self, settings_manager, spritesheet_name):
         """Populate animation duration defaults in the settings manager if missing.
@@ -568,11 +881,11 @@ def _infer_canvas_size(animation_json, spritemap_json, atlas_size):
 
     sprite_sizes = _collect_sprite_sizes(spritemap_json)
     if not sprite_sizes:
-        return atlas_size
+        return _clamp_canvas(atlas_size)
 
     timelines = _collect_timelines(animation_json)
     if not timelines:
-        return atlas_size
+        return _clamp_canvas(atlas_size)
 
     bounds_cache: Dict[Optional[str], Optional[Tuple[float, float, float, float]]] = {}
     visiting: set[Optional[str]] = set()
@@ -637,35 +950,79 @@ def _infer_canvas_size(animation_json, spritemap_json, atlas_size):
         max_abs_y = max(max_abs_y, abs(min_y), abs(max_y))
 
     if max_abs_x == 0 and max_abs_y == 0:
-        return atlas_size
+        return _clamp_canvas(atlas_size)
 
     padding = 32.0
     inferred_width = int(math.ceil(max_abs_x * 2.0 + padding))
     inferred_height = int(math.ceil(max_abs_y * 2.0 + padding))
-    return (
-        max(atlas_size[0], inferred_width),
-        max(atlas_size[1], inferred_height),
+    return _clamp_canvas(
+        (
+            max(atlas_size[0], inferred_width),
+            max(atlas_size[1], inferred_height),
+        )
     )
 
 
-def _collect_sprite_sizes(spritemap_json: Dict[str, Any]) -> Dict[str, Tuple[int, int]]:
+def _clamp_canvas(size: Tuple[int, int]) -> Tuple[int, int]:
+    """Return *size* as a sane positive ``(width, height)``.
+
+    The inferred canvas is a coordinate envelope, not an allocation: it sets
+    where content is centred, and shrinking it would push content past the
+    origin where viewport clamping silently crops it. The real allocation
+    guard lives in ``Symbols.render_symbol_compact``, which caps the compact
+    viewport that actually gets allocated.
+    """
+    return (max(1, int(size[0])), max(1, int(size[1])))
+
+
+def _largest_page_size(page_images: Sequence[Optional[str]]) -> Tuple[int, int]:
+    """Return the largest ``(width, height)`` across every page image.
+
+    Reads headers only — ``Image.open`` does not decode pixel data.
+    """
+    width = height = 0
+    for path in page_images:
+        if not path:
+            continue
+        try:
+            with Image.open(path) as handle:
+                page_width, page_height = handle.size
+        except Exception:
+            continue
+        width = max(width, page_width)
+        height = max(height, page_height)
+    return (width or 1, height or 1)
+
+
+def _collect_sprite_sizes(
+    spritemap_json: Union[Dict[str, Any], Sequence[Dict[str, Any]]],
+) -> Dict[str, Tuple[int, int]]:
     """Build a mapping of sprite names to their pixel dimensions.
 
     Args:
-        spritemap_json: Parsed spritemap JSON containing an ``ATLAS.SPRITES``
-            list.
+        spritemap_json: One parsed spritemap dict, or a sequence of page
+            dicts whose sprites are merged into a single namespace.
 
     Returns:
         Dict mapping each sprite name to its ``(width, height)`` in pixels.
     """
 
+    pages: Sequence[Dict[str, Any]]
+    if isinstance(spritemap_json, dict):
+        pages = [spritemap_json]
+    else:
+        pages = list(spritemap_json or [])
+
     sizes: Dict[str, Tuple[int, int]] = {}
-    for sprite in spritemap_json.get("ATLAS", {}).get("SPRITES", []):
-        data = sprite.get("SPRITE", sprite)
-        name = data.get("name")
-        if not name:
+    for page in pages:
+        if not isinstance(page, dict):
             continue
-        sizes[name] = (int(data.get("w", 0)), int(data.get("h", 0)))
+        for sprite in page.get("ATLAS", {}).get("SPRITES", []):
+            data = sprite.get("SPRITE", sprite)
+            name = data.get("name")
+            if not name or name in sizes:
+                continue
+            sizes[name] = (int(data.get("w", 0)), int(data.get("h", 0)))
     return sizes
 
 

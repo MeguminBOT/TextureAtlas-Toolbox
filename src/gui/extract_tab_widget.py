@@ -86,6 +86,7 @@ from core.extractor.spritemap.metadata import (
     extract_label_ranges,
 )
 from core.extractor.spritemap.normalizer import normalize_animation_document
+from core.extractor.spritemap.renderer import is_secondary_spritemap_page
 
 
 class SpritesheetFileDialog(QFileDialog):
@@ -1402,6 +1403,11 @@ class ExtractTabWidget(BaseTabWidget):
             spritemap_json = image_file.parent / f"{image_file.stem}.json"
             if not (animation_json.exists() and spritemap_json.exists()):
                 continue
+            # A multi-sheet export is one animation spread over several
+            # pages; the first page pulls in the rest, so listing the
+            # others would extract the same animation once per sheet.
+            if is_secondary_spritemap_page(image_file):
+                continue
             display_name = self._format_display_name(directory_path, image_file)
             if self.listbox_png.find_item_by_text(display_name):
                 continue
@@ -1440,6 +1446,10 @@ class ExtractTabWidget(BaseTabWidget):
         for file_path in files:
             path = Path(file_path)
             if path.suffix.lower() in image_exts:
+                # Later pages of a multi-sheet spritemap are rendered via
+                # the first page, so listing them would duplicate the work.
+                if is_secondary_spritemap_page(path):
+                    continue
                 display_name = self._format_display_name(
                     Path(temp_folder) if temp_folder else None, path
                 )

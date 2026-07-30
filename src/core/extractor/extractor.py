@@ -33,8 +33,13 @@ except ImportError:  # pragma: no cover - psutil is part of app requirements
 from core.extractor.animation_exporter import AnimationExporter
 from core.extractor.atlas_processor import AtlasProcessor
 from core.extractor.frame_exporter import FrameExporter
+from core.extractor.frame_buffer import FrameBuffer
 from core.extractor.frame_pipeline import FramePipeline
-from core.extractor.image_utils import ensure_rgba_array, scale_image
+from core.extractor.image_utils import (
+    ensure_rgba_array,
+    resolve_frame_placements,
+    scale_image,
+)
 from core.extractor.sprite_processor import SpriteProcessor
 from core.extractor.animation_processor import AnimationProcessor
 from core.extractor.preview_generator import PreviewGenerator
@@ -1188,6 +1193,7 @@ class Extractor:
                 root_animation_only=settings.get(
                     "spritemap_root_animation_only", False
                 ),
+                max_render_workers=settings.get("spritemap_render_threads"),
             )
             renderer.ensure_animation_defaults(self.settings_manager, spritesheet_name)
 
@@ -1264,66 +1270,126 @@ class Extractor:
         anims_generated = 0
 
         for animation_name, frame_iter in renderer.iter_animations():
-            # Eagerly consume the lazy frame iterator, converting each
-            # PIL image to a numpy array and closing the PIL image so
-            # only lightweight numpy arrays accumulate.
-            numpy_frames = []
-            for frame_name, pil_img, bounds in frame_iter:
-                arr = ensure_rgba_array(pil_img)
-                pil_img.close()
-                numpy_frames.append((frame_name, arr, bounds))
+            # Consume the lazy frame iterator, converting each PIL image to
+            # a numpy array and closing the PIL image immediately. Frames
+            # arrive cropped to their own content, and the buffer spills to
+            # disk past its budget, so a long full-scene timeline no longer
+            # pins gigabytes of heap.
+            frame_buffer = FrameBuffer()
+            try:
+                for frame_name, pil_img, bounds in frame_iter:
+                    arr = ensure_rgba_array(pil_img)
+                    pil_img.close()
+                    frame_buffer.append(frame_name, arr, bounds)
+                    arr = None
 
-            if not numpy_frames:
-                continue
+                if len(frame_buffer) == 0:
+                    continue
 
-            anim_settings = self.settings_manager.get_settings(
-                spritesheet_name, f"{spritesheet_name}/{animation_name}"
-            )
-            context = frame_pipeline.build_context(
-                spritesheet_name,
-                animation_name,
-                numpy_frames,
-                anim_settings,
-            )
+                if frame_buffer.spilled:
+                    logger.debug(
+                        "[spritemap] %s/%s: spilled %d of %d frames to disk",
+                        spritesheet_name,
+                        animation_name,
+                        frame_buffer.spilled,
+                        len(frame_buffer),
+                    )
 
-            if anim_settings.get("fnf_idle_loop") and "idle" in animation_name.lower():
-                anim_settings["delay"] = 0
-
-            frame_export = anim_settings.get("frame_export", False)
-            if frame_export and anim_settings.get("frame_format") != "None":
-                frames_generated += frame_exporter.save_frames(
-                    context.frames,
-                    context.kept_indices,
+                numpy_frames = frame_buffer.as_list()
+                # Frames arrive trimmed to drawn pixels with absolute
+                # origins; size the shared canvas from those now that the
+                # whole animation is known. A wholly blank animation is
+                # skipped rather than written out as empty frames.
+                if not resolve_frame_placements(numpy_frames):
+                    continue
+                anims_added, frames_added = self._export_streamed_animation(
                     spritesheet_name,
                     animation_name,
-                    anim_settings.get("scale"),
-                    anim_settings,
-                    False,
-                    progress_callback=sub_progress_callback,
+                    numpy_frames,
+                    frame_pipeline,
+                    frame_exporter,
+                    animation_exporter,
+                    sub_progress_callback,
                 )
-
-            animation_export = anim_settings.get("animation_export", False)
-            animation_format = anim_settings.get("animation_format")
-            if (
-                not context.single_frame
-                and animation_export
-                and animation_format != "None"
-            ):
-                anims_generated += animation_exporter.save_animations(
-                    context.frames,
-                    spritesheet_name,
-                    animation_name,
-                    anim_settings,
-                    progress_callback=sub_progress_callback,
-                )
-
-            # Free this animation's frames before rendering the next one
-            del numpy_frames
-            del context
-            gc.collect()
+                frames_generated += frames_added
+                anims_generated += anims_added
+            finally:
+                numpy_frames = None
+                frame_buffer.close()
+                gc.collect()
 
         result["frames_generated"] = frames_generated
         result["anims_generated"] = anims_generated
+
+    def _export_streamed_animation(
+        self,
+        spritesheet_name: str,
+        animation_name: str,
+        numpy_frames: list,
+        frame_pipeline: "FramePipeline",
+        frame_exporter: "FrameExporter",
+        animation_exporter: "AnimationExporter",
+        sub_progress_callback: Optional[Callable],
+    ) -> Tuple[int, int]:
+        """Run one rendered animation through the export pipeline.
+
+        Args:
+            spritesheet_name: Name of the source spritesheet.
+            animation_name: Name of this animation.
+            numpy_frames: ``(name, array, metadata)`` tuples for the animation.
+            frame_pipeline: Shared pipeline used to build the export context.
+            frame_exporter: Writes individual frames.
+            animation_exporter: Writes GIF/APNG/WebP output.
+            sub_progress_callback: Optional per-frame progress callback.
+
+        Returns:
+            ``(animations_generated, frames_generated)``.
+        """
+        frames_generated = 0
+        anims_generated = 0
+
+        anim_settings = self.settings_manager.get_settings(
+            spritesheet_name, f"{spritesheet_name}/{animation_name}"
+        )
+        context = frame_pipeline.build_context(
+            spritesheet_name,
+            animation_name,
+            numpy_frames,
+            anim_settings,
+        )
+
+        if anim_settings.get("fnf_idle_loop") and "idle" in animation_name.lower():
+            anim_settings["delay"] = 0
+
+        frame_export = anim_settings.get("frame_export", False)
+        if frame_export and anim_settings.get("frame_format") != "None":
+            frames_generated += frame_exporter.save_frames(
+                context.frames,
+                context.kept_indices,
+                spritesheet_name,
+                animation_name,
+                anim_settings.get("scale"),
+                anim_settings,
+                False,
+                progress_callback=sub_progress_callback,
+            )
+
+        animation_export = anim_settings.get("animation_export", False)
+        animation_format = anim_settings.get("animation_format")
+        if (
+            not context.single_frame
+            and animation_export
+            and animation_format != "None"
+        ):
+            anims_generated += animation_exporter.save_animations(
+                context.frames,
+                spritesheet_name,
+                animation_name,
+                anim_settings,
+                progress_callback=sub_progress_callback,
+            )
+
+        return anims_generated, frames_generated
 
     def _extract_spritemap_buffered(
         self,

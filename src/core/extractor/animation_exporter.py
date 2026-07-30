@@ -20,7 +20,9 @@ from core.extractor.frame_pipeline import (
 )
 from core.extractor.image_utils import (
     apply_alpha_threshold,
+    FramePlacement,
     FrameSource,
+    Placement,
     crop_to_bbox,
     ensure_rgba_array,
     frame_dimensions,
@@ -31,6 +33,26 @@ from utils.utilities import Utilities
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+
+def _placement_from_metadata(metadata) -> Optional[Placement]:
+    """Read a canvas placement out of a frame's metadata field.
+
+    Only ``FramePlacement`` counts. Atlas-based frames carry a same-length
+    tuple whose leading pair is a source-atlas coordinate, so shape-sniffing
+    here would mis-place every non-spritemap frame.
+
+    Args:
+        metadata: A frame tuple's third element.
+
+    Returns:
+        ``(offset_x, offset_y, canvas_w, canvas_h)``, or ``None``.
+    """
+    if not isinstance(metadata, FramePlacement):
+        return None
+    if metadata.canvas_width <= 0 or metadata.canvas_height <= 0:
+        return None
+    return metadata.placement()
 
 
 def _build_exif_comment(comment: str) -> Optional[bytes]:
@@ -120,7 +142,10 @@ class AnimationExporter:
         scale = settings.get("scale")
         threshold = settings.get("threshold")
 
-        images = pad_frames_to_canvas([img[1] for img in image_tuples])
+        images = pad_frames_to_canvas(
+            [img[1] for img in image_tuples],
+            [_placement_from_metadata(img[2]) for img in image_tuples],
+        )
 
         filename = settings.get("filename")
 

@@ -6,14 +6,33 @@ scaling, and compression options.
 """
 
 import os
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
+
 from PIL.PngImagePlugin import PngInfo
 
 from core.extractor.animation_exporter import _build_exif_comment
-from core.extractor.image_utils import ensure_pil_image
+from core.extractor.image_utils import (
+    FramePlacement,
+    ensure_pil_image,
+    materialize_frame,
+)
 from utils.utilities import Utilities
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+
+def export_workers(frame_count: int) -> int:
+    """Return how many threads to use when writing *frame_count* frames.
+
+    Kept modest on purpose: encoding parallelises well, but the writes
+    themselves land on one disk, so piling on threads buys nothing and
+    only adds contention.
+    """
+    if frame_count < 2:
+        return 1
+    return max(1, min(8, os.cpu_count() or 1, frame_count))
 
 
 class FrameExporter:
@@ -107,41 +126,79 @@ class FrameExporter:
             if animation_bbox is None:
                 return frames_generated
 
-        for index, frame in enumerate(image_tuples):
-            if index in kept_frame_indices:
-                frame_name = Utilities.basename_from_sprite_name(frame[0])
-                formatted_frame_name = Utilities.format_filename(
-                    settings.get("prefix"),
-                    spritesheet_name,
-                    frame_name,
-                    settings.get("filename_format"),
-                    settings.get("replace_rules"),
-                    settings.get("suffix"),
-                )
+        def export_one(index, frame):
+            """Expand, crop/scale and write a single frame. Returns 1 or 0."""
+            frame_name = Utilities.basename_from_sprite_name(frame[0])
+            formatted_frame_name = Utilities.format_filename(
+                settings.get("prefix"),
+                spritesheet_name,
+                frame_name,
+                settings.get("filename_format"),
+                settings.get("replace_rules"),
+                settings.get("suffix"),
+            )
 
-                frame_filename = os.path.join(
-                    frames_folder, f"{formatted_frame_name}{file_extension}"
-                )
-                frame_image = ensure_pil_image(frame[1])
-                final_frame_image = self._prepare_frame_image(
-                    frame_image,
-                    crop_option,
-                    animation_bbox,
-                    frame_scale,
-                    is_unknown_spritesheet,
-                )
-                if final_frame_image is None:
-                    continue
+            frame_filename = os.path.join(
+                frames_folder, f"{formatted_frame_name}{file_extension}"
+            )
+            # Spritemap frames arrive cropped to their own content; expand
+            # back onto the shared canvas so every exported file has uniform
+            # dimensions and animation-based cropping lines up. Done per
+            # frame, so only a bounded number of canvases are ever alive.
+            frame_image = ensure_pil_image(materialize_frame(frame[1], frame[2]))
+            final_frame_image = self._prepare_frame_image(
+                frame_image,
+                crop_option,
+                animation_bbox,
+                frame_scale,
+                is_unknown_spritesheet,
+            )
+            if final_frame_image is None:
+                return 0
 
-                self._save_frame_to_image(
-                    final_frame_image,
-                    frame_filename,
-                    frame_format,
-                    settings.get("compression_settings"),
-                )
-                frames_generated += 1
-                if progress_callback:
+            self._save_frame_to_image(
+                final_frame_image,
+                frame_filename,
+                frame_format,
+                settings.get("compression_settings"),
+            )
+            return 1
+
+        targets = [
+            (index, frame)
+            for index, frame in enumerate(image_tuples)
+            if index in kept_frame_indices
+        ]
+        if not targets:
+            return frames_generated
+
+        workers = export_workers(len(targets))
+        if workers <= 1:
+            for index, frame in targets:
+                frames_generated += export_one(index, frame)
+                if progress_callback and frames_generated:
                     progress_callback(frames_generated, total_kept)
+            return frames_generated
+
+        # Encoding is the bulk of the work here and Pillow releases the GIL
+        # while doing it, so threads scale. Writes go to distinct files, so
+        # the only shared state is the progress counter.
+        counter_lock = Lock()
+
+        def run(item):
+            nonlocal frames_generated
+            written = export_one(*item)
+            if written:
+                with counter_lock:
+                    frames_generated += written
+                    current = frames_generated
+                if progress_callback:
+                    progress_callback(current, total_kept)
+            return written
+
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            list(pool.map(run, targets))
+
         return frames_generated
 
     def _prepare_frame_image(
@@ -203,6 +260,17 @@ class FrameExporter:
             if index in kept_frame_indices:
                 bbox = ensure_pil_image(frame[1]).getbbox()
                 if bbox:
+                    # Tight spritemap crops report a local bbox; shift it
+                    # into canvas space instead of expanding the frame, so
+                    # this pre-pass stays allocation-free.
+                    placement = frame[2]
+                    if isinstance(placement, FramePlacement):
+                        bbox = (
+                            bbox[0] + placement.offset_x,
+                            bbox[1] + placement.offset_y,
+                            bbox[2] + placement.offset_x,
+                            bbox[3] + placement.offset_y,
+                        )
                     min_x = min(min_x, bbox[0])
                     min_y = min(min_y, bbox[1])
                     max_x = max(max_x, bbox[2])
