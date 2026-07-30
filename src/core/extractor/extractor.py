@@ -33,7 +33,6 @@ except ImportError:  # pragma: no cover - psutil is part of app requirements
 from core.extractor.animation_exporter import AnimationExporter
 from core.extractor.atlas_processor import AtlasProcessor
 from core.extractor.frame_exporter import FrameExporter
-from core.extractor.frame_buffer import FrameBuffer
 from core.extractor.frame_pipeline import FramePipeline
 from core.extractor.image_utils import (
     ensure_rgba_array,
@@ -1272,30 +1271,34 @@ class Extractor:
         for animation_name, frame_iter in renderer.iter_animations():
             # Consume the lazy frame iterator, converting each PIL image to
             # a numpy array and closing the PIL image immediately. Frames
-            # arrive cropped to their own content, and the buffer spills to
-            # disk past its budget, so a long full-scene timeline no longer
-            # pins gigabytes of heap.
-            frame_buffer = FrameBuffer()
+            # arrive cropped to their own content and held keyframes share
+            # one buffer, so an animation costs its distinct pixels only —
+            # no temporary files are written at any point.
+            numpy_frames: list = []
             try:
+                previous = None
                 for frame_name, pil_img, bounds in frame_iter:
-                    arr = ensure_rgba_array(pil_img)
-                    pil_img.close()
-                    frame_buffer.append(frame_name, arr, bounds)
+                    if pil_img is None:
+                        # Held keyframe: identical to the frame before it, so
+                        # it shares that frame's pixels instead of storing a
+                        # second copy. Shared buffers are read-only so an
+                        # in-place edit downstream cannot alter every repeat.
+                        arr = previous
+                    else:
+                        arr = ensure_rgba_array(pil_img)
+                        pil_img.close()
+                        if not arr.flags.writeable:
+                            arr = arr.copy()
+                        arr.flags.writeable = False
+                        previous = arr
+                    if arr is None:
+                        continue
+                    numpy_frames.append((frame_name, arr, bounds))
                     arr = None
 
-                if len(frame_buffer) == 0:
+                if not numpy_frames:
                     continue
 
-                if frame_buffer.spilled:
-                    logger.debug(
-                        "[spritemap] %s/%s: spilled %d of %d frames to disk",
-                        spritesheet_name,
-                        animation_name,
-                        frame_buffer.spilled,
-                        len(frame_buffer),
-                    )
-
-                numpy_frames = frame_buffer.as_list()
                 # Frames arrive trimmed to drawn pixels with absolute
                 # origins; size the shared canvas from those now that the
                 # whole animation is known. A wholly blank animation is
@@ -1314,8 +1317,8 @@ class Extractor:
                 frames_generated += frames_added
                 anims_generated += anims_added
             finally:
+                previous = None
                 numpy_frames = None
-                frame_buffer.close()
                 gc.collect()
 
         result["frames_generated"] = frames_generated

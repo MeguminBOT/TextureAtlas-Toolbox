@@ -699,31 +699,59 @@ class AdobeSpritemapRenderer:
             )
 
         total = end_frame - start_frame
-        workers = self._render_workers(per_frame)
+
+        # Animate holds a keyframe across its whole DU span, so long runs of
+        # consecutive frames composite the identical element tree. Rendering
+        # and storing each one again is pure waste: on a real export a little
+        # over half of all frames are byte-identical repeats. Signatures are
+        # cheap timeline maths, so only the first frame of each run is
+        # rendered; repeats yield a None image meaning "same as the previous
+        # frame" and cost nothing in memory or on disk.
+        signatures = [
+            self.symbols.frame_signature(symbol_name, start_frame + offset)
+            for offset in range(total)
+        ]
+        run_starts = [
+            offset
+            for offset in range(total)
+            if offset == 0 or signatures[offset] != signatures[offset - 1]
+        ]
+
+        rendered: Dict[int, Any] = {}
+        workers = self._render_workers([per_frame[o] for o in run_starts])
 
         if workers <= 1:
-            for offset in range(total):
-                result = render_one(offset)
-                if result is not None:
-                    yield result
-            return
+            for offset in run_starts:
+                rendered[offset] = render_one(offset)
+        else:
+            # Bounded look-ahead: never more than `workers` frames in flight,
+            # so concurrency costs a handful of canvases rather than the whole
+            # animation.
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                pending: "deque" = deque()
+                cursor = 0
+                while cursor < len(run_starts) and len(pending) < workers:
+                    offset = run_starts[cursor]
+                    pending.append((offset, pool.submit(render_one, offset)))
+                    cursor += 1
+                while pending:
+                    offset, future = pending.popleft()
+                    rendered[offset] = future.result()
+                    if cursor < len(run_starts):
+                        nxt = run_starts[cursor]
+                        pending.append((nxt, pool.submit(render_one, nxt)))
+                        cursor += 1
 
-        # Bounded look-ahead: never more than `workers` frames in flight, so
-        # concurrency costs a handful of canvases rather than the whole
-        # animation, and results still come out in timeline order.
-        with ThreadPoolExecutor(max_workers=workers) as pool:
-            pending: "deque" = deque()
-            next_offset = 0
-            while next_offset < total and len(pending) < workers:
-                pending.append(pool.submit(render_one, next_offset))
-                next_offset += 1
-            while pending:
-                result = pending.popleft().result()
-                if next_offset < total:
-                    pending.append(pool.submit(render_one, next_offset))
-                    next_offset += 1
-                if result is not None:
-                    yield result
+        last_placement: Optional[FramePlacement] = None
+        for offset in range(total):
+            result = rendered.get(offset)
+            if result is not None:
+                last_placement = result[2]
+                yield result
+            elif offset not in rendered and last_placement is not None:
+                # Repeat of the frame before it: identical content, so it
+                # reuses that frame's pixels and placement.
+                yield (f"{prefix}_{offset:04d}", None, last_placement)
 
     def _render_workers(self, per_frame: Sequence[Optional[Tuple]]) -> int:
         """Choose a thread count for rendering *per_frame*.

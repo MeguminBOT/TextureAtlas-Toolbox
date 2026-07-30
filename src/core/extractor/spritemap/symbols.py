@@ -7,6 +7,7 @@ recursively evaluating symbol instances.
 
 from __future__ import annotations
 
+import hashlib
 import math
 import warnings
 from typing import Dict, List, Optional, Tuple
@@ -306,6 +307,97 @@ class Symbols:
             canvas, name, frame_index, compact_center, ColorEffect(), clip
         )
         return canvas
+
+    def frame_signature(self, name: Optional[str], frame_index: int) -> bytes:
+        """Return a digest of everything that affects how a frame renders.
+
+        Animate holds a keyframe for its whole ``DU`` span, so a timeline
+        routinely resolves to the same picture for many consecutive frame
+        indices. Two frames with the same signature composite the identical
+        element tree and therefore produce identical pixels, so the second
+        one need not be rendered or stored at all.
+
+        The walk mirrors :meth:`_render_symbol` exactly — same layer order,
+        same keyframe lookup, same clip handling, same recursion — and folds
+        in every input that reaches the compositor: symbol identity, resolved
+        child frame, transform, colour effect, and sprite name.
+
+        Args:
+            name: Symbol name, or ``None`` for the root timeline.
+            frame_index: Zero-based frame index.
+
+        Returns:
+            A digest that is equal exactly when the render would be equal.
+        """
+        digest = hashlib.blake2b(digest_size=16)
+        self._collect_signature(name, frame_index, digest, 0)
+        return digest.digest()
+
+    def _collect_signature(
+        self,
+        name: Optional[str],
+        frame_index: int,
+        digest: "hashlib._Hash",
+        depth: int,
+    ) -> None:
+        """Fold one symbol's resolved state at *frame_index* into *digest*."""
+        if depth > 64:
+            # Matches the recursion guard elsewhere; a cycle would otherwise
+            # spin here. Feeding a marker keeps distinct states distinct.
+            digest.update(b"|cycle")
+            return
+
+        digest.update(b"|S")
+        digest.update(str(name).encode("utf-8", "replace"))
+
+        for layer_index, layer in enumerate(reversed(self.timelines.get(name, []))):
+            frames = layer.get("FR", [])
+            if not frames:
+                continue
+
+            low = 0
+            high = len(frames) - 1
+            while low != high:
+                mid = (low + high + 1) // 2
+                if frame_index < frames[mid]["I"]:
+                    high = mid - 1
+                else:
+                    low = mid
+            frame = frames[low]
+            if not (frame["I"] <= frame_index < frame["I"] + frame["DU"]):
+                continue
+
+            # Layer identity and clip role change how the canvas stack is
+            # built, so they belong in the signature even though they are
+            # not per-element data.
+            digest.update(b"|L")
+            digest.update(str(layer_index).encode())
+            digest.update(str(layer.get("LT")).encode())
+            digest.update(str(layer.get("Clpb")).encode())
+            digest.update(str(layer.get("LN")).encode())
+
+            for element in frame.get("E", []):
+                if "SI" in element:
+                    instance = element["SI"]
+                    element_name = instance.get("SN")
+                    if not element_name:
+                        continue
+                    instance_frame = self._resolve_instance_frame(
+                        element_name, instance, frame["I"], frame_index
+                    )
+                    digest.update(b"|I")
+                    digest.update(repr(instance.get("M3D", IDENTITY_M3D)).encode())
+                    digest.update(repr(instance.get("C")).encode())
+                    self._collect_signature(
+                        element_name, instance_frame, digest, depth + 1
+                    )
+                else:
+                    atlas_instance = element.get("ASI", {})
+                    digest.update(b"|A")
+                    digest.update(str(atlas_instance.get("N")).encode())
+                    digest.update(
+                        repr(atlas_instance.get("M3D", IDENTITY_M3D)).encode()
+                    )
 
     def _compute_bounds(
         self,
