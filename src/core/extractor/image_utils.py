@@ -351,6 +351,21 @@ class LazyPaddedFrames(_SequenceABC):
         """Return the stored frame without expanding it to canvas size."""
         return self._frames[index]
 
+    def same_content(self, first: int, second: int) -> bool:
+        """Return ``True`` when two frames would expand to identical pixels.
+
+        Held keyframes share one buffer upstream, so identity plus an equal
+        placement is enough — and answering without expanding either frame is
+        what lets callers collapse duplicates before paying for them.
+        """
+        left = self._frames[first]
+        right = self._frames[second]
+        if left is None or right is None:
+            return False
+        if left is not right:
+            return False
+        return self._placements[first] == self._placements[second]
+
     def placement(self, index: int) -> Optional[Placement]:
         """Return the canvas placement recorded for *index*."""
         return self._placements[index]

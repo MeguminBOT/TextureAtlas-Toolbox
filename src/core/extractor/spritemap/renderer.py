@@ -197,6 +197,7 @@ class AdobeSpritemapRenderer:
         filter_unused_symbols: bool = False,
         root_animation_only: bool = False,
         max_render_workers: Optional[int] = None,
+        include_root_animation: bool = False,
     ):
         """Load animation metadata, spritemap JSON, and the atlas image.
 
@@ -260,6 +261,13 @@ class AdobeSpritemapRenderer:
         self.filter_single_frame = filter_single_frame
         self.filter_unused_symbols = filter_unused_symbols
         self.root_animation_only = root_animation_only
+        # The root timeline of a Better Texture Atlas export is the packing
+        # stage: every animation laid out side by side, ending on a marker
+        # frame that exists only so the exporter includes all symbols. It is
+        # not an animation anyone plays, but it spans the whole stage, so
+        # encoding it costs more than every real animation combined. Off by
+        # default; `root_animation_only` still forces it on.
+        self.include_root_animation = include_root_animation or root_animation_only
 
         direct_children = collect_direct_child_symbols(self.animation_json)
         if direct_children:
@@ -411,7 +419,7 @@ class AdobeSpritemapRenderer:
 
         # Render the root animation (full AN timeline) if it exists
         root_name = self.get_root_animation_name()
-        if root_name:
+        if root_name and self.include_root_animation:
             root_frames = self._render_symbol_frames(None)
             if root_frames:
                 if not self.filter_single_frame or len(root_frames) > 1:
@@ -468,7 +476,7 @@ class AdobeSpritemapRenderer:
             ``frame_iterator`` yields ``(frame_name, image, bounds)``.
         """
         root_name = self.get_root_animation_name()
-        if root_name:
+        if root_name and self.include_root_animation:
             total = self.symbols.length(None)
             if not self.filter_single_frame or total > 1:
                 yield root_name, self._iter_symbol_frames(None)
@@ -795,7 +803,7 @@ class AdobeSpritemapRenderer:
 
         # Ensure defaults for the root animation
         root_name = self.get_root_animation_name()
-        if root_name:
+        if root_name and self.include_root_animation:
             full_name = f"{spritesheet_name}/{root_name}"
             sprite_settings = settings_manager.animation_settings.setdefault(
                 full_name, {}

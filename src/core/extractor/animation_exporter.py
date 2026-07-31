@@ -21,6 +21,7 @@ from core.extractor.frame_pipeline import (
 from core.extractor.image_utils import (
     apply_alpha_threshold,
     FramePlacement,
+    LazyPaddedFrames,
     FrameSource,
     Placement,
     crop_to_bbox,
@@ -33,6 +34,44 @@ from utils.utilities import Utilities
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+
+def _group_identical_frames(images, durations, merge_duplicates):
+    """Collapse consecutive identical frames into one entry per run.
+
+    A run of N identical frames is one picture held for N ticks, so it can be
+    emitted once with the summed delay. That is both what the format is for
+    and what keeps ImageMagick from caching N copies of the same pixels.
+
+    Only ``LazyPaddedFrames`` can answer "are these the same?" without
+    expanding both frames, so other sequences pass through untouched rather
+    than paying to find out.
+
+    Args:
+        images: Frame sequence handed to the encoder.
+        durations: Per-frame delay in milliseconds.
+        merge_duplicates: When ``False`` every frame is kept as authored.
+
+    Returns:
+        List of ``(source_index, delay_ms)``. Frames are deliberately *not*
+        materialised here — expanding them upfront would hold the whole
+        sequence at canvas size at once, which is exactly what the lazy
+        padding exists to avoid.
+    """
+    total = len(images)
+    if not merge_duplicates or total < 2 or not isinstance(images, LazyPaddedFrames):
+        return [(index, durations[index]) for index in range(total)]
+
+    groups = []
+    start = 0
+    while start < total:
+        end = start + 1
+        while end < total and images.same_content(start, end):
+            end += 1
+        delay = sum(durations[index] for index in range(start, end))
+        groups.append((start, delay))
+        start = end
+    return groups
 
 
 def _placement_from_metadata(metadata) -> Optional[Placement]:
@@ -411,9 +450,19 @@ class AnimationExporter:
             set() if len(images) > 1 and merge_duplicates else None
         )
 
+        # Collapse runs of identical frames before they reach ImageMagick.
+        # A held keyframe is one picture shown for N ticks, which GIF encodes
+        # as a single frame with a longer delay. Appending it N times and
+        # pruning afterwards (what remove_dups does) means ImageMagick's
+        # pixel cache holds every copy first -- on a long timeline that is
+        # gigabytes of scratch, and it was filling the disk.
+        groups = _group_identical_frames(images, durations, merge_duplicates)
+
+        appended = 0
         with WandImg(width=width, height=height) as animation:
             animation.image_remove()
-            for index, frame in enumerate(images):
+            for index, frame_delay in groups:
+                frame = images[index]
                 # Per-frame transform pipeline: keep at most one frame's
                 # working buffer alive at a time. Previously the crop and
                 # threshold passes were eager list-comprehensions, which
@@ -441,16 +490,17 @@ class AnimationExporter:
                     wand_frame.background_color = Color("None")
                     wand_frame.alpha_channel = "background"
 
-                    wand_frame.delay = int(durations[index] / 10)
+                    wand_frame.delay = int(frame_delay / 10)
                     wand_frame.dispose = "background"
                     animation.sequence.append(wand_frame)
                 # Drop our references so the per-frame buffer can be
                 # reclaimed before we allocate the next one.
                 arr = None
                 images[index] = None
+                appended += 1
                 if progress_callback:
                     try:
-                        progress_callback(index + 1, len(durations))
+                        progress_callback(appended, len(groups))
                     except Exception:
                         pass
             signature_cache = None

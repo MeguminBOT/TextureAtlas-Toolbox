@@ -1381,6 +1381,12 @@ class ExtractTabWidget(BaseTabWidget):
             image_files.extend(sorted(directory_path.glob(f"*{ext}")))
 
         for image_file in sorted(image_files):
+            # Multi-sheet exports live at this level too when the chosen
+            # folder *is* the export folder. The first page renders the whole
+            # animation and pulls the other sheets in with it, so listing
+            # them separately re-renders everything once per sheet.
+            if is_secondary_spritemap_page(image_file):
+                continue
             display_name = self._format_display_name(directory_path, image_file)
             if self.listbox_png.find_item_by_text(display_name):
                 continue

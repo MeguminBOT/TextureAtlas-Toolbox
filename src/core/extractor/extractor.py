@@ -1193,6 +1193,9 @@ class Extractor:
                     "spritemap_root_animation_only", False
                 ),
                 max_render_workers=settings.get("spritemap_render_threads"),
+                include_root_animation=settings.get(
+                    "spritemap_export_root_animation", False
+                ),
             )
             renderer.ensure_animation_defaults(self.settings_manager, spritesheet_name)
 
